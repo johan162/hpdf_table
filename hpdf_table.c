@@ -48,9 +48,9 @@
 #define _IDX(r,c) (r*t->cols+c)
 
 /* Default styles */
-#define HPDF_TABLE_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HELVETICA_BOLD,14,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.9}, LEFT}
+#define HPDF_TABLE_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HELVETICA_BOLD,12,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.9}, LEFT}
 #define HPDF_TABLE_DEFAULT_HEADER_STYLE (hpdf_text_style_t){HELVETICA_BOLD,10,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.97}, CENTER}
-#define HPDF_TABLE_DEFAULT_LABEL_STYLE (hpdf_text_style_t){TIMES_ITALIC,8,(HPDF_RGBColor){0.4,0.4,0.4},(HPDF_RGBColor){1,1,1}, LEFT}
+#define HPDF_TABLE_DEFAULT_LABEL_STYLE (hpdf_text_style_t){TIMES_ITALIC,9,(HPDF_RGBColor){0.4,0.4,0.4},(HPDF_RGBColor){1,1,1}, LEFT}
 #define HPDF_TABLE_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){COURIER,10,(HPDF_RGBColor){0.3,0.3,0.5},(HPDF_RGBColor){1,1,1}, LEFT}
 #define HPDF_TABLE_DEFAULT_INNER_BORDER_STYLE (hpdf_border_style_t){0.7, (HPDF_RGBColor){0.5,0.5,0.5},0}
 #define HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE (hpdf_border_style_t){1.0, (HPDF_RGBColor){0.2,0.2,0.2},0}
@@ -59,6 +59,14 @@
 #define _CHK_TABLE(t) do {\
     if( NULL == t ) { err_code=-3;err_row=-1;err_col=-1;return -1; }\
  } while(0)
+
+/** Last automatically calculated total height */
+static HPDF_REAL last_auto_height;
+
+/** Specify position of tables as top left. By default bottom left is used
+ *  as base point,
+ */
+static HPDF_REAL origin_as_top_left=FALSE;
 
 // Internal state variable to keep track of necessary encodings
 static char *target_encoding = DEFAULT_TARGET_ENCODING;
@@ -78,6 +86,7 @@ static char *error_descriptions[] = {
     "Cell spanning will exceed table dimension",    /* 7 */
     "Use of undefined line style",                  /* 8 */
     "Invalid theme handler"                         /* 9 */
+    "No auto height available"                      /* 10  */
 };
 
 
@@ -114,6 +123,15 @@ hpdf_table_set_line_dash(hpdf_table_t t, hpdf_table_line_style_t style ) {
     return 0;
 }
 
+/**
+ * Set base point for table positioning. By default the bottom left is used.
+ * Calling this function can set the basepoint to top left instead.
+ * @param origin Set to TRUE to use top left as origin
+ */
+void
+hpdf_table_set_origin_top_left(const _Bool origin) {
+    origin_as_top_left = origin;
+}
 
 /**
  * Return last error code. if errstr is not NULL a human
@@ -719,7 +737,7 @@ _set_fontc(const hpdf_table_t t, char *fontname, HPDF_REAL fsize, HPDF_RGBColor 
  * @param cb Callback function
  */
 int
-hpdf_table_set_content_callback(hpdf_table_t t, hpdf_table_content_callback cb) {
+hpdf_table_set_content_callback(hpdf_table_t t, hpdf_table_content_callback_t cb) {
     _CHK_TABLE(t);
     t->content_cb = cb;
     return 0;
@@ -735,7 +753,7 @@ hpdf_table_set_content_callback(hpdf_table_t t, hpdf_table_content_callback cb) 
  * @return -1 on failure, 0 otherwise
  */
 int
-hpdf_table_set_cell_content_callback(hpdf_table_t t, hpdf_table_content_callback cb, size_t r, size_t c) {
+hpdf_table_set_cell_content_callback(hpdf_table_t t, size_t r, size_t c, hpdf_table_content_callback_t cb) {
     _CHK_TABLE(t);
     if( !_chk(t,r,c) )
         return -1;
@@ -764,7 +782,7 @@ hpdf_table_set_cell_content_callback(hpdf_table_t t, hpdf_table_content_callback
  * @param cb Callback function
  */
 int
-hpdf_table_set_label_callback(hpdf_table_t t, hpdf_table_content_callback cb) {
+hpdf_table_set_label_callback(hpdf_table_t t, hpdf_table_content_callback_t cb) {
     _CHK_TABLE(t);
     t->label_cb = cb;
     return 0;
@@ -815,16 +833,18 @@ _stroke_haligned_text(hpdf_table_t t, char *txt, hpdf_table_text_align_t align, 
  * Internal function.Stroke the optional table title
  * @param t Table handle
  */
-static void
+static HPDF_REAL
 _table_title_stroke(const hpdf_table_t t) {
     if (t->title_txt == NULL)
-        return;
+        return 0;
+
+    const HPDF_REAL height = 1.5 * t->title_style.fsize;
 
     // Stoke outer border and fill
     HPDF_Page_SetRGBStroke(t->pdf_page, t->outer_border.color.r, t->outer_border.color.g, t->outer_border.color.b);
     HPDF_Page_SetRGBFill(t->pdf_page, t->title_style.background.r, t->title_style.background.g, t->title_style.background.b);
     HPDF_Page_SetLineWidth(t->pdf_page, t->outer_border.width);
-    HPDF_Page_Rectangle(t->pdf_page, t->posx, t->posy + t->height, t->width, 1.5 * t->title_style.fsize);
+    HPDF_Page_Rectangle(t->pdf_page, t->posx, t->posy + t->height, t->width, height);
     HPDF_Page_FillStroke(t->pdf_page);
 
     _set_fontc(t, t->title_style.font, t->title_style.fsize, t->title_style.color);
@@ -843,6 +863,8 @@ _table_title_stroke(const hpdf_table_t t) {
     _text_out(t->pdf_page, xpos, ypos, t->title_txt);
     HPDF_Page_EndText(t->pdf_page);
 
+    // Return height of the stroked bounding box
+    return height;
 }
 
 /**
@@ -941,6 +963,7 @@ hpdf_table_set_content_style(hpdf_table_t t, char *font, HPDF_REAL fsize, HPDF_R
  * @param font Font name
  * @param fsize Font size
  * @param color Color
+ * @return 0 on success, -1 on failure
  */
 int
 hpdf_table_set_cell_content_style(hpdf_table_t t, size_t r, size_t c, char *font, HPDF_REAL fsize, HPDF_RGBColor color, HPDF_RGBColor background) {
@@ -954,6 +977,28 @@ hpdf_table_set_cell_content_style(hpdf_table_t t, size_t r, size_t c, char *font
     return 0;
 }
 
+/**
+ * Set callback to format the style for the specified cell
+ * @param t Table handle
+ * @param r Cell row
+ * @param c Cell column
+ * @param cb Callback function
+ * @return 0 on success, -1 on failure
+ */
+int
+hpdf_table_set_cell_content_style_callback(hpdf_table_t t, size_t r, size_t c, hpdf_table_content_style_callback_t cb) {
+    _CHK_TABLE(t);
+    _chk(t,r,c);
+    // If this cell is part of another cells spanning then
+    // indicate this as an error
+    haru_table_cell_t *cell = &t->cells[_IDX(r, c)];
+    if( cell->parent_cell ) {
+        _SET_ERR(-1,r,c);
+        return -1;
+    }
+    cell->style_cb = cb;
+    return 0;
+}
 
 /**
  * Set font options for title
@@ -1078,9 +1123,13 @@ hpdf_table_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdf_table_spe
         if( -1 == hpdf_table_set_cellspan(t,spec->r, spec->c,spec->rspan,spec->cspan) ) {
             return -1;
         }
-        if( -1 == hpdf_table_set_cell_content_callback(t,spec->cb,spec->r,spec->c) ) {
+        if( -1 == hpdf_table_set_cell_content_callback(t,spec->r,spec->c,spec->cb) ) {
             return -1;
         }
+        if( -1 == hpdf_table_set_cell_content_style_callback(t,spec->r,spec->c,spec->style_cb) ) {
+            return -1;
+        }
+
 
         i++;
 
@@ -1156,11 +1205,15 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
     if (t->use_header_row && r == 0) {
         _set_fontc(t, t->header_style.font, t->header_style.fsize, t->header_style.color);
     } else {
-        // Check if cell has its own stye which should override global setting
-        if( cell->content_style.font ) {
+        _set_fontc(t, t->content_style.font, t->content_style.fsize, t->content_style.color);
+        // Check if cell has its own stye which should override global setting but a defined
+        // callback will override both
+        hpdf_text_style_t cb_val = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize, t->content_style.color, t->content_style.background};
+        if( cell->style_cb && cell->style_cb(t->tag, r, c, &cb_val) ) {
+            _set_fontc(t, cb_val.font, cb_val.fsize, cb_val.color);
+        }
+        else if( cell->content_style.font ) {
             _set_fontc(t, cell->content_style.font, cell->content_style.fsize, cell->content_style.color);
-        } else {
-            _set_fontc(t, t->content_style.font, t->content_style.fsize, t->content_style.color);
         }
     }
 
@@ -1190,6 +1243,23 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
 }
 
 /**
+ * Get the last automatically calculated heigh when stroking a table.
+ * (The height will be automatically calculated if it was specified as 0)
+ * @param t Table handle
+ * @param height Returned height
+ * @return -1 on error, 0 if successful
+ */
+int
+hpdf_table_get_last_auto_height(HPDF_REAL *height) {
+    if( last_auto_height > 0 ) {
+      *height=last_auto_height ;
+      return 0;
+    }
+    _SET_ERR(-10,-1,-1);
+    return -1;
+}
+
+/**
  * Stroke the table at the specified position and size. The position is specified
  * as the lower left corner of the table
  * @param pdf The HPDF document handle
@@ -1203,7 +1273,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
  */
 int
 hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
-        const HPDF_REAL x, const HPDF_REAL y,
+        const HPDF_REAL xpos, const HPDF_REAL ypos,
         const HPDF_REAL width, HPDF_REAL height) {
 
     if (NULL == pdf || NULL == page || NULL == t) {
@@ -1211,6 +1281,11 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
         return -1;
     }
 
+    // Local positions to enable position adjustment
+    HPDF_REAL y=ypos;
+    HPDF_REAL x=xpos;
+
+    last_auto_height = 0;
     if (height <= 0) {
         // Calculate height automagically based on number of rows
         // and font sizes
@@ -1218,6 +1293,15 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
         if (t->use_cell_labels)
             height += t->label_style.fsize;
         height *= 1.5 * t->rows;
+        last_auto_height = height;
+    }
+
+    const HPDF_REAL page_height = HPDF_Page_GetHeight(page);
+    if( origin_as_top_left ) {
+        y = page_height - ypos - height;
+        if( t->title_txt ) {
+            y -= 1.5 * t->title_style.fsize;
+        }
     }
 
     t->pdf_doc = pdf;
@@ -1244,7 +1328,15 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
             // Only cells which are not covered by a parent spanning cell will be stroked
             if (cell->parent_cell == NULL) {
 
-                if( cell->content_style.font ) {
+                if( cell->style_cb ) {
+                    hpdf_text_style_t style = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize, t->content_style.color, t->content_style.background};
+                    if( cell->style_cb(t->tag,r,c,&style) ) {
+                        HPDF_Page_SetRGBFill(page, style.background.r, style.background.g, style.background.b);
+                        HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
+                        HPDF_Page_Fill(page);
+                    }
+                }
+                else if( cell->content_style.font ) {
                     // If cell has its own style set this will override and we have to stroke the background here
                     HPDF_Page_SetRGBFill(page, cell->content_style.background.r, cell->content_style.background.g, cell->content_style.background.b);
                     HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
@@ -1299,7 +1391,10 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
     }
 
     // Stroke title
-    _table_title_stroke(t);
+    const HPDF_REAL title_height = _table_title_stroke(t);
+    if( last_auto_height > 0 ) {
+        last_auto_height += title_height;
+    }
 
     return 0;
 }

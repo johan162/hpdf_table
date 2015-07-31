@@ -7,7 +7,7 @@
  * Copyright (C) 2015 Johan Persson
  *
  * Released under the MIT License
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -51,7 +51,7 @@ extern "C" {
 #define COURIER_IALIC "Courier-Oblique"
 #define COURIER_BOLDITALIC "Courier-BoldOblique"
 
-#define DEFAULT_TARGET_ENCODING "ISO8859-4"    
+#define DEFAULT_TARGET_ENCODING "ISO8859-4"
 #define DEFAULT_SOURCE_ENCODING "UTF-8"
 
 #define HTABLE_TEXT_HALIGN_LEFT 0
@@ -63,11 +63,6 @@ extern "C" {
         LEFT = 0, CENTER = 1, RIGHT = 2
     } hpdf_table_text_align_t;
 
-    // tag, row, col
-    typedef char * (*hpdf_table_content_callback)(void *, size_t, size_t);
-
-    // page, tag, row, col, x, y, width, height
-    typedef void (*hpdf_table_cell_callback)(HPDF_Page, void *, size_t, size_t, HPDF_REAL, HPDF_REAL, HPDF_REAL, HPDF_REAL);
 
     typedef struct text_style {
         char *font;
@@ -77,6 +72,10 @@ extern "C" {
         hpdf_table_text_align_t halign;
     } hpdf_text_style_t;
 
+    typedef char * (*hpdf_table_content_callback_t)(void *, size_t, size_t);
+    typedef void (*hpdf_table_cell_callback)(HPDF_Page, void *, size_t, size_t, HPDF_REAL, HPDF_REAL, HPDF_REAL, HPDF_REAL);    
+    typedef _Bool (*hpdf_table_content_style_callback_t)(void *, size_t, size_t, hpdf_text_style_t *);
+        
     typedef enum hpdf_table_dash_style {
         SOLID = 0,
         DOT1 = 1, DOT2 = 2, DOT3 = 3,
@@ -100,7 +99,8 @@ extern "C" {
         HPDF_REAL delta_x; // Delta x in table from bottom left
         HPDF_REAL delta_y; // Delta y in table from bottom left
         HPDF_REAL textwidth;
-        hpdf_table_content_callback content_cb;
+        hpdf_table_content_callback_t content_cb;
+        hpdf_table_content_style_callback_t style_cb;
         hpdf_text_style_t content_style;
         struct hpdf_table_cell *parent_cell;
     };
@@ -134,11 +134,11 @@ extern "C" {
         hpdf_text_style_t label_style;
         _Bool use_cell_labels;
         _Bool use_label_grid_style;
-        hpdf_table_content_callback label_cb;
+        hpdf_table_content_callback_t label_cb;
 
         /** Content settings */
         hpdf_text_style_t content_style;
-        hpdf_table_content_callback content_cb;
+        hpdf_table_content_callback_t content_cb;
 
         /** Generic cell callback */
         hpdf_table_cell_callback cell_callback;
@@ -156,7 +156,8 @@ extern "C" {
         size_t r, c;
         unsigned rspan, cspan;
         char *label;
-        hpdf_table_content_callback cb;
+        hpdf_table_content_callback_t cb;
+        hpdf_table_content_style_callback_t style_cb;
     } hpdf_table_data_spec_t;
 
     /** Used in data driven table creation */
@@ -247,7 +248,7 @@ extern "C" {
 
     int
     hpdf_table_set_content_style(hpdf_table_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor color, HPDF_RGBColor background);
-    
+
     int
     hpdf_table_set_cell_content_style(hpdf_table_t t, size_t r, size_t c, char *font, HPDF_REAL fsize, HPDF_RGBColor color, HPDF_RGBColor background);
 
@@ -272,26 +273,34 @@ extern "C" {
             const HPDF_REAL width, const HPDF_REAL height);
 
     int
-    hpdf_table_set_content_callback(hpdf_table_t t, hpdf_table_content_callback cb);
+    hpdf_table_set_content_callback(hpdf_table_t t, hpdf_table_content_callback_t cb);
 
     int
-    hpdf_table_set_label_callback(hpdf_table_t t, hpdf_table_content_callback cb);
+    hpdf_table_set_label_callback(hpdf_table_t t, hpdf_table_content_callback_t cb);
 
     int
     hpdf_table_set_cell_callback(hpdf_table_t t, hpdf_table_cell_callback cb);
 
     int
-    hpdf_table_set_cell_content_callback(hpdf_table_t t, hpdf_table_content_callback cb, size_t r, size_t c);
+    hpdf_table_set_cell_content_callback(hpdf_table_t t, size_t r, size_t c, hpdf_table_content_callback_t cb);
 
     void
     hpdf_table_set_text_encoding(char *target, char *source);
-    
+
     int
     hpdf_table_set_line_dash(hpdf_table_t t, hpdf_table_line_style_t style );
+
+    int
+    hpdf_table_get_last_auto_height(HPDF_REAL *height);
+    
+    void
+    hpdf_table_set_origin_top_left(const _Bool origin);
+    
+    int 
+    hpdf_table_set_cell_content_style_callback(hpdf_table_t t, size_t r, size_t c, hpdf_table_content_style_callback_t cb);
 
 #ifdef	__cplusplus
 }
 #endif
 
 #endif	/* HPDF_TABLE_H */
-
