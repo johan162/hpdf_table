@@ -58,6 +58,7 @@ extern "C" {
 #define HTABLE_TEXT_HALIGN_CENTER 1
 #define HTABLE_TEXT_HALIGN_RIGHT 2
 
+#define HPDF_COLOR_FROMRGB(r,g,b) (HPDF_RGBColor){r/255.0,g/255.0,b/255.0}    
 
     typedef enum hpdf_table_text_align {
         LEFT = 0, CENTER = 1, RIGHT = 2

@@ -43,15 +43,15 @@
 #include "hpdf_table.h"
 
 #define TRUE 1
-#define FALSE 0;
+#define FALSE 0
 
 #define _IDX(r,c) (r*t->cols+c)
 
 /* Default styles */
-#define HPDF_TABLE_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HELVETICA_BOLD,12,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.9}, LEFT}
+#define HPDF_TABLE_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HELVETICA_BOLD,11,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.9}, LEFT}
 #define HPDF_TABLE_DEFAULT_HEADER_STYLE (hpdf_text_style_t){HELVETICA_BOLD,10,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.97}, CENTER}
 #define HPDF_TABLE_DEFAULT_LABEL_STYLE (hpdf_text_style_t){TIMES_ITALIC,9,(HPDF_RGBColor){0.4,0.4,0.4},(HPDF_RGBColor){1,1,1}, LEFT}
-#define HPDF_TABLE_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){COURIER,10,(HPDF_RGBColor){0.3,0.3,0.5},(HPDF_RGBColor){1,1,1}, LEFT}
+#define HPDF_TABLE_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){COURIER,10,(HPDF_RGBColor){0.2,0.2,0.2},(HPDF_RGBColor){1,1,1}, LEFT}
 #define HPDF_TABLE_DEFAULT_INNER_BORDER_STYLE (hpdf_border_style_t){0.7, (HPDF_RGBColor){0.5,0.5,0.5},0}
 #define HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE (hpdf_border_style_t){1.0, (HPDF_RGBColor){0.2,0.2,0.2},0}
 
@@ -66,7 +66,7 @@ static HPDF_REAL last_auto_height;
 /** Specify position of tables as top left. By default bottom left is used
  *  as base point,
  */
-static HPDF_REAL origin_as_top_left=FALSE;
+static _Bool origin_as_top_left=FALSE;
 
 // Internal state variable to keep track of necessary encodings
 static char *target_encoding = DEFAULT_TARGET_ENCODING;
