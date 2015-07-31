@@ -2,7 +2,6 @@
  * File:        hpdf_table.h
  * Description: Utility module for flexible table drawing with HPDF library
  * Author:      Johan Persson (johan162@gmail.com)
- * SVN:         $Id$
  *
  * Copyright (C) 2015 Johan Persson
  *
