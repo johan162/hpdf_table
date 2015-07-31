@@ -74,8 +74,9 @@ extern "C" {
     } hpdf_text_style_t;
 
     typedef char * (*hpdf_table_content_callback_t)(void *, size_t, size_t);
-    typedef void (*hpdf_table_cell_callback)(HPDF_Page, void *, size_t, size_t, HPDF_REAL, HPDF_REAL, HPDF_REAL, HPDF_REAL);    
+    typedef void (*hpdf_table_canvas_callback_t)(HPDF_Doc, HPDF_Page, void *, size_t, size_t, HPDF_REAL, HPDF_REAL, HPDF_REAL, HPDF_REAL);    
     typedef _Bool (*hpdf_table_content_style_callback_t)(void *, size_t, size_t, hpdf_text_style_t *);
+
         
     typedef enum hpdf_table_dash_style {
         SOLID = 0,
@@ -102,6 +103,7 @@ extern "C" {
         HPDF_REAL textwidth;
         hpdf_table_content_callback_t content_cb;
         hpdf_table_content_style_callback_t style_cb;
+        hpdf_table_canvas_callback_t canvas_cb;
         hpdf_text_style_t content_style;
         struct hpdf_table_cell *parent_cell;
     };
@@ -142,7 +144,7 @@ extern "C" {
         hpdf_table_content_callback_t content_cb;
 
         /** Generic cell callback */
-        hpdf_table_cell_callback cell_callback;
+        hpdf_table_canvas_callback_t canvas_cb;
         haru_table_cell_t *cells;
 
         /** Table border settings */
@@ -151,6 +153,8 @@ extern "C" {
     };
 
     typedef struct hpdf_table *hpdf_table_t;
+    
+    typedef void (*hpdf_table_callback_t)(hpdf_table_t);
 
     /** Used in data driven table creation */
     typedef struct hpdf_table_data_spec {
@@ -168,6 +172,7 @@ extern "C" {
         HPDF_REAL xpos, ypos;
         HPDF_REAL width, height;
         hpdf_table_data_spec_t *cell_spec;
+        hpdf_table_callback_t table_post_cb;
     } hpdf_table_spec_t;
 
     /** Define a set of styles into a table theme */
@@ -280,13 +285,19 @@ extern "C" {
     hpdf_table_set_label_callback(hpdf_table_t t, hpdf_table_content_callback_t cb);
 
     int
-    hpdf_table_set_cell_callback(hpdf_table_t t, hpdf_table_cell_callback cb);
+    hpdf_table_set_canvas_callback(hpdf_table_t t, hpdf_table_canvas_callback_t cb);
+    
+    int
+    hpdf_table_set_cell_canvas_callback(hpdf_table_t t, size_t r, size_t c, hpdf_table_canvas_callback_t cb);
 
     int
     hpdf_table_set_cell_content_callback(hpdf_table_t t, size_t r, size_t c, hpdf_table_content_callback_t cb);
 
     void
     hpdf_table_set_text_encoding(char *target, char *source);
+    
+    int
+    hpdf_table_encoding_text_out(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, char *text);
 
     int
     hpdf_table_set_line_dash(hpdf_table_t t, hpdf_table_line_style_t style );

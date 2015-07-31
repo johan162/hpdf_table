@@ -206,18 +206,27 @@ _do_encoding(char *input, char *output, const size_t out_len) {
     return 0;
 }
 
+/**
+ * Utility function to stroke text with character encoding. It is the calling routines
+ * responsibility to enclose text in a HPDF_Page_BeginText() / HPDF_Page_EndText()
+ * @param page Page handle
+ * @param xpos X coordinate
+ * @param ypos Y coordinate
+ * @param text Text to print
+ * @return -1 on error, 0 on success
+ */
 int
-_text_out(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, char *content) {
+hpdf_table_encoding_text_out(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, char *text) {
     // Assume that the encoding we are converting to never exceeds three times the
     // original string
 
-    if( NULL==content )
+    if( NULL==text )
         return 0;
 
-    const size_t out_len = 3*strlen(content);
+    const size_t out_len = 3*strlen(text);
     char *output = calloc(1,out_len);
 
-    if( -1 == _do_encoding(content,output,out_len) ) {
+    if( -1 == _do_encoding(text,output,out_len) ) {
         _SET_ERR(-4,xpos,ypos);
         HPDF_Page_TextOut(page, xpos, ypos, "???");
     } else {
@@ -771,6 +780,35 @@ hpdf_table_set_cell_content_callback(hpdf_table_t t, size_t r, size_t c, hpdf_ta
     return 0;
 }
 
+
+/**
+ * Set a canvas callback for an individual cell. This will override the table canvas
+ * callback.
+ * @param t Table handle
+ * @param r Cell row
+ * @param c Cell column
+ * @param cb Callback function
+ * @return -1 on failure, 0 otherwise
+ */
+int
+hpdf_table_set_cell_canvas_callback(hpdf_table_t t, size_t r, size_t c, hpdf_table_canvas_callback_t cb) {
+    _CHK_TABLE(t);
+    if( !_chk(t,r,c) )
+        return -1;
+
+    haru_table_cell_t *cell = &t->cells[_IDX(r, c)];
+
+    // If this cell is part of another cells spanning then
+    // indicate this as an error
+    if( cell->parent_cell ) {
+        _SET_ERR(-1,r,c);
+        return -1;
+    }
+
+    cell->canvas_cb = cb;
+    return 0;
+}
+
 /**
  * Set label callback. This callback gets called for each cell in the
  * table and the returned string will be used as the label. The string
@@ -801,9 +839,9 @@ hpdf_table_set_label_callback(hpdf_table_t t, hpdf_table_content_callback_t cb) 
  * @param cb Callback function
  */
 int
-hpdf_table_set_cell_callback(hpdf_table_t t, hpdf_table_cell_callback cb) {
+hpdf_table_set_canvas_callback(hpdf_table_t t, hpdf_table_canvas_callback_t cb) {
     _CHK_TABLE(t);
-    t->cell_callback = cb;
+    t->canvas_cb = cb;
     return 0;
 }
 
@@ -860,7 +898,7 @@ _table_title_stroke(const hpdf_table_t t) {
     }
 
     HPDF_Page_BeginText(t->pdf_page);
-    _text_out(t->pdf_page, xpos, ypos, t->title_txt);
+    hpdf_table_encoding_text_out(t->pdf_page, xpos, ypos, t->title_txt);
     HPDF_Page_EndText(t->pdf_page);
 
     // Return height of the stroked bounding box
@@ -1130,11 +1168,17 @@ hpdf_table_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdf_table_spe
             return -1;
         }
 
-
         i++;
-
     }
-    return hpdf_table_stroke(pdf_doc,pdf_page,t,tbl_spec.xpos,tbl_spec.ypos,tbl_spec.width,tbl_spec.height);
+
+    // Final chance for the client to do any specific table modifications
+    if( tbl_spec.table_post_cb ) {
+        tbl_spec.table_post_cb(t);
+    }
+
+    int ret = hpdf_table_stroke(pdf_doc,pdf_page,t,tbl_spec.xpos,tbl_spec.ypos,tbl_spec.width,tbl_spec.height);
+    hpdf_table_destroy(t);
+    return ret;
 }
 
 
@@ -1176,7 +1220,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
             }
             HPDF_Page_BeginText(t->pdf_page);
 
-            _text_out(t->pdf_page,
+            hpdf_table_encoding_text_out(t->pdf_page,
                     t->posx + cell->delta_x + left_right_padding,
                     t->posy + cell->delta_y + cell->height - t->label_style.fsize * 1.05, label);
 
@@ -1236,7 +1280,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
 
     if( content ) {
         HPDF_Page_BeginText(t->pdf_page);
-        _text_out(t->pdf_page, xpos, ypos, content);
+        hpdf_table_encoding_text_out(t->pdf_page, xpos, ypos, content);
         HPDF_Page_EndText(t->pdf_page);
     }
 
@@ -1343,8 +1387,11 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
                     HPDF_Page_Fill(page);
                 }
 
-                if (t->cell_callback) {
-                    t->cell_callback(page, t->tag, r, c, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
+                if( cell->canvas_cb ) {
+                    cell->canvas_cb(pdf, page, t->tag, r, c, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
+                }
+                else if (t->canvas_cb) {
+                    t->canvas_cb(pdf, page, t->tag, r, c, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
                 }
 
                 _table_cell_stroke(t, r, c);
