@@ -55,9 +55,7 @@
 #define HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE (hpdf_border_style_t){1.0, (HPDF_RGBColor){0.2,0.2,0.2},0}
 
 #define _SET_ERR(err,r,c) do {err_code=err;err_row=r;err_col=c;} while(0)
-#define _CHK_TABLE(t) do {\
-    if( NULL == t ) { err_code=-3;err_row=-1;err_col=-1;return -1; }\
- } while(0)
+#define _CHK_TABLE(t) do {if(NULL == t) {err_code=-3;err_row=-1;err_col=-1;return -1;}} while(0)
 
 /** Last automatically calculated total height */
 static HPDF_REAL last_auto_height;
@@ -70,6 +68,8 @@ static _Bool origin_as_top_left=FALSE;
 // Internal state variable to keep track of necessary encodings
 static char *target_encoding = DEFAULT_TARGET_ENCODING;
 static char *source_encoding = DEFAULT_SOURCE_ENCODING;
+
+#define _ERR_UNKNOWN 11
 
 static int err_code=0;
 static int err_row=-1;
@@ -84,10 +84,12 @@ static char *error_descriptions[] = {
     "Invalid table handle",                         /* 6 */
     "Cell spanning will exceed table dimension",    /* 7 */
     "Use of undefined line style",                  /* 8 */
-    "Invalid theme handler"                         /* 9 */
-    "No auto height available"                      /* 10  */
+    "Invalid theme handler",                        /* 9 */
+    "No auto height available",                     /* 10  */
+    "Internal error. Unknown error code"            /* 11  */
 };
 
+static const size_t NUM_ERR_MSG = sizeof(error_descriptions)/sizeof(char *);
 
 typedef struct line_dash_style {
     HPDF_UINT16 dash_ptn[8];
@@ -146,8 +148,14 @@ hpdf_table_set_origin_top_left(const _Bool origin) {
 int
 hpdf_table_get_last_errcode(char **errstr, int *row, int *col) {
     int old_err_code;
-    if( errstr )
-        *errstr = error_descriptions[-err_code];
+    if( errstr && err_code < 0 && ( (-err_code) < NUM_ERR_MSG) )
+        *errstr =  error_descriptions[-err_code];
+    else {
+        *errstr = error_descriptions[_ERR_UNKNOWN];
+        err_code = _ERR_UNKNOWN;
+        err_row = -1;
+        err_col = -1;
+    }
     *row=err_row ;
     *col=err_col ;
     old_err_code = err_code;
@@ -886,7 +894,7 @@ _table_title_stroke(const hpdf_table_t t) {
 
     _set_fontc(t, t->title_style.font, t->title_style.fsize, t->title_style.color);
 
-    HPDF_REAL left_right_padding = t->outer_border.width + 2;
+    HPDF_REAL left_right_padding = t->outer_border.width + 3;
     HPDF_REAL xpos = t->posx + left_right_padding;
     const HPDF_REAL ypos = t->posy + t->height + t->outer_border.width * 2 + t->title_style.fsize * 0.28;
 
