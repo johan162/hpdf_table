@@ -47,10 +47,10 @@
 #define _IDX(r,c) (r*t->cols+c)
 
 /* Default styles */
-#define HPDF_TABLE_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HELVETICA_BOLD,11,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.9}, LEFT}
-#define HPDF_TABLE_DEFAULT_HEADER_STYLE (hpdf_text_style_t){HELVETICA_BOLD,10,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.97}, CENTER}
-#define HPDF_TABLE_DEFAULT_LABEL_STYLE (hpdf_text_style_t){TIMES_ITALIC,9,(HPDF_RGBColor){0.4,0.4,0.4},(HPDF_RGBColor){1,1,1}, LEFT}
-#define HPDF_TABLE_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){COURIER,10,(HPDF_RGBColor){0.2,0.2,0.2},(HPDF_RGBColor){1,1,1}, LEFT}
+#define HPDF_TABLE_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,11,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.9}, LEFT}
+#define HPDF_TABLE_DEFAULT_HEADER_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,10,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.97}, CENTER}
+#define HPDF_TABLE_DEFAULT_LABEL_STYLE (hpdf_text_style_t){HPDF_FF_TIMES_ITALIC,9,(HPDF_RGBColor){0.4,0.4,0.4},(HPDF_RGBColor){1,1,1}, LEFT}
+#define HPDF_TABLE_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){HPDF_FF_COURIER,10,(HPDF_RGBColor){0.2,0.2,0.2},(HPDF_RGBColor){1,1,1}, LEFT}
 #define HPDF_TABLE_DEFAULT_INNER_BORDER_STYLE (hpdf_border_style_t){0.7, (HPDF_RGBColor){0.5,0.5,0.5},0}
 #define HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE (hpdf_border_style_t){1.0, (HPDF_RGBColor){0.2,0.2,0.2},0}
 
@@ -70,12 +70,12 @@ static _Bool origin_as_top_left=FALSE;
 /**
  * @brief Internal state variable to keep track of necessary encodings
  */
-static char *target_encoding = DEFAULT_TARGET_ENCODING;
+static char *target_encoding = HPDF_TABLE_DEFAULT_TARGET_ENCODING;
 
 /**
  * @brief Internal state variable to keep track of necessary encodings
  */
-static char *source_encoding = DEFAULT_SOURCE_ENCODING;
+static char *source_encoding = HPDF_TABLE_DEFAULT_SOURCE_ENCODING;
 
 
 #define _ERR_UNKNOWN 11
@@ -458,11 +458,13 @@ hpdf_table_create(int rows, int cols, char *title) {
 }
 
 /**
+ * @brief Set column width as percentage of overall table width
+ *
  * Specify column width as percentage of total column width. Note that this will only take effect
  * if the table has an overall width specified when stroked.
  * @param t Table handle
- * @param c Column to set width of
- * @param w Width as percentage in range [0.0,100.0]
+ * @param c Column to set width of first column has index 0
+ * @param w Width as percentage in range [0.0, 100.0]
  * @return 0 on success, -1 on failure
  */
 int
@@ -817,7 +819,7 @@ hpdf_table_clear_spanning(const hpdf_table_t t) {
  */
 static void
 _set_fontc(const hpdf_table_t t, char *fontname, HPDF_REAL fsize, HPDF_RGBColor color) {
-    HPDF_Page_SetFontAndSize(t->pdf_page, HPDF_GetFont(t->pdf_doc, fontname, DEFAULT_TARGET_ENCODING), fsize);
+    HPDF_Page_SetFontAndSize(t->pdf_page, HPDF_GetFont(t->pdf_doc, fontname, HPDF_TABLE_DEFAULT_TARGET_ENCODING), fsize);
     HPDF_Page_SetRGBFill(t->pdf_page, color.r, color.g, color.b);
     HPDF_Page_SetTextRenderingMode(t->pdf_page, HPDF_FILL);
 }
@@ -1351,8 +1353,6 @@ hpdf_table_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdf_table_spe
     return ret;
 }
 
-#define MIN_CALCULATED_PERCENT_CELL_WIDTH 5.0
-
 /**
  * @brief Internal function.
  *
@@ -1447,7 +1447,7 @@ _calc_cell_pos(const hpdf_table_t t) {
     //    printf("%.1f (%.1f) @ %.1f, \n",t->col_width_percent[c],t->cells[_IDX(0, c)].width,t->cells[_IDX(0, c)].delta_x);
     //}
     //printf("\n");
-    
+
     return 0;
 }
 

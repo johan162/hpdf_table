@@ -123,11 +123,11 @@ ex_tbl2(void) {
     // Use a red title and center the text
     HPDF_RGBColor color = {0.6,0,0};
     HPDF_RGBColor background = {0.9,1.0,0.9};
-    hpdf_table_set_title_style(t,HELVETICA_BOLD,14,color,background);
+    hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,color,background);
     hpdf_table_set_title_halign(t,CENTER);
 
     // Use bold font for content. Use the C99 way to specify constant structure constants
-    hpdf_table_set_content_style(t,COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,0.9});
+    hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,0.9});
     hpdf_table_set_content(t,content);
     hpdf_table_set_labels(t,labels);
 
@@ -152,7 +152,7 @@ ex_tbl3(void) {
     // Use a red title and center the text
     HPDF_RGBColor color = {0.6,0,0};
     HPDF_RGBColor background = {0.9,1.0,0.9};
-    hpdf_table_set_title_style(t,HELVETICA_BOLD,14,color,background);
+    hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,color,background);
     hpdf_table_set_title_halign(t,CENTER);
 
     // Use specially formatted header row
@@ -163,7 +163,7 @@ ex_tbl3(void) {
 
 
     // Use bold font for content. Use the C99 way to specify constant structure constants
-    hpdf_table_set_content_style(t,COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,1.0});
+    hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,1.0});
     hpdf_table_set_content(t,content);
     hpdf_table_set_labels(t,labels);
 
@@ -201,25 +201,26 @@ ex_tbl4(void) {
     // Use a red title and center the text
     HPDF_RGBColor color = {0.6,0,0};
     HPDF_RGBColor background = {0.9,1.0,0.9};
-    hpdf_table_set_title_style(t,HELVETICA_BOLD,14,color,background);
+    hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,color,background);
     hpdf_table_set_title_halign(t,CENTER);
 
     // Use bold font for content. Use the C99 way to specify constant structure constants
-    hpdf_table_set_content_style(t,COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,0.9});
+    hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,0.9});
     hpdf_table_set_content(t,content);
     hpdf_table_set_labels(t,labels);
 
     // Set the top left and bottom right with orange background
     const HPDF_RGBColor orange = _TO_HPDF_RGB(0xF5,0xD0,0x98);
     const HPDF_RGBColor almost_black = _TO_HPDF_RGB(0xF5,0xD0,0x98);
-    hpdf_table_set_cell_content_style(t,0,0,COURIER_BOLD,10,almost_black,orange);
-    hpdf_table_set_cell_content_style(t,4,3,COURIER_BOLD,10,almost_black,orange);
+    hpdf_table_set_cell_content_style(t,0,0,HPDF_FF_COURIER_BOLD,10,almost_black,orange);
+    hpdf_table_set_cell_content_style(t,4,3,HPDF_FF_COURIER_BOLD,10,almost_black,orange);
 
-    hpdf_table_set_colwidth_percent(t,0,50);
-    hpdf_table_set_colwidth_percent(t,2,45);
+    hpdf_table_set_colwidth_percent(t,0,40);
+
+    hpdf_table_set_cellspan(t,1,0,1,2);
 
     HPDF_REAL xpos=100;
-    HPDF_REAL ypos=630;
+    HPDF_REAL ypos=600;
     HPDF_REAL width=400;
     HPDF_REAL height=0; // Calculate height automatically
 
