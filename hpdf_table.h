@@ -214,6 +214,8 @@ extern "C" {
         hpdf_border_style_t outer_border;
         /** Table inner border settings */
         hpdf_border_style_t inner_border;
+        /** User specified column width as fraction of the table width. Defaults to equ-width */
+        float *col_width_percent;
     };
 
     /**
@@ -328,6 +330,9 @@ extern "C" {
 
     int
     hpdf_table_destroy_theme(hpdf_table_theme_t *theme);
+    
+    int
+    hpdf_table_set_colwidth_percent(hpdf_table_t t, size_t c, float w);
 
     int
     hpdf_table_set_background(hpdf_table_t t, HPDF_RGBColor background);

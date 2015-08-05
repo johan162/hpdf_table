@@ -215,11 +215,20 @@ ex_tbl4(void) {
     hpdf_table_set_cell_content_style(t,0,0,COURIER_BOLD,10,almost_black,orange);
     hpdf_table_set_cell_content_style(t,4,3,COURIER_BOLD,10,almost_black,orange);
 
+    hpdf_table_set_colwidth_percent(t,0,50);
+    hpdf_table_set_colwidth_percent(t,2,45);
+
     HPDF_REAL xpos=100;
     HPDF_REAL ypos=630;
     HPDF_REAL width=400;
     HPDF_REAL height=0; // Calculate height automatically
-    hpdf_table_stroke(pdf_doc,pdf_page,t,xpos,ypos,width,height);
+
+    if( -1 == hpdf_table_stroke(pdf_doc,pdf_page,t,xpos,ypos,width,height) ) {
+        char *errstr;
+        int row,col;
+        hpdf_table_get_last_errcode(&errstr, &row, &col);
+        fprintf(stderr,"ERROR: \"%s\"\n",errstr);
+    }
 
 }
 
@@ -263,6 +272,7 @@ cb_date(void *tag, size_t r, size_t c) {
  */
 void
 example_page_header(void) {
+
 
     // Specified the layout of each row
     hpdf_table_data_spec_t tbl1_data[] = {
@@ -324,14 +334,14 @@ main(int argc, char** argv) {
     example_page_header();
     ex_tbl3();
 
-    // Example 3
+    // Example 4
     add_a4page();
     example_page_header();
     ex_tbl4();
 
     stroke_page_tofile();
 
-    printf("PDF successfully created as \"%s\"\n",OUTPUT_FILE);
+    printf("Done. \"%s\"\n",OUTPUT_FILE);
 
     return (EXIT_SUCCESS);
 }

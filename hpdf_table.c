@@ -99,7 +99,9 @@ static char *error_descriptions[] = {
     "Use of undefined line style",                  /* 8 */
     "Invalid theme handler",                        /* 9 */
     "No auto height available",                     /* 10  */
-    "Internal error. Unknown error code"            /* 11  */
+    "Internal error. Unknown error code",           /* 11  */
+    "Total column width exceeds 100%",              /* 12  */
+    "Calculated width of columns too small"         /* 13  */
 };
 
 /**
@@ -407,7 +409,6 @@ hpdf_table_create(int rows, int cols, char *title) {
 
     // Initializing to zero means default color is black
     hpdf_table_t t = calloc(1, sizeof (struct hpdf_table));
-
     if (t == NULL) {
         _SET_ERR(-5,-1,-1);
         return NULL;
@@ -423,14 +424,60 @@ hpdf_table_create(int rows, int cols, char *title) {
     t->cols = cols;
     t->rows = rows;
 
-    if (title)
+    // Setup common column widths
+    t->col_width_percent = calloc(cols,sizeof(float));
+    if( t->col_width_percent == NULL ) {
+        free(t->cells);
+        free(t);
+        _SET_ERR(-5,-1,-1);
+        return NULL;
+    }
+
+    // Initialize column width. Setting it to zero will set the column to the default
+    // width.
+    for(size_t i=0; i < cols; i++) {
+        t->col_width_percent[i] = 0.0;
+    }
+
+    if (title) {
         t->title_txt = strdup(title);
+        if( t->title_txt == NULL ) {
+            free(t->col_width_percent);
+            free(t->cells);
+            free(t);
+            _SET_ERR(-5,-1,-1);
+            return NULL;
+        }
+    }
 
     hpdf_table_theme_t *theme = hpdf_table_get_default_theme();
     hpdf_table_apply_theme(t, theme);
     hpdf_table_destroy_theme(theme);
 
     return t;
+}
+
+/**
+ * Specify column width as percentage of total column width. Note that this will only take effect
+ * if the table has an overall width specified when stroked.
+ * @param t Table handle
+ * @param c Column to set width of
+ * @param w Width as percentage in range [0.0,100.0]
+ * @return 0 on success, -1 on failure
+ */
+int
+hpdf_table_set_colwidth_percent(hpdf_table_t t, size_t c, float w) {
+    _CHK_TABLE(t);
+    if( c >= t->cols ) {
+        _SET_ERR(-2,-1,c);
+        return -1;
+    }
+    if( w < 0.0 || w > 100.0 ) {
+        _SET_ERR(-12,-1,c);
+        return -1;
+    }
+    t->col_width_percent[c] = w;
+    return 0;
 }
 
 /**
@@ -757,53 +804,6 @@ hpdf_table_clear_spanning(const hpdf_table_t t) {
         }
     }
     return 0;
-}
-
-/**
- * @brief Internal function.
- *
- * Internal function. Calculate the relative position of each cell in the
- * table taking row and column spanning into account
- * @param t Table handle
- */
-static void
-_calc_cell_pos(const hpdf_table_t t) {
-    // Calculate relative position for all cells in relation
-    // to bottom left table corner
-    HPDF_REAL base_cell_height = t->height / t->rows;
-    HPDF_REAL base_cell_width = t->width / t->cols;
-    HPDF_REAL delta_x = 0;
-    HPDF_REAL delta_y = 0;
-
-
-    // Pass 1. Give the basic position for all cells without
-    // taking spanning in consideration
-    for (int r = t->rows - 1; r >= 0; r--) {
-        for (size_t c = 0; c < t->cols; c++) {
-            hpdf_table_cell_t *cell = &t->cells[_IDX(r, c)];
-            cell->delta_x = delta_x;
-            cell->delta_y = delta_y;
-            cell->width = base_cell_width;
-            cell->height = base_cell_height;
-            delta_x += base_cell_width;
-        }
-        delta_x = 0;
-        delta_y += base_cell_height;
-    }
-
-    // Adjust for row and column spanning
-    for (size_t r = 0; r < t->rows; r++) {
-        for (size_t c = 0; c < t->cols; c++) {
-            hpdf_table_cell_t *cell = &t->cells[_IDX(r, c)];
-            if (cell->rowspan > 1) {
-                cell->delta_y = t->cells[(r + cell->rowspan - 1) * t->cols + c].delta_y;
-                cell->height = cell->rowspan*base_cell_height;
-            }
-            if (cell->colspan > 1) {
-                cell->width = cell->colspan*base_cell_width;
-            }
-        }
-    }
 }
 
 /**
@@ -1351,6 +1351,105 @@ hpdf_table_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdf_table_spe
     return ret;
 }
 
+#define MIN_CALCULATED_PERCENT_CELL_WIDTH 5.0
+
+/**
+ * @brief Internal function.
+ *
+ * Internal function. Calculate the relative position of each cell in the
+ * table taking row and column spanning into account
+ * @param t Table handle
+ * @return 0 on success, -1 on failure
+ */
+int
+_calc_cell_pos(const hpdf_table_t t) {
+    // Calculate relative position for all cells in relation
+    // to bottom left table corner
+    HPDF_REAL base_cell_height = t->height / t->rows;
+    //HPDF_REAL base_cell_width = t->width / t->cols;
+    HPDF_REAL base_cell_width_percent = 100.0 / t->cols;
+    HPDF_REAL delta_x = 0;
+    HPDF_REAL delta_y = 0;
+
+    // Recalculate column widths
+    // Pass 1. Determine how many columns have been manually specified
+    float tot_specified_width_percent=0;
+    size_t num_specified_cols=0;
+    for (size_t c = 0; c < t->cols; c++) {
+        if( t->col_width_percent[c] > 0 ) {
+            num_specified_cols++;
+            tot_specified_width_percent += t->col_width_percent[c];
+        }
+    }
+
+    if( tot_specified_width_percent > 100.0 ) {
+        _SET_ERR(-12,-1,-1);
+        return -1;
+    }
+
+    // Recalculate column widths
+    // Pass 2. Divide the remaining width along the unspecified columns
+    const float remaining_width_percent = 100.0 - tot_specified_width_percent;
+    const float num_unspecified_cols = t->cols - num_specified_cols;
+    if( num_unspecified_cols > 0 ) {
+        base_cell_width_percent = remaining_width_percent / num_unspecified_cols;
+    }
+
+    // Sanity check
+    if( base_cell_width_percent < MIN_CALCULATED_PERCENT_CELL_WIDTH ) {
+        _SET_ERR(-13,-1,-1);
+        return -1;
+    }
+
+    for (size_t c = 0; c < t->cols; c++) {
+        if( t->col_width_percent[c] == 0.0 ) {
+            t->col_width_percent[c] = base_cell_width_percent;
+        }
+    }
+
+    // Calculate the position for all cells.
+    //
+    // Pass 1. Give the basic position for all cells without
+    // taking spanning in consideration
+    for (int r = t->rows - 1; r >= 0; r--) {
+        for (size_t c = 0; c < t->cols; c++) {
+            hpdf_table_cell_t *cell = &t->cells[_IDX(r, c)];
+            cell->delta_x = delta_x;
+            cell->delta_y = delta_y;
+            cell->width = (t->col_width_percent[c]/100.0) * t->width ;//base_cell_width;
+            cell->height = base_cell_height;
+            delta_x += cell->width; //base_cell_width;
+        }
+        delta_x = 0;
+        delta_y += base_cell_height;
+    }
+
+    // Adjust for row and column spanning
+    for (size_t r = 0; r < t->rows; r++) {
+        for (size_t c = 0; c < t->cols; c++) {
+            hpdf_table_cell_t *cell = &t->cells[_IDX(r, c)];
+            if (cell->rowspan > 1) {
+                cell->delta_y = t->cells[(r + cell->rowspan - 1) * t->cols + c].delta_y;
+                cell->height = cell->rowspan*base_cell_height;
+            }
+            if (cell->colspan > 1) {
+                HPDF_REAL col_span_with=0.0;
+                for (size_t cc = 0; cc < cell->colspan; cc++) {
+                    col_span_with += t->cells[_IDX(r, cc+c)].width;
+                }
+                cell->width = col_span_with;
+            }
+        }
+    }
+
+
+    //for (size_t c = 0; c < t->cols; c++) {
+    //    printf("%.1f (%.1f) @ %.1f, \n",t->col_width_percent[c],t->cells[_IDX(0, c)].width,t->cells[_IDX(0, c)].delta_x);
+    //}
+    //printf("\n");
+    
+    return 0;
+}
 
 /**
  * @brief Internal function.
@@ -1537,7 +1636,9 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
     t->posx = x;
     t->posy = y;
 
-    _calc_cell_pos(t);
+    if( -1 == _calc_cell_pos(t) ) {
+        return -1;
+    }
 
     // Stroke table background
     HPDF_Page_SetRGBFill(page, t->content_style.background.r, t->content_style.background.g, t->content_style.background.b);
