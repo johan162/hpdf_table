@@ -1,10 +1,53 @@
+/* =========================================================================
+ * File:        hpdf_errstr.c
+ * Description: Utility module to translate HPDF error codes to human readable
+ *              strings.
+ * Author:      Johan Persson (johan162@gmail.com)
+ *
+ * Copyright (C) 2015 Johan Persson
+ *
+ * Released under the MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * =========================================================================
+ */
+
+/**
+ * @file
+ * @brief Utility module to translate HPDF error codes to human readable strings
+ *
+ */
+
 #include <hpdf.h>
 
+/**
+ * @brief An entry in the error string table
+ */
 struct err_code_entry {
-    char *errstr;
-    unsigned errcode;
+    char *errstr;  /**< Pointer to the error string */
+    unsigned errcode; /**< The error code from HPDF library */
 };
 
+/**
+ * @brief A table with all the error strings corresponding to error codes
+ *
+ */
 static struct err_code_entry err_code_entries[] = {
 {"HPDF_ARRAY_COUNT_ERR", 0x1001},
 {"HPDF_ARRAY_ITEM_NOT_FOUND", 0x1002},
@@ -114,8 +157,21 @@ static struct err_code_entry err_code_entries[] = {
 {"HPDF_NAME_CANNOT_GET_NAMES", 0x1084},
 {"HPDF_INVALID_ICC_COMPONENT_NUM", 0x1085 }};
 
+/**
+ * @brief Number of error strings in error table
+ */
 static const size_t num_errors = sizeof(err_code_entries)/sizeof(struct err_code_entry);
 
+/**
+ * @brief Function to return a human readable error string for an error code
+ *
+ * The various error codes given by the HPDF library can be translated back to a string by
+ * the usage of this function. The function will return a pointer to a static string that can
+ * not be manipulated.
+ *
+ * @param err_code The error code
+ * @return A pointer to an error string, NULL if the error code is invalid
+ */
 const char *
 hpdf_errstr(const HPDF_STATUS err_code) {
 
