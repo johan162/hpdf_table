@@ -518,6 +518,12 @@ extern "C" {
     int
     hpdf_table_encoding_text_out(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, char *text);
 
+    
+    /**
+     * Misc utility functions
+     */
+    void
+    HPDF_RoundedCornerRectangle(HPDF_Page page,HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, HPDF_REAL rad);
 
 #ifdef	__cplusplus
 }

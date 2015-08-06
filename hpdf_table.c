@@ -277,6 +277,50 @@ hpdf_table_encoding_text_out(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, cha
     return 0;
 }
 
+/**
+ * @brief Draw rectangle with rounded corner
+ *
+ * Draw a rectangle with rounded corner with the current line width, color. The rectangle will not be stroked.
+ *
+ * @param page Page handle
+ * @param xpos Lower left x-position of rectangle
+ * @param ypos Lower left y-position of rectangle
+ * @param width Width of rectangle
+ * @param height Height of rectangle
+ * @param rad Radius of corners
+ */
+void
+HPDF_RoundedCornerRectangle(HPDF_Page page,HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, HPDF_REAL rad) {
+
+    // Left vertical line
+    HPDF_Page_MoveTo(page,xpos,ypos+rad);
+    HPDF_Page_LineTo(page,xpos,ypos+height-rad);
+
+    // Top line
+    HPDF_Page_MoveTo(page,xpos+rad,ypos+height);
+    HPDF_Page_LineTo(page,xpos+width-rad,ypos+height);
+
+    // Right vertical
+    HPDF_Page_MoveTo(page,xpos+width,ypos+height-rad);
+    HPDF_Page_LineTo(page,xpos+width,ypos+rad);
+
+    // Bottom line
+    HPDF_Page_MoveTo(page,xpos+width-rad,ypos);
+    HPDF_Page_LineTo(page,xpos+rad,ypos);
+
+    // Lower left corner
+    HPDF_Page_Arc(page,xpos+rad,ypos+rad,rad,180,270);
+
+    // Upper left
+    HPDF_Page_Arc(page,xpos+rad,ypos+height-rad,rad,270,360);
+
+    // Upper right
+    HPDF_Page_Arc(page,xpos+width-rad,ypos+height-rad,rad,0,90);
+
+    // Lower right
+    HPDF_Page_Arc(page,xpos+width-rad,ypos+rad,rad,90,180);
+
+}
 
 /**
  * @brief Return the default theme
