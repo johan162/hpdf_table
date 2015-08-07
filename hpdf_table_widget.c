@@ -76,7 +76,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
 
     // Bounding box for slide button
     const HPDF_REAL button_width = 38;
-    const HPDF_REAL button_height = 12;
+    const HPDF_REAL button_height = 11;
     const HPDF_REAL button_xpos = xpos+(width-button_width)/2;
     const HPDF_REAL button_ypos = ypos+4;
     const HPDF_REAL button_rad = 6;
@@ -84,7 +84,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
     // Default to on setting of "push-button"
     const HPDF_REAL center_x = state ? button_xpos+button_width-button_height/2-0.3 : 0.2+button_xpos+button_height/2;
     const HPDF_REAL center_y = button_ypos+button_height/2 ;
-    const HPDF_REAL radius = button_height/2;
+    const HPDF_REAL radius = button_height/2+1;
 
     HPDF_Page_SetLineWidth(page,0.8);
     HPDF_Page_SetRGBStroke(page, border_color.r, border_color.g, border_color.b);
