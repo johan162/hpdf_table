@@ -520,10 +520,25 @@ extern "C" {
 
     
     /**
-     * Misc utility functions
+     * Misc utility and widget functions
      */
     void
     HPDF_RoundedCornerRectangle(HPDF_Page page,HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, HPDF_REAL rad);
+    
+    void
+    hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
+                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, _Bool state); 
+    
+    void
+    hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
+                       const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
+                       const HPDF_RGBColor color, const float val, const _Bool show_val);
+    
+    void
+    hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
+                                const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
+                                const size_t num_segments, const HPDF_RGBColor on_color, const size_t num_on_segments);
+    
 
 #ifdef	__cplusplus
 }
