@@ -1577,7 +1577,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
     }
 
     HPDF_REAL xpos = t->posx + cell->delta_x + left_right_padding;
-    HPDF_REAL ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.1;
+    HPDF_REAL ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.25;
 
     if (t->use_header_row && r == 0) {
         // Roughly center the text vertically
@@ -1590,7 +1590,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
             xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) - left_right_padding;
     } else {
         if (t->use_cell_labels)
-            ypos -= (t->label_style.fsize * 1.1);
+            ypos -= (t->label_style.fsize * 1.15);
     }
 
     if( content ) {
