@@ -50,7 +50,7 @@
  * @brief Table widget that draws a sliding on/off switch. Meant to be used in a canvas
  * callback to display a boolean value.
  *
- * This fuction can not be used directly as a canvas callback since it needs the state
+ * This function can not be used directly as a canvas callback since it needs the state
  * of the button as an argument. Instead create a simple canvas callback that determines
  * the wanted state and then just passes on all argument to this widget function.
  *
@@ -73,6 +73,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
     const HPDF_RGBColor gray = HPDF_COLOR_FROMRGB(220,220,220);
 
     const HPDF_RGBColor border_color = HPDF_COLOR_FROMRGB(110,110,110);
+    const HPDF_REAL line_width=0.8;
 
     // Bounding box for slide button
     const HPDF_REAL button_width = 38;
@@ -86,7 +87,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
     const HPDF_REAL center_y = button_ypos+button_height/2 ;
     const HPDF_REAL radius = button_height/2+1;
 
-    HPDF_Page_SetLineWidth(page,0.8);
+    HPDF_Page_SetLineWidth(page,line_width);
     HPDF_Page_SetRGBStroke(page, border_color.r, border_color.g, border_color.b);
 
     if( state ) {
@@ -124,7 +125,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
     HPDF_Page_SetRGBFill(page, smoke.r, smoke.g, smoke.b);
     HPDF_Page_Circle(page,center_x,center_y,radius);
     HPDF_Page_FillStroke(page);
-    HPDF_Page_SetLineWidth(page,0.8);
+    HPDF_Page_SetLineWidth(page,line_width);
     HPDF_Page_MoveTo(page,center_x-2,center_y-radius*1/3);
     HPDF_Page_LineTo(page,center_x-2,center_y+radius*1/3);
     HPDF_Page_MoveTo(page,center_x,center_y-radius*1/3);
@@ -137,6 +138,9 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
 
 /**
  * @brief Draw a horizontal partially filled bar to indicate an analog (percentage) value
+ *
+ * This function can not be used directly as a canvas callback since it needs additional
+ * parameters. Instead create a simple canvas callback that gives the additional parameters.
  *
  * @param doc HPDF Document handle
  * @param page HPDF Page handle
@@ -157,7 +161,8 @@ hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
     const HPDF_RGBColor graph_text_color = HPDF_COLOR_FROMRGB(90,90,90);
 
     const HPDF_REAL graph_fill_width = val*width;
-
+    const HPDF_REAL line_width=0.8;
+    HPDF_Page_SetLineWidth(page,line_width);
     HPDF_Page_SetRGBFill(page, color.r, color.g, color.b);
 
     HPDF_Page_Rectangle(page,xpos,ypos,graph_fill_width,height);
@@ -187,7 +192,10 @@ hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
 }
 
 /**
- * @brief Draw a horizontal segment meter
+ * @brief Draw a horizontal segment meter that can be used to visualize a discrete value
+ *
+ * This function can not be used directly as a canvas callback since it needs additional
+ * parameters. Instead create a simple canvas callback that gives the additional parameters.
  *
  * @param doc HPDF Document handle
  * @param page HPDF Page handle
@@ -208,14 +216,16 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
     const HPDF_RGBColor segment_off_color = HPDF_COLOR_FROMRGB(240,240,240);
     const HPDF_RGBColor segment_text_color = HPDF_COLOR_FROMRGB(90,90,90);
 
+    const HPDF_REAL inter_segment_space = 1.5;
+    const HPDF_REAL segment_width = (width - inter_segment_space*(num_segments-1)) / num_segments;
+    const HPDF_REAL line_width=0.8;
+
+    HPDF_Page_SetLineWidth(page,line_width);
     HPDF_Page_SetRGBStroke(page,segment_border_color.r,segment_border_color.g,segment_border_color.b);
+    HPDF_Page_SetRGBFill(page, on_color.r, on_color.g, on_color.b);
 
     HPDF_REAL x=xpos;
     HPDF_REAL y=ypos;
-    const HPDF_REAL inter_segment_space = 1.5;
-    const HPDF_REAL segment_width = (width - inter_segment_space*(num_segments-1)) / num_segments;
-
-    HPDF_Page_SetRGBFill(page, on_color.r, on_color.g, on_color.b);
 
     // Draw "on" segments
     for(size_t i=0; i < num_on_segments; i++) {
@@ -242,5 +252,60 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
 
     HPDF_Page_EndText(page);
 }
+
+/**
+ * @brief Draw a phone strength meter
+ *
+ * This function can not be used directly as a canvas callback since it needs additional
+ * parameters. Instead create a simple canvas callback that gives the additional parameters.
+ *
+ * @param doc HPDF Document handle
+ * @param page HPDF Page handle
+ * @param xpos Lower left x
+ * @param ypos Lower left y
+ * @param width Width of meter
+ * @param height Height of meter
+ * @param num_segments Total number of segments
+ * @param on_color Color for "on" segment
+ * @param num_on_segments Number of on segments
+ */
+void
+hpdf_table_widget_strength_meter(const HPDF_Doc doc, const HPDF_Page page,
+                                 const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
+                                 const size_t num_segments, const HPDF_RGBColor on_color, const size_t num_on_segments) {
+
+    const HPDF_RGBColor segment_border_color = HPDF_COLOR_FROMRGB(128,128,128);
+    const HPDF_RGBColor segment_off_color = HPDF_COLOR_FROMRGB(240,240,240);
+
+    const HPDF_REAL inter_segment_space = 2.5;
+    const HPDF_REAL segment_width = (width - inter_segment_space*(num_segments-1)) / num_segments;
+    const HPDF_REAL smallest_segment_height = height/5.0;
+    const HPDF_REAL line_width=0.8;
+
+    HPDF_Page_SetLineWidth(page,line_width);
+    HPDF_Page_SetRGBStroke(page,segment_border_color.r,segment_border_color.g,segment_border_color.b);
+    HPDF_Page_SetRGBFill(page, on_color.r, on_color.g, on_color.b);
+
+    HPDF_REAL current_height = smallest_segment_height;
+    HPDF_REAL x=xpos;
+    HPDF_REAL y=ypos;
+
+    // Draw "on" segments
+    for(size_t i=0; i < num_on_segments; i++) {
+        HPDF_Page_Rectangle(page, x, y, segment_width, current_height);
+        x += inter_segment_space+segment_width;
+        current_height += (height-smallest_segment_height)/num_segments;
+    }
+    HPDF_Page_FillStroke(page);
+
+    HPDF_Page_SetRGBFill(page, segment_off_color.r, segment_off_color.g, segment_off_color.b);
+    for(size_t i=0; i < num_segments-num_on_segments; i++) {
+        HPDF_Page_Rectangle(page, x, y, segment_width, current_height);
+        x += inter_segment_space+segment_width;
+        current_height += (height-smallest_segment_height)/num_segments;
+    }
+    HPDF_Page_FillStroke(page);
+}
+
 
 /* EOF */
