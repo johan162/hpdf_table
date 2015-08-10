@@ -6,7 +6,7 @@ SOURCES=hpdf_errstr.c hpdf_grid.c hpdf_table.c hpdf_table_widget.c hpdf_table_ex
 HEADERS=hpdf_errstr.h hpdf_grid.h hpdf_table.h hpdf_table_widget.h
 
 CFLAGS=--std=c99 -ggdb -O2 -Wall -Wpedantic
-LNFLAGS=-lm /usr/local/Cellar/libharu/2.2.1_1/lib/libhpdf-2.2.1.dylib /usr/lib/libiconv.2.dylib
+LNFLAGS=-lm /usr/local/lib/libhpdf.dylib /usr/lib/libiconv.2.dylib
 
 .PHONY: all
 all: ex1

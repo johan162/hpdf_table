@@ -176,7 +176,7 @@ hpdf_table_set_origin_top_left(const _Bool origin) {
 int
 hpdf_table_get_last_errcode(char **errstr, int *row, int *col) {
     int old_err_code;
-    if( errstr && err_code < 0 && ( (-err_code) < NUM_ERR_MSG) )
+    if( errstr && err_code < 0 && ( (size_t)(-err_code) < NUM_ERR_MSG) )
         *errstr =  error_descriptions[-err_code];
     else {
         *errstr = error_descriptions[_ERR_UNKNOWN];
@@ -449,7 +449,7 @@ hpdf_table_destroy_theme(hpdf_table_theme_t *theme) {
  * @return A handle to a table, NULL in case of OOM
  */
 hpdf_table_t
-hpdf_table_create(int rows, int cols, char *title) {
+hpdf_table_create(size_t rows, size_t cols, char *title) {
 
     // Initializing to zero means default color is black
     hpdf_table_t t = calloc(1, sizeof (struct hpdf_table));
@@ -737,7 +737,7 @@ hpdf_table_destroy(hpdf_table_t t) {
  * @return TRUE if within bounds, FALSE otherwise
  */
 static _Bool
-_chk(const hpdf_table_t t, int r, int c) {
+_chk(const hpdf_table_t t, size_t r, size_t c) {
     if (r < t->rows && c < t->cols)
         return TRUE;
     _SET_ERR(-2,r,c);
@@ -788,7 +788,7 @@ hpdf_table_set_cell(const hpdf_table_t t, int r, int c, char *label, char *conte
  * @return -1 on error, 0 if successful
  */
 int
-hpdf_table_set_cellspan(const hpdf_table_t t, int r, int c, int rowspan, int colspan) {
+hpdf_table_set_cellspan(const hpdf_table_t t, size_t r, size_t c, size_t rowspan, size_t colspan) {
     _CHK_TABLE(t);
     if (!_chk(t, r, c))
         return -1;
@@ -1566,7 +1566,9 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
         _set_fontc(t, t->content_style.font, t->content_style.fsize, t->content_style.color);
         // Check if cell has its own stye which should override global setting but a defined
         // callback will override both
-        hpdf_text_style_t cb_val = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize, t->content_style.color, t->content_style.background};
+        hpdf_text_style_t cb_val = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize, 
+                                                       t->content_style.color, t->content_style.background,
+                                                       t->content_style.halign };
         if( cell->style_cb && cell->style_cb(t->tag, r, c, &cb_val) ) {
             _set_fontc(t, cb_val.font, cb_val.fsize, cb_val.color);
         } else if(t->content_style_cb && cell->style_cb(t->tag, r, c, &cb_val) ) {
@@ -1700,7 +1702,8 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
             if (cell->parent_cell == NULL) {
 
                 if( cell->style_cb ) {
-                    hpdf_text_style_t style = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize, t->content_style.color, t->content_style.background};
+                    hpdf_text_style_t style = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize, 
+                                                                  t->content_style.color, t->content_style.background, t->content_style.halign};
                     if( cell->style_cb(t->tag,r,c,&style) ) {
                         HPDF_Page_SetRGBFill(page, style.background.r, style.background.g, style.background.b);
                         HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);

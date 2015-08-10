@@ -170,9 +170,9 @@ extern "C" {
         /** String reference for cell content */
         char *content;
         /** Number of column this cell spans*/
-        int colspan;
+        size_t colspan;
         /** Number of rows this cell spans*/
-        int rowspan;
+        size_t rowspan;
         /** Height of cell */
         HPDF_REAL height;
         /** Width of cells */
@@ -218,9 +218,9 @@ extern "C" {
         /** PDF page reference */
         HPDF_Page pdf_page;
         /** Number of columns in table */
-        int cols;
+        size_t cols;
         /** Number of rows in table */
-        int rows;
+        size_t rows;
         /** X-position of table. Reference point defaults to lower left but can be changed by calling hpdf_table_set_origin_top_left() */
         HPDF_REAL posx;
         /** Y-position of table. Reference point defaults to lower left but can be changed by calling hpdf_table_set_origin_top_left() */
@@ -374,7 +374,7 @@ extern "C" {
      * Table creation and destruction function 
      */
     hpdf_table_t
-    hpdf_table_create(int rows, int cols, char *title);
+    hpdf_table_create(size_t rows, size_t cols, char *title);
     
     int
     hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
@@ -421,7 +421,7 @@ extern "C" {
     hpdf_table_clear_spanning(const hpdf_table_t t);
 
     int
-    hpdf_table_set_cellspan(const hpdf_table_t t, int r, int c, int rowspan, int colspan);
+    hpdf_table_set_cellspan(const hpdf_table_t t, size_t r, size_t c, size_t rowspan, size_t colspan);
 
     /** 
      * Table style handling functions 
