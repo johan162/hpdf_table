@@ -45,6 +45,9 @@
 #define TRUE 1
 #define FALSE 0
 
+// Silent gcc about unused "arg"in the widget functions
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 /**
  * @brief Table widget that draws a sliding on/off switch. Meant to be used in a canvas
@@ -307,5 +310,6 @@ hpdf_table_widget_strength_meter(const HPDF_Doc doc, const HPDF_Page page,
     HPDF_Page_FillStroke(page);
 }
 
+#pragma GCC diagnostic pop
 
 /* EOF */

@@ -62,6 +62,9 @@ setup_dummy_data(void) {
     }
 }
 
+// Silent gcc about unused "arg"in the widget functions
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 // A standard hpdf error handler which also translates the hpdf error code to a human
 // readable string
@@ -70,6 +73,8 @@ error_handler (HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user_data) {
     fprintf (stderr, "*** PDF ERROR: \"%s\", [0x%04X : %d]\n", hpdf_errstr(error_no), (unsigned int) error_no, (int) detail_no);
     longjmp (env, 1);
 }
+
+#pragma GCC diagnostic pop
 
 // Setup a PDF document with one page
 static void
@@ -233,6 +238,10 @@ ex_tbl4(void) {
 
 }
 
+// Silent gcc about unused "arg"in the widget functions
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 /**
  * Callback to display some system information in the header
  * @param tag The optional table tag
@@ -278,16 +287,17 @@ example_page_header(void) {
     // Specified the layout of each row
     hpdf_table_data_spec_t tbl1_data[] = {
         // row,col,rowspan,colspan,lable-string,content-callback
-        {0,0,1,4,"Server info:",cb_name},
-        {0,4,1,2,"Date:",cb_date},
-        {0,0,0,0,NULL,NULL}  /* Sentinel to mark end of data */
+        {0,0,1,4,"Server info:",cb_name,NULL},
+        {0,4,1,2,"Date:",cb_date,NULL},
+        {0,0,0,0,NULL,NULL,NULL}  /* Sentinel to mark end of data */
     };
     // Overall table layout
     hpdf_table_spec_t tbl1 = {
         NULL, 1, 6,      /* Title, rows, cols   */
         70, 800,         /* xpos, ypos          */
         470, 0,          /* width, height       */
-        tbl1_data        /* A pointer to the specification of each row in the table */
+        tbl1_data,        /* A pointer to the specification of each row in the table */
+        NULL
     };
 
     // Show how to set a specified theme to the table. Since we only use the
@@ -346,3 +356,6 @@ main(int argc, char** argv) {
 
     return (EXIT_SUCCESS);
 }
+
+
+#pragma GCC diagnostic pop
