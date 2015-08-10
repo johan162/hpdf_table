@@ -296,30 +296,27 @@ HPDF_RoundedCornerRectangle(HPDF_Page page,HPDF_REAL xpos, HPDF_REAL ypos, HPDF_
     HPDF_Page_MoveTo(page,xpos,ypos+rad);
     HPDF_Page_LineTo(page,xpos,ypos+height-rad);
 
+    // Upper left
+    HPDF_Page_CurveTo2(page,xpos,ypos+height,xpos+rad,ypos+height);
+    
     // Top line
-    HPDF_Page_MoveTo(page,xpos+rad,ypos+height);
     HPDF_Page_LineTo(page,xpos+width-rad,ypos+height);
+    
+    // Upper right
+    HPDF_Page_CurveTo2(page,xpos+width,ypos+height,xpos+width,ypos+height-rad);
 
     // Right vertical
-    HPDF_Page_MoveTo(page,xpos+width,ypos+height-rad);
     HPDF_Page_LineTo(page,xpos+width,ypos+rad);
+    
+    // Lower right
+    HPDF_Page_CurveTo2(page,xpos+width,ypos,xpos+width-rad,ypos);    
 
     // Bottom line
-    HPDF_Page_MoveTo(page,xpos+width-rad,ypos);
     HPDF_Page_LineTo(page,xpos+rad,ypos);
 
     // Lower left corner
-    HPDF_Page_Arc(page,xpos+rad,ypos+rad,rad,180,270);
-
-    // Upper left
-    HPDF_Page_Arc(page,xpos+rad,ypos+height-rad,rad,270,360);
-
-    // Upper right
-    HPDF_Page_Arc(page,xpos+width-rad,ypos+height-rad,rad,0,90);
-
-    // Lower right
-    HPDF_Page_Arc(page,xpos+width-rad,ypos+rad,rad,90,180);
-
+    HPDF_Page_CurveTo2(page,xpos,ypos,xpos,ypos+rad);        
+    
 }
 
 /**

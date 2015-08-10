@@ -71,8 +71,10 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
 
     const HPDF_RGBColor red = HPDF_COLOR_FROMRGB(210,42,0);
     const HPDF_RGBColor green = HPDF_COLOR_FROMRGB(60,179,113);
-    const HPDF_RGBColor white = HPDF_COLOR_FROMRGB(255,255,255);
     const HPDF_RGBColor smoke = HPDF_COLOR_FROMRGB(240,240,240);
+
+    // Text colors
+    const HPDF_RGBColor white = HPDF_COLOR_FROMRGB(255,255,255);
     const HPDF_RGBColor gray = HPDF_COLOR_FROMRGB(220,220,220);
 
     const HPDF_RGBColor border_color = HPDF_COLOR_FROMRGB(110,110,110);
@@ -83,7 +85,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
     const HPDF_REAL button_height = 11;
     const HPDF_REAL button_xpos = xpos+(width-button_width)/2;
     const HPDF_REAL button_ypos = ypos+4;
-    const HPDF_REAL button_rad = 6;
+    const HPDF_REAL button_rad = 4;
 
     // Default to on setting of "push-button"
     const HPDF_REAL center_x = state ? button_xpos+button_width-button_height/2-0.3 : 0.2+button_xpos+button_height/2;
@@ -97,6 +99,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
 
         HPDF_Page_SetRGBFill(page, green.r, green.g, green.b);
         HPDF_RoundedCornerRectangle(page,button_xpos, button_ypos, button_width, button_height, button_rad);
+        //HPDF_Page_Rectangle(page,button_xpos, button_ypos, button_width, button_height);
         HPDF_Page_FillStroke(page);
 
         HPDF_Page_BeginText(page);
@@ -104,13 +107,14 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
         HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
         HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
-        HPDF_Page_TextOut(page, button_xpos+8, button_ypos+button_height/2-2.5, "ON");
+        HPDF_Page_TextOut(page, button_xpos+8, button_ypos+button_height/2-3, "ON");
         HPDF_Page_EndText(page);
 
     } else {
 
         HPDF_Page_SetRGBFill(page, red.r, red.g, red.b);
         HPDF_RoundedCornerRectangle(page,button_xpos, button_ypos, button_width, button_height, button_rad);
+        //HPDF_Page_Rectangle(page,button_xpos, button_ypos, button_width, button_height);        
         HPDF_Page_FillStroke(page);
 
         HPDF_Page_BeginText(page);
@@ -118,7 +122,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
         HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
         HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
-        HPDF_Page_TextOut(page, button_xpos+button_height+4, button_ypos+button_height/2-2.5, "OFF");
+        HPDF_Page_TextOut(page, button_xpos+button_height+4, button_ypos+button_height/2-3, "OFF");
         HPDF_Page_EndText(page);
 
     }
@@ -128,13 +132,18 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
     HPDF_Page_SetRGBFill(page, smoke.r, smoke.g, smoke.b);
     HPDF_Page_Circle(page,center_x,center_y,radius);
     HPDF_Page_FillStroke(page);
+    
     HPDF_Page_SetLineWidth(page,line_width);
-    HPDF_Page_MoveTo(page,center_x-2,center_y-radius*1/3);
-    HPDF_Page_LineTo(page,center_x-2,center_y+radius*1/3);
+    HPDF_Page_MoveTo(page,center_x-1.5,center_y-radius*1/3);
+    HPDF_Page_LineTo(page,center_x-1.5,center_y+radius*1/3);
+    HPDF_Page_Stroke(page);
+    
     HPDF_Page_MoveTo(page,center_x,center_y-radius*1/3);
     HPDF_Page_LineTo(page,center_x,center_y+radius*1/3);
-    HPDF_Page_MoveTo(page,center_x+2,center_y-radius*1/3);
-    HPDF_Page_LineTo(page,center_x+2,center_y+radius*1/3);
+    HPDF_Page_Stroke(page);
+    
+    HPDF_Page_MoveTo(page,center_x+1.5,center_y-radius*1/3);
+    HPDF_Page_LineTo(page,center_x+1.5,center_y+radius*1/3);
     HPDF_Page_Stroke(page);
 
 }
