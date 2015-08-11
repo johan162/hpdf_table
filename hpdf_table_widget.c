@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <hpdf.h>
+#include <string.h>
 
 #include "hpdf_table.h"
 #include "hpdf_table_widget.h"
@@ -48,6 +49,58 @@
 // Silent gcc about unused "arg"in the widget functions
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+
+
+
+void
+hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
+                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, 
+                     const HPDF_RGBColor on_color, const HPDF_RGBColor off_color, 
+                     const HPDF_RGBColor on_background, const HPDF_RGBColor off_background,
+                     const char *letters, _Bool *state ) {
+
+    // Text colors
+    const size_t num=strlen(letters);
+    const HPDF_RGBColor border_color = HPDF_COLOR_FROMRGB(110,110,110);
+    const HPDF_REAL line_width=1.1;
+    
+    const HPDF_REAL button_width=width/num;        
+    const HPDF_REAL button_height=height;
+    const HPDF_REAL fsize=8;
+        
+    HPDF_REAL x=xpos;
+    HPDF_REAL y=ypos+4;
+    
+
+    
+    HPDF_Page_SetLineWidth(page,line_width);
+    HPDF_Page_SetRGBStroke(page, border_color.r, border_color.g, border_color.b);    
+    for(size_t i=0; i<num; i++) {
+        if( state[i] ) {
+            HPDF_Page_SetRGBFill(page, on_background.r, on_background.g, on_background.b);            
+        } else {
+            HPDF_Page_SetRGBFill(page, off_background.r, off_background.g, off_background.b);            
+        }                
+        HPDF_Page_Rectangle(page, x, y, button_width, button_height);
+        HPDF_Page_FillStroke(page);
+        
+        HPDF_Page_BeginText(page);
+        HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);        
+        if( state[i] ) {
+            HPDF_Page_SetRGBFill(page, on_color.r, on_color.g, on_color.b);
+        } else {
+            HPDF_Page_SetRGBFill(page, off_color.r, off_color.g, off_color.b);
+        }
+        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDF_TABLE_DEFAULT_TARGET_ENCODING), fsize);
+        char buf[2];
+        snprintf(buf,sizeof(buf),"%c",letters[i]);
+        HPDF_Page_TextOut(page, x+button_width/2-fsize/2+2, y+button_height/2-3, buf);
+        HPDF_Page_EndText(page);
+        x += button_width;
+    }
+}
+
+
 
 /**
  * @brief Table widget that draws a sliding on/off switch. Meant to be used in a canvas

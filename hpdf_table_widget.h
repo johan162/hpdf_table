@@ -33,6 +33,13 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+    
+    void
+    hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
+                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, 
+                     const HPDF_RGBColor on_color, const HPDF_RGBColor off_color, 
+                     const HPDF_RGBColor on_background, const HPDF_RGBColor off_background,
+                     const char *letters, _Bool *state );
 
     void
     hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
