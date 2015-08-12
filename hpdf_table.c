@@ -298,25 +298,24 @@ HPDF_RoundedCornerRectangle(HPDF_Page page,HPDF_REAL xpos, HPDF_REAL ypos, HPDF_
 
     // Upper left
     HPDF_Page_CurveTo2(page,xpos,ypos+height,xpos+rad,ypos+height);
-    
+
     // Top line
     HPDF_Page_LineTo(page,xpos+width-rad,ypos+height);
-    
+
     // Upper right
     HPDF_Page_CurveTo2(page,xpos+width,ypos+height,xpos+width,ypos+height-rad);
 
     // Right vertical
     HPDF_Page_LineTo(page,xpos+width,ypos+rad);
-    
+
     // Lower right
-    HPDF_Page_CurveTo2(page,xpos+width,ypos,xpos+width-rad,ypos);    
+    HPDF_Page_CurveTo2(page,xpos+width,ypos,xpos+width-rad,ypos);
 
     // Bottom line
     HPDF_Page_LineTo(page,xpos+rad,ypos);
 
     // Lower left corner
-    HPDF_Page_CurveTo2(page,xpos,ypos,xpos,ypos+rad);        
-    
+    HPDF_Page_CurveTo2(page,xpos,ypos,xpos,ypos+rad);
 }
 
 /**
@@ -1380,6 +1379,9 @@ hpdf_table_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdf_table_spe
         if( -1 == hpdf_table_set_cell_content_style_callback(t,spec->row,spec->col,spec->style_cb) ) {
             return -1;
         }
+        if( -1 == hpdf_table_set_cell_canvas_callback(t,spec->row,spec->col,spec->canvas_cb) ) {
+            return -1;
+        }
 
         i++;
     }
@@ -1563,7 +1565,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
         _set_fontc(t, t->content_style.font, t->content_style.fsize, t->content_style.color);
         // Check if cell has its own stye which should override global setting but a defined
         // callback will override both
-        hpdf_text_style_t cb_val = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize, 
+        hpdf_text_style_t cb_val = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize,
                                                        t->content_style.color, t->content_style.background,
                                                        t->content_style.halign };
         if( cell->style_cb && cell->style_cb(t->tag, r, c, &cb_val) ) {
@@ -1699,7 +1701,7 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
             if (cell->parent_cell == NULL) {
 
                 if( cell->style_cb ) {
-                    hpdf_text_style_t style = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize, 
+                    hpdf_text_style_t style = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize,
                                                                   t->content_style.color, t->content_style.background, t->content_style.halign};
                     if( cell->style_cb(t->tag,r,c,&style) ) {
                         HPDF_Page_SetRGBFill(page, style.background.r, style.background.g, style.background.b);

@@ -310,6 +310,9 @@ extern "C" {
         hpdf_table_content_callback_t cb;
         /**  Content style callback for this cell */
         hpdf_table_content_style_callback_t style_cb;
+        /**  Canvas callback for this cell */
+        hpdf_table_canvas_callback_t canvas_cb;
+        
     } hpdf_table_data_spec_t;
 
     /** 
