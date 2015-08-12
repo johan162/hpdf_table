@@ -69,7 +69,7 @@ hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
     const HPDF_REAL fsize=8;
         
     HPDF_REAL x=xpos;
-    HPDF_REAL y=ypos+4;
+    HPDF_REAL y=ypos;
     
 
     
@@ -134,10 +134,10 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
     const HPDF_REAL line_width=0.8;
 
     // Bounding box for slide button
-    const HPDF_REAL button_width = 38;
-    const HPDF_REAL button_height = 11;
-    const HPDF_REAL button_xpos = xpos+(width-button_width)/2;
-    const HPDF_REAL button_ypos = ypos+4;
+    const HPDF_REAL button_width = width; //38;
+    const HPDF_REAL button_height = height; //11;
+    const HPDF_REAL button_xpos = xpos; //+(width-button_width)/2;
+    const HPDF_REAL button_ypos = ypos; //+4;
     const HPDF_REAL button_rad = 4;
 
     // Default to on setting of "push-button"
@@ -159,7 +159,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
         HPDF_Page_SetRGBFill(page, white.r, white.g, white.b);
         HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
-        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
+        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
         HPDF_Page_TextOut(page, button_xpos+8, button_ypos+button_height/2-3, "ON");
         HPDF_Page_EndText(page);
 
@@ -174,7 +174,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
         HPDF_Page_SetRGBFill(page, gray.r, gray.g, gray.b);
         HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
-        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
+        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
         HPDF_Page_TextOut(page, button_xpos+button_height+4, button_ypos+button_height/2-3, "OFF");
         HPDF_Page_EndText(page);
 
