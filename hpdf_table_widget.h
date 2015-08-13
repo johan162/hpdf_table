@@ -39,6 +39,7 @@ extern "C" {
                      HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, 
                      const HPDF_RGBColor on_color, const HPDF_RGBColor off_color, 
                      const HPDF_RGBColor on_background, const HPDF_RGBColor off_background,
+                     const HPDF_REAL fsize,
                      const char *letters, _Bool *state );
 
     void
@@ -53,7 +54,7 @@ extern "C" {
     void
     hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
                                 const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
-                                const size_t num_segments, const HPDF_RGBColor on_color, const size_t num_on_segments);
+                                const size_t num_segments, const HPDF_RGBColor on_color, const size_t num_on_segments, const _Bool text_below);
     
     void
     hpdf_table_widget_strength_meter(const HPDF_Doc doc, const HPDF_Page page,
