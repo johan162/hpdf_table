@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include <hpdf.h>
 #include <string.h>
+#include <math.h>
 
 #include "hpdf_table.h"
 #include "hpdf_table_widget.h"
@@ -54,8 +55,8 @@
 
 void
 hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
-                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, 
-                     const HPDF_RGBColor on_color, const HPDF_RGBColor off_color, 
+                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height,
+                     const HPDF_RGBColor on_color, const HPDF_RGBColor off_color,
                      const HPDF_RGBColor on_background, const HPDF_RGBColor off_background,
                      const HPDF_REAL fsize,
                      const char *letters, _Bool *state ) {
@@ -64,29 +65,29 @@ hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
     const size_t num=strlen(letters);
     const HPDF_RGBColor border_color = HPDF_COLOR_FROMRGB(110,110,110);
     const HPDF_REAL line_width=1.1;
-    
-    const HPDF_REAL button_width=width/num;        
+
+    const HPDF_REAL button_width=width/num;
     const HPDF_REAL button_height=height;
     //const HPDF_REAL fsize=8;
-        
+
     HPDF_REAL x=xpos;
     HPDF_REAL y=ypos;
-    
 
-    
+
+
     HPDF_Page_SetLineWidth(page,line_width);
-    HPDF_Page_SetRGBStroke(page, border_color.r, border_color.g, border_color.b);    
+    HPDF_Page_SetRGBStroke(page, border_color.r, border_color.g, border_color.b);
     for(size_t i=0; i<num; i++) {
         if( state[i] ) {
-            HPDF_Page_SetRGBFill(page, on_background.r, on_background.g, on_background.b);            
+            HPDF_Page_SetRGBFill(page, on_background.r, on_background.g, on_background.b);
         } else {
-            HPDF_Page_SetRGBFill(page, off_background.r, off_background.g, off_background.b);            
-        }                
+            HPDF_Page_SetRGBFill(page, off_background.r, off_background.g, off_background.b);
+        }
         HPDF_Page_Rectangle(page, x, y, button_width, button_height);
         HPDF_Page_FillStroke(page);
-        
+
         HPDF_Page_BeginText(page);
-        HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);        
+        HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
         if( state[i] ) {
             HPDF_Page_SetRGBFill(page, on_color.r, on_color.g, on_color.b);
         } else {
@@ -168,7 +169,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
 
         HPDF_Page_SetRGBFill(page, red.r, red.g, red.b);
         HPDF_RoundedCornerRectangle(page,button_xpos, button_ypos, button_width, button_height, button_rad);
-        //HPDF_Page_Rectangle(page,button_xpos, button_ypos, button_width, button_height);        
+        //HPDF_Page_Rectangle(page,button_xpos, button_ypos, button_width, button_height);
         HPDF_Page_FillStroke(page);
 
         HPDF_Page_BeginText(page);
@@ -186,16 +187,16 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
     HPDF_Page_SetRGBFill(page, smoke.r, smoke.g, smoke.b);
     HPDF_Page_Circle(page,center_x,center_y,radius);
     HPDF_Page_FillStroke(page);
-    
+
     HPDF_Page_SetLineWidth(page,line_width);
     HPDF_Page_MoveTo(page,center_x-1.5,center_y-radius*1/3);
     HPDF_Page_LineTo(page,center_x-1.5,center_y+radius*1/3);
     HPDF_Page_Stroke(page);
-    
+
     HPDF_Page_MoveTo(page,center_x,center_y-radius*1/3);
     HPDF_Page_LineTo(page,center_x,center_y+radius*1/3);
     HPDF_Page_Stroke(page);
-    
+
     HPDF_Page_MoveTo(page,center_x+1.5,center_y-radius*1/3);
     HPDF_Page_LineTo(page,center_x+1.5,center_y+radius*1/3);
     HPDF_Page_Stroke(page);
@@ -276,13 +277,14 @@ hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
 void
 hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
                                 const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
-                                const size_t num_segments, const HPDF_RGBColor on_color, const size_t num_on_segments, const _Bool text_below) {
+                                const size_t num_segments, const HPDF_RGBColor on_color, const double val_percent,
+                                const _Bool text_below) {
 
     const HPDF_RGBColor segment_border_color = HPDF_COLOR_FROMRGB(128,128,128);
     const HPDF_RGBColor segment_off_color = HPDF_COLOR_FROMRGB(240,240,240);
     const HPDF_RGBColor segment_text_color = HPDF_COLOR_FROMRGB(40,40,40);
 
-    const HPDF_REAL inter_segment_space = 1.5;
+    const HPDF_REAL inter_segment_space = 2.0;
     const HPDF_REAL segment_width = (width - inter_segment_space*(num_segments-1)) / num_segments;
     const HPDF_REAL line_width=0.8;
     const HPDF_REAL fsize=8;
@@ -290,6 +292,8 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
     HPDF_Page_SetLineWidth(page,line_width);
     HPDF_Page_SetRGBStroke(page,segment_border_color.r,segment_border_color.g,segment_border_color.b);
     HPDF_Page_SetRGBFill(page, on_color.r, on_color.g, on_color.b);
+
+    const size_t num_on_segments=lround(val_percent*num_segments);
 
     HPDF_REAL x=xpos;
     HPDF_REAL y=ypos;
@@ -318,7 +322,9 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
         HPDF_Page_TextOut(page, xpos-2, ypos-9, "0");
         HPDF_Page_TextOut(page, xpos+width-8, ypos-9, "100%");
     } else {
-        HPDF_Page_TextOut(page, xpos+width+5, ypos+(height-fsize)/2.0+1, "100%");        
+        char buf[8];
+        snprintf(buf,sizeof(buf),"%.0lf%%",val_percent*100);
+        HPDF_Page_TextOut(page, xpos+width+5, ypos+(height-fsize)/2.0+1, buf);
     }
 
     HPDF_Page_EndText(page);

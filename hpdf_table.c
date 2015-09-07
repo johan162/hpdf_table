@@ -178,11 +178,13 @@ hpdf_table_get_last_errcode(char **errstr, int *row, int *col) {
     int old_err_code;
     if( errstr && err_code < 0 && ( (size_t)(-err_code) < NUM_ERR_MSG) )
         *errstr =  error_descriptions[-err_code];
-    else {
+    else if( errstr) {
         *errstr = error_descriptions[_ERR_UNKNOWN];
         err_code = _ERR_UNKNOWN;
         err_row = -1;
         err_col = -1;
+    } else {
+        return 0;
     }
     *row=err_row ;
     *col=err_col ;
@@ -237,11 +239,13 @@ _do_encoding(char *input, char *output, const size_t out_len) {
 
     do {
         if (iconv(cd, &in_buf, &in_left, &out_buf, &out_left) == (size_t) - 1) {
+            iconv_close(cd);
             return -1;
         }
     } while (in_left > 0 && out_left > 0);
     *out_buf = 0;
-
+    
+    iconv_close(cd);
     return 0;
 }
 
@@ -1367,19 +1371,13 @@ hpdf_table_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdf_table_spe
         if( spec->rowspan==0 && spec->colspan==0 )
             break;
 
-        if( -1 == hpdf_table_set_cell(t, spec->row, spec->col, spec->label, NULL) ) {
-            return -1;
-        }
-        if( -1 == hpdf_table_set_cellspan(t,spec->row, spec->col,spec->rowspan,spec->colspan) ) {
-            return -1;
-        }
-        if( -1 == hpdf_table_set_cell_content_callback(t,spec->row,spec->col,spec->cb) ) {
-            return -1;
-        }
-        if( -1 == hpdf_table_set_cell_content_style_callback(t,spec->row,spec->col,spec->style_cb) ) {
-            return -1;
-        }
-        if( -1 == hpdf_table_set_cell_canvas_callback(t,spec->row,spec->col,spec->canvas_cb) ) {
+        if( -1 == hpdf_table_set_cell(t, spec->row, spec->col, spec->label, NULL) ||
+            -1 == hpdf_table_set_cellspan(t,spec->row, spec->col,spec->rowspan,spec->colspan) ||
+            -1 == hpdf_table_set_cell_content_callback(t,spec->row,spec->col,spec->cb) ||
+            -1 == hpdf_table_set_cell_content_style_callback(t,spec->row,spec->col,spec->style_cb) ||
+            -1 == hpdf_table_set_cell_canvas_callback(t,spec->row,spec->col,spec->canvas_cb) ) {
+            
+            hpdf_table_destroy(t);
             return -1;
         }
 
@@ -1570,7 +1568,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
                                                        t->content_style.halign };
         if( cell->style_cb && cell->style_cb(t->tag, r, c, &cb_val) ) {
             _set_fontc(t, cb_val.font, cb_val.fsize, cb_val.color);
-        } else if(t->content_style_cb && cell->style_cb(t->tag, r, c, &cb_val) ) {
+        } else if(t->content_style_cb && t->content_style_cb(t->tag, r, c, &cb_val) ) {
             _set_fontc(t, cb_val.font, cb_val.fsize, cb_val.color);
         } else if( cell->content_style.font ) {
             _set_fontc(t, cell->content_style.font, cell->content_style.fsize, cell->content_style.color);
