@@ -287,9 +287,9 @@ example_page_header(void) {
     // Specified the layout of each row
     hpdf_table_data_spec_t tbl1_data[] = {
         // row,col,rowspan,colspan,lable-string,content-callback
-        {0,0,1,4,"Server info:",cb_name,NULL},
-        {0,4,1,2,"Date:",cb_date,NULL},
-        {0,0,0,0,NULL,NULL,NULL}  /* Sentinel to mark end of data */
+        {0,0,1,4,"Server info:",cb_name,NULL,NULL},
+        {0,4,1,2,"Date:",cb_date,NULL,NULL},
+        {0,0,0,0,NULL,NULL,NULL,NULL}  /* Sentinel to mark end of data */
     };
     // Overall table layout
     hpdf_table_spec_t tbl1 = {

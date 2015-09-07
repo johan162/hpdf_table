@@ -33,38 +33,37 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
+
     void
     hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
-                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, 
-                     const HPDF_RGBColor on_color, const HPDF_RGBColor off_color, 
+                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height,
+                     const HPDF_RGBColor on_color, const HPDF_RGBColor off_color,
                      const HPDF_RGBColor on_background, const HPDF_RGBColor off_background,
                      const HPDF_REAL fsize,
                      const char *letters, _Bool *state );
 
     void
     hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
-                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, _Bool state); 
-    
+                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, _Bool state);
+
     void
     hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
                        const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
                        const HPDF_RGBColor color, const float val, const _Bool show_val);
-    
+
     void
     hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
                                 const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
-                                const size_t num_segments, const HPDF_RGBColor on_color, const double val_percent, 
+                                const size_t num_segments, const HPDF_RGBColor on_color, const double val_percent,
                                 const _Bool text_below);
     
     void
     hpdf_table_widget_strength_meter(const HPDF_Doc doc, const HPDF_Page page,
                                  const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
                                  const size_t num_segments, const HPDF_RGBColor on_color, const size_t num_on_segments);
-    
+
 #ifdef	__cplusplus
 }
 #endif
 
 #endif	/* HPDF_TABLE_WIDGET_H */
-

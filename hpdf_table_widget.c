@@ -73,8 +73,6 @@ hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
     HPDF_REAL x=xpos;
     HPDF_REAL y=ypos;
 
-
-
     HPDF_Page_SetLineWidth(page,line_width);
     HPDF_Page_SetRGBStroke(page, border_color.r, border_color.g, border_color.b);
     for(size_t i=0; i<num; i++) {
@@ -88,6 +86,7 @@ hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
 
         HPDF_Page_BeginText(page);
         HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
+
         if( state[i] ) {
             HPDF_Page_SetRGBFill(page, on_color.r, on_color.g, on_color.b);
         } else {
