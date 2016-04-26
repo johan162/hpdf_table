@@ -16,19 +16,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if !(defined _WIN32 || defined __WIN32__)
 #include <unistd.h>
+#endif
 #include <math.h>
 #include <setjmp.h>
 #include <hpdf.h>
 #include <time.h>
+#if !(defined _WIN32 || defined __WIN32__)
 #include <sys/utsname.h>
+#endif
 
 // These two includes should always be used
 #include "hpdf_table.h"
 #include "hpdf_errstr.h"
 
 // The output after running the program will be written to this file
+#ifdef _WIN32
+#define OUTPUT_FILE "hpdf_table.pdf"
+#else
 #define OUTPUT_FILE "/tmp/hpdf_table.pdf"
+#endif
 #define TRUE 1
 #define FALSE 0
 
@@ -53,18 +61,28 @@ setup_dummy_data(void) {
     size_t cnt=0;
      for (size_t r = 0; r < MAX_NUM_ROWS; r++) {
         for (size_t c = 0; c < MAX_NUM_COLS; c++) {
-            snprintf(buff,sizeof(buff),"Label %zu:",cnt);
-            labels[cnt] = strdup(buff);
-            snprintf(buff,sizeof(buff),"Content %zu",cnt);
-            content[cnt] = strdup(buff);
+
+#if (defined _WIN32 || defined __WIN32__)
+			sprintf(buff, "Label %i:", cnt);
+			labels[cnt] = _strdup(buff);
+			sprintf(buff, "Content %i", cnt);
+			content[cnt] = _strdup(buff);
+#else
+			snprintf(buff,sizeof(buff),"Label %zu:",cnt);
+			labels[cnt] = strdup(buff);
+			snprintf(buff, sizeof(buff), "Content %zu", cnt);
+			content[cnt] = strdup(buff);
+#endif
             cnt++;
         }
     }
 }
 
+#ifndef _MSC_VER
 // Silent gcc about unused "arg"in the widget functions
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 
 // A standard hpdf error handler which also translates the hpdf error code to a human
 // readable string
@@ -74,7 +92,9 @@ error_handler (HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user_data) {
     longjmp (env, 1);
 }
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 // Setup a PDF document with one page
 static void
@@ -126,13 +146,17 @@ ex_tbl2(void) {
     hpdf_table_t t = hpdf_table_create(num_rows,num_cols,table_title);
 
     // Use a red title and center the text
-    HPDF_RGBColor color = {0.6,0,0};
-    HPDF_RGBColor background = {0.9,1.0,0.9};
+    HPDF_RGBColor color = {0.6f,0,0};
+    HPDF_RGBColor background = {0.9f,1.0f,0.9f};
     hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,color,background);
     hpdf_table_set_title_halign(t,CENTER);
 
     // Use bold font for content. Use the C99 way to specify constant structure constants
-    hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,0.9});
+#ifdef	__cplusplus
+	hpdf_table_set_content_style(t, HPDF_FF_COURIER_BOLD, 10, { 0.1f, 0.1f, 0.1f }, { 1.0, 1.0, 0.9f });
+#else
+	hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1f,0.1f,0.1f},(HPDF_RGBColor){1.0,1.0,0.9f});
+#endif
     hpdf_table_set_content(t,content);
     hpdf_table_set_labels(t,labels);
 
@@ -155,8 +179,8 @@ ex_tbl3(void) {
     hpdf_table_t t = hpdf_table_create(num_rows,num_cols,table_title);
 
     // Use a red title and center the text
-    HPDF_RGBColor color = {0.6,0,0};
-    HPDF_RGBColor background = {0.9,1.0,0.9};
+    HPDF_RGBColor color = {0.6f,0,0};
+    HPDF_RGBColor background = {0.9f,1.0,0.9f};
     hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,color,background);
     hpdf_table_set_title_halign(t,CENTER);
 
@@ -168,7 +192,11 @@ ex_tbl3(void) {
 
 
     // Use bold font for content. Use the C99 way to specify constant structure constants
-    hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,1.0});
+#ifdef	__cplusplus
+	hpdf_table_set_content_style(t, HPDF_FF_COURIER_BOLD, 10, { 0.1f, 0.1f, 0.1f }, { 1.0, 1.0, 1.0 });
+#else
+	hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1f,0.1f,0.1f},(HPDF_RGBColor){1.0,1.0,1.0});
+#endif
     hpdf_table_set_content(t,content);
     hpdf_table_set_labels(t,labels);
 
@@ -191,7 +219,11 @@ ex_tbl3(void) {
 }
 
 // Utility macro to create a HPDF color constant from integer RGB values
-#define _TO_HPDF_RGB(r,g,b) (HPDF_RGBColor){r/255.0,g/255.0,b/255.0}
+#ifdef	__cplusplus
+#define _TO_HPDF_RGB(r,g,b) {r/255.0,g/255.0,b/255.0}
+#else
+#define _TO_HPDF_RGB(r,g,b) (HPDF_RGBColor){r/255.0f,g/255.0f,b/255.0f}
+#endif
 
 /**
  * Table 4 example - Adjusting look and feel of single cell
@@ -204,13 +236,17 @@ ex_tbl4(void) {
     hpdf_table_t t = hpdf_table_create(num_rows,num_cols,table_title);
 
     // Use a red title and center the text
-    HPDF_RGBColor color = {0.6,0,0};
-    HPDF_RGBColor background = {0.9,1.0,0.9};
+    HPDF_RGBColor color = {0.6f,0,0};
+    HPDF_RGBColor background = {0.9f,1.0,0.9f};
     hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,color,background);
     hpdf_table_set_title_halign(t,CENTER);
 
     // Use bold font for content. Use the C99 way to specify constant structure constants
-    hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1,0.1,0.1},(HPDF_RGBColor){1.0,1.0,0.9});
+#ifdef	__cplusplus
+	hpdf_table_set_content_style(t, HPDF_FF_COURIER_BOLD, 10, { 0.1f, 0.1f, 0.1f }, { 1.0, 1.0, 0.9f });
+#else
+	hpdf_table_set_content_style(t,HPDF_FF_COURIER_BOLD,10,(HPDF_RGBColor){0.1f,0.1f,0.1f},(HPDF_RGBColor){1.0,1.0,0.9f});
+#endif
     hpdf_table_set_content(t,content);
     hpdf_table_set_labels(t,labels);
 
@@ -238,10 +274,13 @@ ex_tbl4(void) {
 
 }
 
+#ifndef _MSC_VER
 // Silent gcc about unused "arg"in the widget functions
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 
+#if !(defined _WIN32 || defined __WIN32__)
 /**
  * Callback to display some system information in the header
  * @param tag The optional table tag
@@ -314,7 +353,7 @@ example_page_header(void) {
     }
     hpdf_table_destroy_theme(theme);
 }
-
+#endif
 
 int
 main(int argc, char** argv) {
@@ -332,22 +371,30 @@ main(int argc, char** argv) {
 
     // Example 1
     add_a4page();
+#if !(defined _WIN32 || defined __WIN32__)
     example_page_header();
+#endif
     ex_tbl1();
 
     // Example 2
     add_a4page();
-    example_page_header();
+#if !(defined _WIN32 || defined __WIN32__)
+	example_page_header();
+#endif
     ex_tbl2();
 
     // Example 3
     add_a4page();
-    example_page_header();
+#if !(defined _WIN32 || defined __WIN32__)
+	example_page_header();
+#endif
     ex_tbl3();
 
     // Example 4
     add_a4page();
-    example_page_header();
+#if !(defined _WIN32 || defined __WIN32__)
+	example_page_header();
+#endif
     ex_tbl4();
 
     stroke_page_tofile();
@@ -357,5 +404,6 @@ main(int argc, char** argv) {
     return (EXIT_SUCCESS);
 }
 
-
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
