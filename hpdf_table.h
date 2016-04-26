@@ -41,6 +41,13 @@
 extern "C" {
 #endif
 
+#ifdef	__cplusplus
+// in case we have C++ code, we should use its' types and logic
+#include <algorithm>
+typedef std::_Bool _Bool;
+
+#endif
+
 /**
  * Definition of built-in HPDF font families
  */
