@@ -38,6 +38,12 @@
 #define	HPDF_TABLE_H
 
 #ifdef	__cplusplus
+// in case we have C++ code, we should use its' types and logic
+#include <algorithm>
+typedef std::_Bool _Bool;
+#endif
+
+#ifdef	__cplusplus
 extern "C" {
 #endif
 
@@ -382,7 +388,7 @@ extern "C" {
     int
     hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
             const HPDF_REAL x, const HPDF_REAL y,
-            const HPDF_REAL width, const HPDF_REAL height);
+            const HPDF_REAL width, HPDF_REAL height);
     
     int
     hpdf_table_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdf_table_spec_t tbl_spec, hpdf_table_theme_t *theme);

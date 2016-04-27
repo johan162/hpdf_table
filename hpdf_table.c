@@ -34,7 +34,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#if !(defined _WIN32 || defined __WIN32__)
 #include <unistd.h>
+#endif
 #include <string.h>
 #include <iconv.h>
 #include <hpdf.h>
@@ -47,12 +49,25 @@
 #define _IDX(r,c) (r*t->cols+c)
 
 /* Default styles */
-#define HPDF_TABLE_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,11,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.9}, LEFT}
-#define HPDF_TABLE_DEFAULT_HEADER_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,10,(HPDF_RGBColor){0.2,0,0},(HPDF_RGBColor){0.9,0.9,0.97}, CENTER}
-#define HPDF_TABLE_DEFAULT_LABEL_STYLE (hpdf_text_style_t){HPDF_FF_TIMES_ITALIC,9,(HPDF_RGBColor){0.4,0.4,0.4},(HPDF_RGBColor){1,1,1}, LEFT}
-#define HPDF_TABLE_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){HPDF_FF_COURIER,10,(HPDF_RGBColor){0.2,0.2,0.2},(HPDF_RGBColor){1,1,1}, LEFT}
-#define HPDF_TABLE_DEFAULT_INNER_BORDER_STYLE (hpdf_border_style_t){0.7, (HPDF_RGBColor){0.5,0.5,0.5},0}
-#define HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE (hpdf_border_style_t){1.0, (HPDF_RGBColor){0.2,0.2,0.2},0}
+#ifdef __cplusplus
+#define HPDF_TABLE_DEFAULT_TITLE_STYLE			{HPDF_FF_HELVETICA_BOLD,11,{0.2,0,0},{0.9,0.9,0.9}, LEFT}
+#define HPDF_TABLE_DEFAULT_HEADER_STYLE			{HPDF_FF_HELVETICA_BOLD,10,{0.2,0,0},{0.9,0.9,0.97}, CENTER}
+#define HPDF_TABLE_DEFAULT_LABEL_STYLE			{HPDF_FF_TIMES_ITALIC,9,{0.4,0.4,0.4},{1,1,1}, LEFT}
+#define HPDF_TABLE_DEFAULT_CONTENT_STYLE		{HPDF_FF_COURIER,10,{0.2,0.2,0.2},{1,1,1}, LEFT}
+#define HPDF_TABLE_DEFAULT_INNER_BORDER_STYLE	{0.7, {0.5,0.5,0.5}, hpdf_table_line_style_t(0)}
+#define HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE	{1.0, {0.2,0.2,0.2}, hpdf_table_line_style_t(0)}
+#else
+#define HPDF_TABLE_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,11,(HPDF_RGBColor){0.2f,0,0},(HPDF_RGBColor){0.9f,0.9f,0.9f}, LEFT}
+#define HPDF_TABLE_DEFAULT_HEADER_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,10,(HPDF_RGBColor){0.2f,0,0},(HPDF_RGBColor){0.9f,0.9f,0.97f}, CENTER}
+#define HPDF_TABLE_DEFAULT_LABEL_STYLE (hpdf_text_style_t){HPDF_FF_TIMES_ITALIC,9,(HPDF_RGBColor){0.4f,0.4f,0.4f},(HPDF_RGBColor){1,1,1}, LEFT}
+#define HPDF_TABLE_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){HPDF_FF_COURIER,10,(HPDF_RGBColor){0.2f,0.2f,0.2f},(HPDF_RGBColor){1,1,1}, LEFT}
+#define HPDF_TABLE_DEFAULT_INNER_BORDER_STYLE (hpdf_border_style_t){0.7f, (HPDF_RGBColor){0.5f,0.5f,0.5f},0}
+#define HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE (hpdf_border_style_t){1.0, (HPDF_RGBColor){0.2f,0.2f,0.2f},0}
+#endif
+
+#ifdef _MSC_VER
+#define strdup _strdup
+#endif
 
 #define _SET_ERR(err,r,c) do {err_code=err;err_row=r;err_col=c;} while(0)
 #define _CHK_TABLE(t) do {if(NULL == t) {err_code=-3;err_row=-1;err_col=-1;return -1;}} while(0)
@@ -232,7 +247,7 @@ hpdf_table_set_text_encoding(char *target, char *source) {
 static int
 _do_encoding(char *input, char *output, const size_t out_len) {
     char *out_buf = &output[0];
-    char *in_buf = &input[0];
+    const char *in_buf = &input[0];
     size_t out_left = out_len - 1;
     size_t in_left = strlen(input) ;
     iconv_t cd = iconv_open(target_encoding, source_encoding);
@@ -269,10 +284,13 @@ hpdf_table_encoding_text_out(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, cha
         return 0;
 
     const size_t out_len = 3*strlen(text);
-    char *output = calloc(1,out_len);
-
+#ifdef __cplusplus
+	char *output = static_cast<char*>(calloc(1, out_len));
+#else
+	char *output = calloc(1, out_len);
+#endif
     if( -1 == _do_encoding(text,output,out_len) ) {
-        _SET_ERR(-4,xpos,ypos);
+		_SET_ERR(-4, (int)xpos, (int)ypos);
         HPDF_Page_TextOut(page, xpos, ypos, "???");
     } else {
         HPDF_Page_TextOut(page, xpos, ypos, output);
@@ -333,8 +351,12 @@ HPDF_RoundedCornerRectangle(HPDF_Page page,HPDF_REAL xpos, HPDF_REAL ypos, HPDF_
  */
 hpdf_table_theme_t *
 hpdf_table_get_default_theme(void) {
-    hpdf_table_theme_t *t = calloc(1,sizeof(hpdf_table_theme_t));
 
+#ifdef __cplusplus
+	hpdf_table_theme_t *t = static_cast<hpdf_table_theme_t*>(calloc(1,sizeof(hpdf_table_theme_t)));
+#else
+	hpdf_table_theme_t *t = calloc(1,sizeof(hpdf_table_theme_t));
+#endif
     if( NULL == t ) {
         _SET_ERR(-5,-1,-1);
         return NULL;
@@ -346,7 +368,11 @@ hpdf_table_get_default_theme(void) {
     t->use_header_row = FALSE;
 
     // Set default title font
-    t->title_style = calloc(1,sizeof(hpdf_text_style_t));
+#ifdef __cplusplus
+	t->title_style = static_cast<hpdf_text_style_t*>(calloc(1, sizeof(hpdf_text_style_t)));
+#else
+	t->title_style = calloc(1,sizeof(hpdf_text_style_t));
+#endif
     if( NULL == t->title_style ) {
         free(t);
         _SET_ERR(-5,-1,-1);
@@ -355,7 +381,11 @@ hpdf_table_get_default_theme(void) {
     *t->title_style = HPDF_TABLE_DEFAULT_TITLE_STYLE;
 
     // Set default header font
-    t->header_style = calloc(1,sizeof(hpdf_text_style_t));
+#ifdef __cplusplus
+	t->header_style = static_cast<hpdf_text_style_t*>(calloc(1, sizeof(hpdf_text_style_t)));
+#else
+	t->header_style = calloc(1,sizeof(hpdf_text_style_t));
+#endif
     if( NULL == t->header_style ) {
         free(t->title_style);
         free(t);
@@ -365,7 +395,11 @@ hpdf_table_get_default_theme(void) {
     *t->header_style = HPDF_TABLE_DEFAULT_HEADER_STYLE;
 
     // Set default label font
-    t->label_style = calloc(1,sizeof(hpdf_text_style_t));
+#ifdef __cplusplus
+	t->label_style = static_cast<hpdf_text_style_t*>(calloc(1, sizeof(hpdf_text_style_t)));
+#else
+	t->label_style = calloc(1, sizeof(hpdf_text_style_t));
+#endif
     if( NULL == t->label_style ) {
         free(t->header_style);
         free(t->title_style);
@@ -376,7 +410,11 @@ hpdf_table_get_default_theme(void) {
     *t->label_style = HPDF_TABLE_DEFAULT_LABEL_STYLE;
 
     // Set default content font
-    t->content_style = calloc(1,sizeof(hpdf_text_style_t));
+#ifdef __cplusplus
+	t->content_style = static_cast<hpdf_text_style_t*>(calloc(1, sizeof(hpdf_text_style_t)));
+#else
+	t->content_style = calloc(1, sizeof(hpdf_text_style_t));
+#endif
     if( NULL == t->content_style ) {
         free(t->label_style);
         free(t->header_style);
@@ -388,7 +426,11 @@ hpdf_table_get_default_theme(void) {
     *t->content_style = HPDF_TABLE_DEFAULT_CONTENT_STYLE;
 
     // Set default borders and colors
-    t->outer_border = calloc(1,sizeof(hpdf_border_style_t));
+#ifdef __cplusplus
+	t->outer_border = static_cast<hpdf_border_style_t*>(calloc(1, sizeof(hpdf_border_style_t)));
+#else
+	t->outer_border = calloc(1, sizeof(hpdf_border_style_t));
+#endif
     if( NULL == t->outer_border ) {
         free(t->content_style);
         free(t->label_style);
@@ -400,7 +442,11 @@ hpdf_table_get_default_theme(void) {
     }
     *t->outer_border = HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE;
 
-    t->inner_border = calloc(1,sizeof(hpdf_border_style_t));
+#ifdef __cplusplus
+	t->inner_border = static_cast<hpdf_border_style_t*>(calloc(1, sizeof(hpdf_border_style_t)));
+#else
+	t->inner_border = calloc(1, sizeof(hpdf_border_style_t));
+#endif
     if( NULL == t->inner_border ) {
         free(t->outer_border);
         free(t->content_style);
@@ -452,13 +498,21 @@ hpdf_table_t
 hpdf_table_create(size_t rows, size_t cols, char *title) {
 
     // Initializing to zero means default color is black
-    hpdf_table_t t = calloc(1, sizeof (struct hpdf_table));
+#ifdef __cplusplus
+	hpdf_table_t t = static_cast<hpdf_table_t>(calloc(1, sizeof(struct hpdf_table)));
+#else
+	hpdf_table_t t = calloc(1, sizeof (struct hpdf_table));
+#endif
     if (t == NULL) {
         _SET_ERR(-5,-1,-1);
         return NULL;
     }
 
-    t->cells = calloc(cols*rows, sizeof (hpdf_table_cell_t));
+#ifdef __cplusplus
+	t->cells = static_cast<hpdf_table_cell_t*>(calloc(cols*rows, sizeof(hpdf_table_cell_t)));
+#else
+	t->cells = calloc(cols*rows, sizeof (hpdf_table_cell_t));
+#endif
     if (t->cells == NULL) {
         free(t);
         _SET_ERR(-5,-1,-1);
@@ -469,7 +523,11 @@ hpdf_table_create(size_t rows, size_t cols, char *title) {
     t->rows = rows;
 
     // Setup common column widths
-    t->col_width_percent = calloc(cols,sizeof(float));
+#ifdef __cplusplus
+	t->col_width_percent = static_cast<float*>(calloc(cols, sizeof(float)));
+#else
+	t->col_width_percent = calloc(cols,sizeof(float));
+#endif
     if( t->col_width_percent == NULL ) {
         free(t->cells);
         free(t);
@@ -1023,7 +1081,7 @@ _table_title_stroke(const hpdf_table_t t) {
     if (t->title_txt == NULL)
         return 0;
 
-    const HPDF_REAL height = 1.5 * t->title_style.fsize;
+    const HPDF_REAL height = 1.5f * t->title_style.fsize;
 
     // Stoke outer border and fill
     HPDF_Page_SetRGBStroke(t->pdf_page, t->outer_border.color.r, t->outer_border.color.g, t->outer_border.color.b);
@@ -1036,10 +1094,10 @@ _table_title_stroke(const hpdf_table_t t) {
 
     HPDF_REAL left_right_padding = t->outer_border.width + 3;
     HPDF_REAL xpos = t->posx + left_right_padding;
-    const HPDF_REAL ypos = t->posy + t->height + t->outer_border.width * 2 + t->title_style.fsize * 0.28;
+    const HPDF_REAL ypos = t->posy + t->height + t->outer_border.width * 2 + t->title_style.fsize * 0.28f;
 
     if (t->title_style.halign == CENTER) {
-        xpos = t->posx + (t->width - HPDF_Page_TextWidth(t->pdf_page, t->title_txt)) / 2.0;
+        xpos = t->posx + (t->width - HPDF_Page_TextWidth(t->pdf_page, t->title_txt)) / 2.0f;
     } else if (t->title_style.halign == RIGHT) {
         xpos = t->posx + (t->width - HPDF_Page_TextWidth(t->pdf_page, t->title_txt)) - left_right_padding;
     }
@@ -1408,7 +1466,7 @@ _calc_cell_pos(const hpdf_table_t t) {
     // to bottom left table corner
     HPDF_REAL base_cell_height = t->height / t->rows;
     //HPDF_REAL base_cell_width = t->width / t->cols;
-    HPDF_REAL base_cell_width_percent = 100.0 / t->cols;
+    HPDF_REAL base_cell_width_percent = 100.0f / t->cols;
     HPDF_REAL delta_x = 0;
     HPDF_REAL delta_y = 0;
 
@@ -1430,8 +1488,8 @@ _calc_cell_pos(const hpdf_table_t t) {
 
     // Recalculate column widths
     // Pass 2. Divide the remaining width along the unspecified columns
-    const float remaining_width_percent = 100.0 - tot_specified_width_percent;
-    const float num_unspecified_cols = t->cols - num_specified_cols;
+    const float remaining_width_percent = 100.0f - tot_specified_width_percent;
+    const float num_unspecified_cols = (float)(t->cols - num_specified_cols);
     if( num_unspecified_cols > 0 ) {
         base_cell_width_percent = remaining_width_percent / num_unspecified_cols;
     }
@@ -1457,7 +1515,7 @@ _calc_cell_pos(const hpdf_table_t t) {
             hpdf_table_cell_t *cell = &t->cells[_IDX(r, c)];
             cell->delta_x = delta_x;
             cell->delta_y = delta_y;
-            cell->width = (t->col_width_percent[c]/100.0) * t->width ;//base_cell_width;
+            cell->width = (t->col_width_percent[c]/100.0f) * t->width ;//base_cell_width;
             cell->height = base_cell_height;
             delta_x += cell->width; //base_cell_width;
         }
@@ -1534,7 +1592,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
 
             hpdf_table_encoding_text_out(t->pdf_page,
                     t->posx + cell->delta_x + left_right_padding,
-                    t->posy + cell->delta_y + cell->height - t->label_style.fsize * 1.05, label);
+                    t->posy + cell->delta_y + cell->height - t->label_style.fsize * 1.05f, label);
 
             HPDF_Page_EndText(t->pdf_page);
         }
@@ -1563,9 +1621,15 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
         _set_fontc(t, t->content_style.font, t->content_style.fsize, t->content_style.color);
         // Check if cell has its own stye which should override global setting but a defined
         // callback will override both
-        hpdf_text_style_t cb_val = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize,
-                                                       t->content_style.color, t->content_style.background,
-                                                       t->content_style.halign };
+#ifdef __cplusplus
+		hpdf_text_style_t cb_val = {	t->content_style.font, t->content_style.fsize,
+										t->content_style.color, t->content_style.background,
+										t->content_style.halign };
+#else
+		hpdf_text_style_t cb_val = (hpdf_text_style_t){ t->content_style.font, t->content_style.fsize,
+														t->content_style.color, t->content_style.background,
+														t->content_style.halign };
+#endif
         if( cell->style_cb && cell->style_cb(t->tag, r, c, &cb_val) ) {
             _set_fontc(t, cb_val.font, cb_val.fsize, cb_val.color);
         } else if(t->content_style_cb && t->content_style_cb(t->tag, r, c, &cb_val) ) {
@@ -1576,7 +1640,7 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
     }
 
     HPDF_REAL xpos = t->posx + cell->delta_x + left_right_padding;
-    HPDF_REAL ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.25;
+    HPDF_REAL ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.25f;
 
     if (t->use_header_row && r == 0) {
         // Roughly center the text vertically
@@ -1584,12 +1648,12 @@ _table_cell_stroke(const hpdf_table_t t, const size_t r, const size_t c) {
 
         // Center the header
         if (t->header_style.halign == CENTER)
-            xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) / 2.0;
+            xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) / 2.0f;
         else if (t->header_style.halign == RIGHT)
             xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) - left_right_padding;
     } else {
         if (t->use_cell_labels)
-            ypos -= (t->label_style.fsize * 1.15);
+            ypos -= (t->label_style.fsize * 1.15f);
     }
 
     if( content ) {
@@ -1642,7 +1706,7 @@ hpdf_table_get_last_auto_height(HPDF_REAL *height) {
 int
 hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
         const HPDF_REAL xpos, const HPDF_REAL ypos,
-        const HPDF_REAL width, HPDF_REAL height) {
+		const HPDF_REAL width, HPDF_REAL height) {
 
     if (NULL == pdf || NULL == page || NULL == t) {
         _SET_ERR(-6,-1,-1);
@@ -1660,7 +1724,7 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
         height = t->content_style.fsize;
         if (t->use_cell_labels)
             height += t->label_style.fsize;
-        height *= 1.5 * t->rows;
+        height *= 1.5f * t->rows;
         last_auto_height = height;
     }
 
@@ -1668,7 +1732,7 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
     if( origin_as_top_left ) {
         y = page_height - ypos - height;
         if( t->title_txt ) {
-            y -= 1.5 * t->title_style.fsize;
+            y -= 1.5f * t->title_style.fsize;
         }
     }
 
@@ -1699,8 +1763,13 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
             if (cell->parent_cell == NULL) {
 
                 if( cell->style_cb ) {
-                    hpdf_text_style_t style = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize,
-                                                                  t->content_style.color, t->content_style.background, t->content_style.halign};
+#ifdef __cplusplus
+					hpdf_text_style_t style = {	t->content_style.font, t->content_style.fsize,
+												t->content_style.color, t->content_style.background, t->content_style.halign};
+#else
+					hpdf_text_style_t style = (hpdf_text_style_t){t->content_style.font, t->content_style.fsize,
+						                                          t->content_style.color, t->content_style.background, t->content_style.halign};
+#endif
                     if( cell->style_cb(t->tag,r,c,&style) ) {
                         HPDF_Page_SetRGBFill(page, style.background.r, style.background.g, style.background.b);
                         HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
@@ -1733,7 +1802,7 @@ hpdf_table_stroke(const HPDF_Doc pdf, const HPDF_Page page, hpdf_table_t t,
                         HPDF_Page_MoveTo(page,x + cell->delta_x, y + cell->delta_y );
                     }
                     else {
-                        HPDF_Page_MoveTo(page,x + cell->delta_x, y + cell->delta_y + cell->height - t->label_style.fsize*1.2);
+                        HPDF_Page_MoveTo(page,x + cell->delta_x, y + cell->delta_y + cell->height - t->label_style.fsize*1.2f);
                     }
                     HPDF_Page_LineTo(page,x + cell->delta_x, y + cell->delta_y + cell->height);
                     HPDF_Page_MoveTo(page,x + cell->delta_x, y + cell->delta_y + cell->height);
