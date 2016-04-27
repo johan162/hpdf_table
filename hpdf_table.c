@@ -65,7 +65,7 @@
 #define HPDF_TABLE_DEFAULT_OUTER_BORDER_STYLE (hpdf_border_style_t){1.0, (HPDF_RGBColor){0.2f,0.2f,0.2f},0}
 #endif
 
-#ifndef __cplusplus
+#ifdef _MSC_VER
 #define strdup _strdup
 #endif
 

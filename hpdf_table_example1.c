@@ -220,7 +220,7 @@ ex_tbl3(void) {
 
 // Utility macro to create a HPDF color constant from integer RGB values
 #ifdef	__cplusplus
-#define _TO_HPDF_RGB(r,g,b) {r/255.0,g/255.0,b/255.0}
+#define _TO_HPDF_RGB(r,g,b) {r/255.0f,g/255.0f,b/255.0f}
 #else
 #define _TO_HPDF_RGB(r,g,b) (HPDF_RGBColor){r/255.0f,g/255.0f,b/255.0f}
 #endif

@@ -38,13 +38,13 @@
 #define	HPDF_TABLE_H
 
 #ifdef	__cplusplus
-extern "C" {
+// in case we have C++ code, we should use its' types and logic
+#include <algorithm>
+typedef std::_Bool _Bool;
 #endif
 
 #ifdef	__cplusplus
-	// in case we have C++ code, we should use its' types and logic
-	#include <algorithm>
-	typedef std::_Bool _Bool;
+extern "C" {
 #endif
 
 /**
