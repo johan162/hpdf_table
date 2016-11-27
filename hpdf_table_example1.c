@@ -63,9 +63,6 @@
 #define COLOR_WHITE {1.0f,1.0f,1.0f}
 #define COLOR_BLACK {0.0f,0.0f,0.0f}
 
-#define COLOR_ORANGE _TO_HPDF_RGB(0xF5,0xD0,0x98);
-#define COLOR_ALMOST_BLACK _TO_HPDF_RGB(0xF5,0xD0,0x98);
-
 #else
 
 #define COLOR_DARK_RED (HPDF_RGBColor){0.6f,0.0f,0.0f}
@@ -75,10 +72,10 @@
 #define COLOR_WHITE (HPDF_RGBColor){1.0f,1.0f,1.0f}
 #define COLOR_BLACK (HPDF_RGBColor){0.0f,0.0f,0.0f}
 
+#endif
+
 #define COLOR_ORANGE _TO_HPDF_RGB(0xF5,0xD0,0x98);
 #define COLOR_ALMOST_BLACK _TO_HPDF_RGB(0xF5,0xD0,0x98);
-
-#endif
 
 // For simulated exception handling
 jmp_buf env;
