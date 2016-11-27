@@ -247,7 +247,7 @@ hpdf_table_set_text_encoding(char *target, char *source) {
 static int
 _do_encoding(char *input, char *output, const size_t out_len) {
     char *out_buf = &output[0];
-    const char *in_buf = &input[0];
+    char *in_buf = &input[0];
     size_t out_left = out_len - 1;
     size_t in_left = strlen(input) ;
     iconv_t cd = iconv_open(target_encoding, source_encoding);
@@ -259,7 +259,7 @@ _do_encoding(char *input, char *output, const size_t out_len) {
         }
     } while (in_left > 0 && out_left > 0);
     *out_buf = 0;
-    
+
     iconv_close(cd);
     return 0;
 }
@@ -1434,7 +1434,7 @@ hpdf_table_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdf_table_spe
             -1 == hpdf_table_set_cell_content_callback(t,spec->row,spec->col,spec->cb) ||
             -1 == hpdf_table_set_cell_content_style_callback(t,spec->row,spec->col,spec->style_cb) ||
             -1 == hpdf_table_set_cell_canvas_callback(t,spec->row,spec->col,spec->canvas_cb) ) {
-            
+
             hpdf_table_destroy(t);
             return -1;
         }
