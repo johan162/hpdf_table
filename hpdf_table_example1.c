@@ -35,6 +35,7 @@
 // These two includes should always be used
 #include "hpdf_table.h"
 #include "hpdf_errstr.h"
+#include "hpdf_table_widget.h"
 
 // The output after running the program will be written to this file
 #ifdef _WIN32
@@ -58,7 +59,9 @@
 
 #define COLOR_DARK_RED {0.6f,0.0f,0.0f}
 #define COLOR_LIGHT_GREEN {0.9f,1.0f,0.9f}
-#define COLOR_DARK_GRAY {0.1f,0.1f,0.1f}
+#define COLOR_DARK_GRAY {0.2f,0.2f,0.2f}
+#define COLOR_LIGHT_GRAY {0.9f,0.9f,0.9f}
+#define COLOR_GRAY {0.5f,0.5f,0.5f}
 #define COLOR_LIGHT_BLUE {1.0f,1.0f,0.9f}
 #define COLOR_WHITE {1.0f,1.0f,1.0f}
 #define COLOR_BLACK {0.0f,0.0f,0.0f}
@@ -67,7 +70,10 @@
 
 #define COLOR_DARK_RED (HPDF_RGBColor){0.6f,0.0f,0.0f}
 #define COLOR_LIGHT_GREEN (HPDF_RGBColor){0.9f,1.0f,0.9f}
-#define COLOR_DARK_GRAY (HPDF_RGBColor){0.1f,0.1f,0.1f}
+#define COLOR_GREEN (HPDF_RGBColor){0.4f,0.9f,0.4f}
+#define COLOR_DARK_GRAY (HPDF_RGBColor){0.2f,0.2f,0.2f}
+#define COLOR_LIGHT_GRAY (HPDF_RGBColor){0.9f,0.9f,0.9f}
+#define COLOR_GRAY (HPDF_RGBColor){0.5f,0.5f,0.5f}
 #define COLOR_LIGHT_BLUE (HPDF_RGBColor){1.0f,1.0f,0.9f}
 #define COLOR_WHITE (HPDF_RGBColor){1.0f,1.0f,1.0f}
 #define COLOR_BLACK (HPDF_RGBColor){0.0f,0.0f,0.0f}
@@ -169,6 +175,126 @@ cb_date(void *tag, size_t r, size_t c) {
     time_t t = time(NULL);
     ctime_r(&t,buf);
     return buf;
+}
+
+
+/**
+ * This callback gets called by the table rendering mechanism after the table overall
+ * background and lines have been stroked but before the text content (label + data)
+ * of the sell is stroked. 
+ * @param doc
+ * @param page
+ * @param tag
+ * @param r
+ * @param c
+ * @param xpos
+ * @param ypos
+ * @param width
+ * @param height
+ */
+void
+cb_draw_segment_hbar(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t c,
+                HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height) {
+    
+    
+    const HPDF_REAL segment_tot_width = width * 0.5;
+    const HPDF_REAL segment_height = height/3;
+    const HPDF_REAL segment_xpos = xpos+5;
+    const HPDF_REAL segment_ypos = ypos+4;
+    const size_t num_segments=10;
+    
+    const HPDF_RGBColor on_color = COLOR_GREEN;
+    const double val_percent = 0.4;
+    const _Bool val_text_hide = FALSE;    
+    
+    hpdf_table_widget_segment_hbar(doc, page,segment_xpos, segment_ypos, 
+            segment_tot_width, segment_height,
+            num_segments, on_color, val_percent, 
+            val_text_hide);
+}
+
+void
+cb_draw_hbar(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t c,
+                HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height) {
+    
+    
+    const HPDF_REAL wwidth = width * 0.5;
+    const HPDF_REAL wheight = height/3 ;
+    const HPDF_REAL wxpos = xpos+5;
+    const HPDF_REAL wypos = ypos+4;
+    
+    const HPDF_RGBColor color = COLOR_GREEN;
+    const double val = 0.6;
+    const _Bool val_text_hide = FALSE;    
+
+    hpdf_table_widget_hbar(doc, page, wxpos, wypos, 
+            wwidth, wheight,
+            color, val, 
+            val_text_hide);
+}
+
+void
+cb_draw_slider(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t c,
+               HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height) {
+    /*
+     * void
+hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
+                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, _Bool state)
+     */
+    const HPDF_REAL wwidth = 37 ;
+    const HPDF_REAL wheight = 12 ;
+    const HPDF_REAL wxpos = xpos+75;
+    const HPDF_REAL wypos = ypos+5;
+    
+    // The slide is on for third row and off otherwise
+    _Bool state = (r==2);
+    
+    hpdf_table_widget_slide_button(doc, page, wxpos, wypos, wwidth, wheight,state); 
+}
+
+void
+cb_draw_strength_meter(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t c,
+                  HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height) {
+    
+    const HPDF_REAL wwidth = 35 ;
+    const HPDF_REAL wheight = 20 ;
+    const HPDF_REAL wxpos = xpos+75;
+    const HPDF_REAL wypos = ypos+4;
+    const size_t num_segments = 5;
+    const HPDF_RGBColor on_color = COLOR_GREEN;
+    const size_t num_on_segments = 3;
+    
+    hpdf_table_widget_strength_meter(doc, page, wxpos, wypos, wwidth, wheight,
+            num_segments, on_color, num_on_segments);
+}
+
+void
+cb_draw_boxed_letter(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t c,
+                  HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height) {
+    /*
+     * void
+hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
+                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height,
+                     const HPDF_RGBColor on_color, const HPDF_RGBColor off_color,
+                     const HPDF_RGBColor on_background, const HPDF_RGBColor off_background,
+                     const HPDF_REAL fsize,
+                     const char *letters, _Bool *state )
+     */
+    
+    const HPDF_REAL wwidth = 60 ;
+    const HPDF_REAL wheight = 15 ;
+    const HPDF_REAL wxpos = xpos+75;
+    const HPDF_REAL wypos = ypos+4;
+    const HPDF_RGBColor on_color = COLOR_DARK_GRAY;
+    const HPDF_RGBColor off_color = COLOR_GRAY;
+    const HPDF_RGBColor on_background = COLOR_GREEN;
+    const HPDF_RGBColor off_background = COLOR_LIGHT_GRAY;
+    const HPDF_REAL fsize = 11;
+    const char *letters = "ABCD"; 
+    _Bool state[] = {TRUE,FALSE,TRUE,FALSE};   
+    
+    hpdf_table_widget_letter_buttons(doc, page, wxpos, wypos, wwidth, wheight,
+            on_color, off_color, on_background, off_background, fsize, letters, state);
 }
 
 #ifndef _MSC_VER
@@ -274,7 +400,7 @@ ex_tbl2(void) {
 
     // Use a red title and center the text
     const HPDF_RGBColor title_text_color = COLOR_DARK_RED;
-    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GREEN;
+    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GRAY;
     hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,title_text_color,title_bg_color);
     hpdf_table_set_title_halign(t,CENTER);
 
@@ -306,7 +432,7 @@ ex_tbl3(void) {
 
     // Use a red title and center the text
     const HPDF_RGBColor title_text_color = COLOR_DARK_RED;
-    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GREEN;
+    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GRAY;
     hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,title_text_color,title_bg_color);
     hpdf_table_set_title_halign(t,CENTER);
 
@@ -353,14 +479,14 @@ ex_tbl3(void) {
  */
 void
 ex_tbl4(void) {
-    int num_rows=5;
-    int num_cols=4;
+    const size_t num_rows=5;
+    const size_t num_cols=4;
     char *table_title="Example 4: Adjusting look and feel of single cell";
     hpdf_table_t t = hpdf_table_create(num_rows,num_cols,table_title);
 
     // Use a red title and center the text
     const HPDF_RGBColor title_text_color = COLOR_DARK_RED;
-    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GREEN;
+    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GRAY;
     hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,title_text_color,title_bg_color);
     hpdf_table_set_title_halign(t,CENTER);
 
@@ -392,6 +518,78 @@ ex_tbl4(void) {
     }
 }
 
+
+/**
+ * Table 5 example - Adding predefined widgets
+ */
+void
+ex_tbl5(void) {
+    const int num_rows=6;
+    const int num_cols=4;
+    char *table_title="Example 5: Using widgets in cells";
+    hpdf_table_t t = hpdf_table_create(num_rows,num_cols,table_title);
+
+    // Use a red title and center the text
+    const HPDF_RGBColor title_text_color = COLOR_DARK_RED;
+    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GRAY;
+    hpdf_table_set_title_style(t,HPDF_FF_HELVETICA_BOLD,14,title_text_color,title_bg_color);
+    hpdf_table_set_title_halign(t,CENTER);
+
+    
+    // Install callback for the specified cell where the graphical meter will be drawn
+    size_t wrow=0;
+    size_t wcol=0;
+    
+    content[wrow*num_cols+wcol] = NULL;
+    labels[wrow*num_cols+wcol] = "Horizontal seg bar:";    
+    hpdf_table_set_cell_canvas_callback(t,wrow,wcol,cb_draw_segment_hbar);
+
+    wrow += 1;
+    content[wrow*num_cols+wcol] = NULL;
+    labels[wrow*num_cols+wcol] = "Horizontal bar:";        
+    hpdf_table_set_cell_canvas_callback(t,wrow,wcol,cb_draw_hbar);
+
+    wrow += 1;
+    content[wrow*num_cols+wcol] = NULL;
+    labels[wrow*num_cols+wcol] = "Slider on:";        
+    hpdf_table_set_cell_canvas_callback(t,wrow,wcol,cb_draw_slider);
+
+    wrow += 1;
+    content[wrow*num_cols+wcol] = NULL;
+    labels[wrow*num_cols+wcol] = "Slider off:";        
+    hpdf_table_set_cell_canvas_callback(t,wrow,wcol,cb_draw_slider);
+
+    wrow += 1;
+    content[wrow*num_cols+wcol] = NULL;
+    labels[wrow*num_cols+wcol] = "Strength meter:";        
+    hpdf_table_set_cell_canvas_callback(t,wrow,wcol,cb_draw_strength_meter);
+    
+    wrow += 1;
+    content[wrow*num_cols+wcol] = NULL;
+    labels[wrow*num_cols+wcol] = "Boxed letters:";        
+    hpdf_table_set_cell_canvas_callback(t,wrow,wcol,cb_draw_boxed_letter);    
+    
+    hpdf_table_set_content(t,content);
+    hpdf_table_set_labels(t,labels);
+    
+    // First column should be 40% of the total width
+    hpdf_table_set_colwidth_percent(t,0,40);
+        
+    HPDF_REAL xpos=100;
+    HPDF_REAL ypos=600;
+    HPDF_REAL width=400;
+    HPDF_REAL height=0; // Calculate height automatically
+
+    if( -1 == hpdf_table_stroke(pdf_doc,pdf_page,t,xpos,ypos,width,height) ) {
+        char *errstr;
+        int row,col;
+        hpdf_table_get_last_errcode(&errstr, &row, &col);
+        fprintf(stderr,"ERROR: \"%s\"\n",errstr);
+    }    
+    
+}
+
+
 // Type for the pointer to example stroking functions "void fnc(void)"
 typedef void (*t_func_tbl_stroke)(void);
 
@@ -404,10 +602,10 @@ typedef void (*t_func_tbl_stroke)(void);
 int
 main(int argc, char** argv) {
 
-    t_func_tbl_stroke examples[] = {ex_tbl1, ex_tbl2, ex_tbl3, ex_tbl4};
+    t_func_tbl_stroke examples[] = {ex_tbl1, ex_tbl2, ex_tbl3, ex_tbl4, ex_tbl5};
     const size_t num_examples = sizeof(examples)/sizeof(t_func_tbl_stroke);
 
-    printf("Stroking %zu examples.\n",num_examples);
+    printf("Stroking %ld examples.\n",num_examples);
 
     // Setup fake exception handling
     if (setjmp(env)) {

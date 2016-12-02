@@ -216,15 +216,16 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
  * @param height Height of meter
  * @param color Fill color for bar
  * @param val Percentage fill in range [0.0, 100.0]
- * @param show_val TRUE to show the value (in percent) at the top of the filled bar
+ * @param show_val TRUE to show the value (in percent) at the right end of the entire bar
  */
 void
 hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
                        const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
-                       const HPDF_RGBColor color, const float val, const _Bool show_val) {
+                       const HPDF_RGBColor color, const float val, const _Bool hide_val) {
 
     const HPDF_RGBColor graph_border_color = HPDF_COLOR_FROMRGB(128,128,128);
     const HPDF_RGBColor graph_text_color = HPDF_COLOR_FROMRGB(90,90,90);
+    const HPDF_REAL fsize=8;
 
     const HPDF_REAL graph_fill_width = val*width;
     const HPDF_REAL line_width=0.8;
@@ -242,15 +243,18 @@ hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
     HPDF_Page_SetRGBFill(page, graph_text_color.r, graph_text_color.g, graph_text_color.b);
     HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
+    /*
     HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
     HPDF_Page_TextOut(page, xpos-2, ypos-9, "0");
     HPDF_Page_TextOut(page, xpos+width-8, ypos-9, "100%");
-
-    if( show_val ) {
+    */
+    
+    if( !hide_val ) {
         char buf[16];
         snprintf(buf,sizeof(buf),"%.0f%%",val*100);
-        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_ITALIC, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
-        HPDF_Page_TextOut(page, xpos+graph_fill_width+2, ypos+2, buf);
+        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_ITALIC, HPDF_TABLE_DEFAULT_TARGET_ENCODING), fsize);
+        // HPDF_Page_TextOut(page, xpos+graph_fill_width+2, ypos+2, buf);
+        HPDF_Page_TextOut(page, xpos+width+5, ypos+(height-fsize)/2.0+1, buf);
     }
 
     HPDF_Page_EndText(page);
@@ -277,8 +281,12 @@ void
 hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
                                 const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
                                 const size_t num_segments, const HPDF_RGBColor on_color, const double val_percent,
-                                const _Bool text_below) {
+                                const _Bool hide_val) {
 
+    double _val_percent =0;
+    if( val_percent <= 1.0 && val_percent >= 0 ) {
+        _val_percent = val_percent;
+    }
     const HPDF_RGBColor segment_border_color = HPDF_COLOR_FROMRGB(128,128,128);
     const HPDF_RGBColor segment_off_color = HPDF_COLOR_FROMRGB(240,240,240);
     const HPDF_RGBColor segment_text_color = HPDF_COLOR_FROMRGB(40,40,40);
@@ -292,7 +300,7 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
     HPDF_Page_SetRGBStroke(page,segment_border_color.r,segment_border_color.g,segment_border_color.b);
     HPDF_Page_SetRGBFill(page, on_color.r, on_color.g, on_color.b);
 
-    const size_t num_on_segments=lround(val_percent*num_segments);
+    const size_t num_on_segments=lround(_val_percent*num_segments);
 
     HPDF_REAL x=xpos;
     HPDF_REAL y=ypos;
@@ -306,7 +314,7 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
 
     // Draw "off" segments
     HPDF_Page_SetRGBFill(page,segment_off_color.r,segment_off_color.g,segment_off_color.b);
-    for(size_t i=0; i < (num_segments- num_on_segments); i++) {
+    for(size_t i=0; i < (num_segments - num_on_segments); i++) {
         HPDF_Page_Rectangle(page, x, y, segment_width, height);
         HPDF_Page_FillStroke(page);
         x += inter_segment_space+segment_width;
@@ -316,7 +324,8 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
     HPDF_Page_SetRGBFill(page, segment_text_color.r, segment_text_color.g, segment_text_color.b);
     HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
-    HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA, HPDF_TABLE_DEFAULT_TARGET_ENCODING), fsize);
+    HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_ITALIC, HPDF_TABLE_DEFAULT_TARGET_ENCODING), fsize);
+    /*
     if( text_below ) {
         HPDF_Page_TextOut(page, xpos-2, ypos-9, "0");
         HPDF_Page_TextOut(page, xpos+width-8, ypos-9, "100%");
@@ -324,6 +333,13 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
         char buf[8];
         snprintf(buf,sizeof(buf),"%.0lf%%",val_percent*100);
         HPDF_Page_TextOut(page, xpos+width+5, ypos+(height-fsize)/2.0+1, buf);
+    }
+    */
+    
+    if( !hide_val ) {
+        char buf[8];
+        snprintf(buf,sizeof(buf),"%.0lf%%",val_percent*100);
+        HPDF_Page_TextOut(page, xpos+width+5, ypos+(height-fsize)/2.0+1, buf);        
     }
 
     HPDF_Page_EndText(page);
