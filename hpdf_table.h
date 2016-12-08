@@ -401,7 +401,10 @@ extern "C" {
     
     void
     hpdf_table_set_origin_top_left(const _Bool origin);
-      
+
+    _Bool
+    hpdf_table_get_origin_top_left(void);
+    
     /** 
      * Table error handling functions 
      */

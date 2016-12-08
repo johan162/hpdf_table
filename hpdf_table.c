@@ -164,7 +164,7 @@ hpdf_table_set_line_dash(hpdf_table_t t, hpdf_table_line_style_t style ) {
 }
 
 /**
- * @brief Switch stroking reference point
+ * @brief Switch stroking anchor point
  *
  * Set base point for table positioning. By default the bottom left is used.
  * Calling this function can set the basepoint to top left instead.
@@ -174,6 +174,18 @@ void
 hpdf_table_set_origin_top_left(const _Bool origin) {
     origin_as_top_left = origin;
 }
+
+/**
+ * @brief Get stroking anchor point
+ *
+ * Get base point for table positioning. By default the bottom left is used.
+ * @see hpdf_table_set_origin_top_left
+ */
+_Bool
+hpdf_table_get_origin_top_left(void) {
+    return origin_as_top_left ;
+}
+
 
 /**
  * @brief Return last error code
@@ -1693,11 +1705,11 @@ hpdf_table_get_last_auto_height(HPDF_REAL *height) {
  * @param pdf The HPDF document handle
  * @param page The HPDF page handle
  * @param t Table handle
- * @param xpos x position for table
- * @param ypos y position for table
+ * @param xpos x position for table, bottom left corner
+ * @param ypos y position for table, bottom left corner
  * @param width width of table
  * @param height height of table. If the height is specified as 0 it will be automatically
- * calculated. The calculated height can be retrived after the table has been stroked by a
+ * calculated. The calculated height can be retrieved after the table has been stroked by a
  * call to hpdf_table_get_last_auto_height()
  * @return -1 on error, 0 if successful
  * @see hpdf_table_get_last_auto_height()

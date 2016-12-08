@@ -199,7 +199,7 @@ cb_draw_segment_hbar(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t c
     
     const HPDF_REAL segment_tot_width = width * 0.5;
     const HPDF_REAL segment_height = height/3;
-    const HPDF_REAL segment_xpos = xpos+5;
+    const HPDF_REAL segment_xpos = xpos+40;
     const HPDF_REAL segment_ypos = ypos+4;
     const size_t num_segments=10;
     
@@ -220,7 +220,7 @@ cb_draw_hbar(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t c,
     
     const HPDF_REAL wwidth = width * 0.5;
     const HPDF_REAL wheight = height/3 ;
-    const HPDF_REAL wxpos = xpos+5;
+    const HPDF_REAL wxpos = xpos+40;
     const HPDF_REAL wypos = ypos+4;
     
     const HPDF_RGBColor color = COLOR_GREEN;
@@ -243,7 +243,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
      */
     const HPDF_REAL wwidth = 37 ;
     const HPDF_REAL wheight = 12 ;
-    const HPDF_REAL wxpos = xpos+75;
+    const HPDF_REAL wxpos = xpos+70;
     const HPDF_REAL wypos = ypos+5;
     
     // The slide is on for third row and off otherwise
@@ -258,7 +258,7 @@ cb_draw_strength_meter(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t
     
     const HPDF_REAL wwidth = 35 ;
     const HPDF_REAL wheight = 20 ;
-    const HPDF_REAL wxpos = xpos+75;
+    const HPDF_REAL wxpos = xpos+70;
     const HPDF_REAL wypos = ypos+4;
     const size_t num_segments = 5;
     const HPDF_RGBColor on_color = COLOR_GREEN;
@@ -283,7 +283,7 @@ hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
     
     const HPDF_REAL wwidth = 60 ;
     const HPDF_REAL wheight = 15 ;
-    const HPDF_REAL wxpos = xpos+75;
+    const HPDF_REAL wxpos = xpos+60;
     const HPDF_REAL wypos = ypos+4;
     const HPDF_RGBColor on_color = COLOR_DARK_GRAY;
     const HPDF_RGBColor off_color = COLOR_GRAY;
@@ -321,12 +321,13 @@ example_page_header(void) {
     // Overall table layout
     hpdf_table_spec_t tbl1 = {
         NULL, 1, 6,      /* Title, rows, cols   */
-        70, 800,         /* xpos, ypos          */
+        70, 20,         /* xpos, ypos          */
         470, 0,          /* width, height       */
         tbl1_data,       /* A pointer to the specification of each row in the table */
         NULL             /* Sentinel to mark end of data */
     };
 
+    hpdf_table_set_origin_top_left(TRUE);
     // Show how to set a specified theme to the table. Since we only use the
     // default theme here we could equally well just have set NULL as the last
     // argument to the hpdf_table_stroke_from_data() function since this is the same
@@ -344,6 +345,7 @@ example_page_header(void) {
 
     // Remember to clean up to avoid memory leak
     hpdf_table_destroy_theme(theme);
+    
 }
 
 #endif
@@ -379,8 +381,10 @@ ex_tbl1(void) {
     hpdf_table_set_content(t,content);
     hpdf_table_set_labels(t,labels);
 
+    // Use top left as anchor point for table instead of the default bottom left
+    hpdf_table_set_origin_top_left(TRUE);
     HPDF_REAL xpos=100;
-    HPDF_REAL ypos=630;
+    HPDF_REAL ypos=75;
     HPDF_REAL width=400;
     HPDF_REAL height=0; // Calculate height automatically
     hpdf_table_stroke(pdf_doc,pdf_page,t,xpos,ypos,width,height);
@@ -412,8 +416,10 @@ ex_tbl2(void) {
     hpdf_table_set_content(t,content);
     hpdf_table_set_labels(t,labels);
 
+    // Use top left as anchor point for table instead of the default bottom left
+    hpdf_table_set_origin_top_left(TRUE);
     HPDF_REAL xpos=100;
-    HPDF_REAL ypos=630;
+    HPDF_REAL ypos=75;
     HPDF_REAL width=400;
     HPDF_REAL height=0; // Calculate height automatically
     hpdf_table_stroke(pdf_doc,pdf_page,t,xpos,ypos,width,height);
@@ -466,8 +472,10 @@ ex_tbl3(void) {
     // Span cell=(7,2) two rows and two columns
     hpdf_table_set_cellspan(t,7,2,2,2);
 
+    // Use top left as anchor point for table instead of the default bottom left
+    hpdf_table_set_origin_top_left(TRUE);
     HPDF_REAL xpos=100;
-    HPDF_REAL ypos=500;
+    HPDF_REAL ypos=75;
     HPDF_REAL width=400;
     HPDF_REAL height=0; // Calculate height automatically
     hpdf_table_stroke(pdf_doc,pdf_page,t,xpos,ypos,width,height);
@@ -505,8 +513,10 @@ ex_tbl4(void) {
     // Span cell=(1,0) one row and two columns
     hpdf_table_set_cellspan(t,1,0,1,2);
 
+    // Use top left as anchor point for table instead of the default bottom left
+    hpdf_table_set_origin_top_left(TRUE);
     HPDF_REAL xpos=100;
-    HPDF_REAL ypos=600;
+    HPDF_REAL ypos=75;
     HPDF_REAL width=400;
     HPDF_REAL height=0; // Calculate height automatically
 
@@ -574,9 +584,12 @@ ex_tbl5(void) {
     
     // First column should be 40% of the total width
     hpdf_table_set_colwidth_percent(t,0,40);
-        
+    
+    
+    // Use top left as anchor point for table instead of the default bottom left
+    hpdf_table_set_origin_top_left(TRUE);
     HPDF_REAL xpos=100;
-    HPDF_REAL ypos=600;
+    HPDF_REAL ypos=75;
     HPDF_REAL width=400;
     HPDF_REAL height=0; // Calculate height automatically
 
