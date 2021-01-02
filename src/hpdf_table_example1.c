@@ -151,7 +151,7 @@ error_handler (HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user_data) {
  */
 static char *
 cb_name(void *tag, size_t r, size_t c) {
-    static char buf[128];
+    static char buf[256];
     struct utsname sysinfo;
     if( -1 == uname(&sysinfo) ) {
         return "???";
