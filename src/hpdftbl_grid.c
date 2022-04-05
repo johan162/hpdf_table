@@ -37,13 +37,13 @@
 #include <hpdf.h>
 
 /**
- * Stroke a point grid on specified page to make it easier to
- * position text.
+ * Stroke a point grid on specified page to make it easier to position text and tables.
  * @param pdf Document handle
  * @param page Page handle
+ *
  */
 void
-hpdf_stroke_grid(HPDF_Doc pdf,HPDF_Page page) {
+hpdftbl_stroke_grid(HPDF_Doc pdf, HPDF_Page page) {
 
     HPDF_REAL height = HPDF_Page_GetHeight(page);
     HPDF_REAL width = HPDF_Page_GetWidth(page);

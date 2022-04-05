@@ -1,9 +1,9 @@
 /* =========================================================================
- * File:        hpdf_table_widget.c
+ * File:        HPDFTBL_widget.c
  * Description: Utility module for  creating widgets in tables
  * Author:      Johan Persson (johan162@gmail.com)
  *
- * Copyright (C) 2015 Johan Persson
+ * Copyright (C) 2022 Johan Persson
  *
  * Released under the MIT License
  *
@@ -41,8 +41,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "hpdf_table.h"
-#include "hpdf_table_widget.h"
+#include "hpdftbl.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -52,14 +51,32 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 
-
+/**
+ * @brief Display an array of letters as a table where each letter is its own "mini" cell  
+ * and sorrounded by a frame. Each boxed letter can be in an "on" state or "off" state
+ * which is illustrated with different font and fac colors
+ *
+ * @param doc HPDF document handle
+ * @param page HPDF page handle
+ * @param xpos X-öosition of cell
+ * @param ypos Y-Position of cell
+ * @param width Width of cell
+ * @param height Height of cell
+ * @param on_color The font color in "on" state
+ * @param off_color The font color in "off" state
+ * @param on_background The face color in "on" state
+ * @param off_background The face color in "off" state
+ * @param fsize The font size
+ * @param letters What letters to have in the boxes
+ * @param state What state each boxed letter should be  (0=off, 1=pn)
+ */
 void
-hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
-                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height,
-                     const HPDF_RGBColor on_color, const HPDF_RGBColor off_color,
-                     const HPDF_RGBColor on_background, const HPDF_RGBColor off_background,
-                     const HPDF_REAL fsize,
-                     const char *letters, _Bool *state ) {
+hpdftbl_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
+                                    HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height,
+                                    const HPDF_RGBColor on_color, const HPDF_RGBColor off_color,
+                                    const HPDF_RGBColor on_background, const HPDF_RGBColor off_background,
+                                    const HPDF_REAL fsize,
+                                    const char *letters, _Bool *state ) {
 
     // Text colors
     const size_t num=strlen(letters);
@@ -92,7 +109,7 @@ hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
         } else {
             HPDF_Page_SetRGBFill(page, off_color.r, off_color.g, off_color.b);
         }
-        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDF_TABLE_DEFAULT_TARGET_ENCODING), fsize);
+        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDFTBL_DEFAULT_TARGET_ENCODING), fsize);
         char buf[2];
         snprintf(buf,sizeof(buf),"%c",letters[i]);
         HPDF_Page_TextOut(page, x+button_width/2-fsize/2+2, y+button_height/2-3, buf);
@@ -120,8 +137,8 @@ hpdf_table_widget_letter_buttons(HPDF_Doc doc, HPDF_Page page,
  * @param state State of button On/Off
  */
 void
-hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
-                     HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, _Bool state) {
+hpdftbl_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
+                            HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height, _Bool state) {
 
     const HPDF_RGBColor red = HPDF_COLOR_FROMRGB(210,42,0);
     const HPDF_RGBColor green = HPDF_COLOR_FROMRGB(60,179,113);
@@ -160,7 +177,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
         HPDF_Page_SetRGBFill(page, white.r, white.g, white.b);
         HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
-        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
+        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDFTBL_DEFAULT_TARGET_ENCODING), 8);
         HPDF_Page_TextOut(page, button_xpos+8, button_ypos+button_height/2-3, "ON");
         HPDF_Page_EndText(page);
 
@@ -175,7 +192,7 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
         HPDF_Page_SetRGBFill(page, gray.r, gray.g, gray.b);
         HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
-        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
+        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_BOLD, HPDFTBL_DEFAULT_TARGET_ENCODING), 8);
         HPDF_Page_TextOut(page, button_xpos+button_height+4, button_ypos+button_height/2-3, "OFF");
         HPDF_Page_EndText(page);
 
@@ -219,9 +236,9 @@ hpdf_table_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
  * @param show_val TRUE to show the value (in percent) at the right end of the entire bar
  */
 void
-hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
-                       const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
-                       const HPDF_RGBColor color, const float val, const _Bool hide_val) {
+hpdftbl_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
+                    const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
+                    const HPDF_RGBColor color, const float val, const _Bool hide_val) {
 
     const HPDF_RGBColor graph_border_color = HPDF_COLOR_FROMRGB(128,128,128);
     const HPDF_RGBColor graph_text_color = HPDF_COLOR_FROMRGB(90,90,90);
@@ -244,7 +261,7 @@ hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
     HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
     /*
-    HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA, HPDF_TABLE_DEFAULT_TARGET_ENCODING), 8);
+    HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA, HPDFTBL_DEFAULT_TARGET_ENCODING), 8);
     HPDF_Page_TextOut(page, xpos-2, ypos-9, "0");
     HPDF_Page_TextOut(page, xpos+width-8, ypos-9, "100%");
     */
@@ -252,7 +269,7 @@ hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
     if( !hide_val ) {
         char buf[16];
         snprintf(buf,sizeof(buf),"%.0f%%",val*100);
-        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_ITALIC, HPDF_TABLE_DEFAULT_TARGET_ENCODING), fsize);
+        HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_ITALIC, HPDFTBL_DEFAULT_TARGET_ENCODING), fsize);
         // HPDF_Page_TextOut(page, xpos+graph_fill_width+2, ypos+2, buf);
         HPDF_Page_TextOut(page, xpos+width+5, ypos+(height-fsize)/2.0+1, buf);
     }
@@ -278,10 +295,10 @@ hpdf_table_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
  * @param num_on_segments Number of on segments
  */
 void
-hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
-                                const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
-                                const size_t num_segments, const HPDF_RGBColor on_color, const double val_percent,
-                                const _Bool hide_val) {
+hpdftbl_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
+                            const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
+                            const size_t num_segments, const HPDF_RGBColor on_color, const double val_percent,
+                            const _Bool hide_val) {
 
     double _val_percent =0;
     if( val_percent <= 1.0 && val_percent >= 0 ) {
@@ -324,7 +341,7 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
     HPDF_Page_SetRGBFill(page, segment_text_color.r, segment_text_color.g, segment_text_color.b);
     HPDF_Page_SetTextRenderingMode(page, HPDF_FILL);
 
-    HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_ITALIC, HPDF_TABLE_DEFAULT_TARGET_ENCODING), fsize);
+    HPDF_Page_SetFontAndSize(page, HPDF_GetFont(doc, HPDF_FF_HELVETICA_ITALIC, HPDFTBL_DEFAULT_TARGET_ENCODING), fsize);
     /*
     if( text_below ) {
         HPDF_Page_TextOut(page, xpos-2, ypos-9, "0");
@@ -362,9 +379,9 @@ hpdf_table_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,
  * @param num_on_segments Number of on segments
  */
 void
-hpdf_table_widget_strength_meter(const HPDF_Doc doc, const HPDF_Page page,
-                                 const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
-                                 const size_t num_segments, const HPDF_RGBColor on_color, const size_t num_on_segments) {
+hpdftbl_widget_strength_meter(const HPDF_Doc doc, const HPDF_Page page,
+                              const HPDF_REAL xpos, const HPDF_REAL ypos, const HPDF_REAL width, const HPDF_REAL height,
+                              const size_t num_segments, const HPDF_RGBColor on_color, const size_t num_on_segments) {
 
     const HPDF_RGBColor segment_border_color = HPDF_COLOR_FROMRGB(128,128,128);
     const HPDF_RGBColor segment_off_color = HPDF_COLOR_FROMRGB(240,240,240);

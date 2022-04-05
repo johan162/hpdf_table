@@ -1,10 +1,10 @@
 /* =========================================================================
- * File:        hpdf_errstr.c
+ * File:        hpdftbl_errstr.c
  * Description: Utility module to translate HPDF error codes to human readable
  *              strings.
  * Author:      Johan Persson (johan162@gmail.com)
  *
- * Copyright (C) 2015 Johan Persson
+ * Copyright (C) 2022 Johan Persson
  *
  * Released under the MIT License
  *
@@ -29,7 +29,7 @@
  */
 
 /**
- * @file
+ * @file hpdftbl_errstr.c
  * @brief Utility module to translate HPDF error codes to human readable strings
  *
  */
@@ -39,7 +39,7 @@
 /**
  * @brief An entry in the error string table
  */
-struct err_code_entry {
+struct hpdftbl_errcode_entry {
     char *errstr;  /**< Pointer to the error string */
     unsigned errcode; /**< The error code from HPDF library */
 };
@@ -48,7 +48,7 @@ struct err_code_entry {
  * @brief A table with all the error strings corresponding to error codes
  *
  */
-static struct err_code_entry err_code_entries[] = {
+static struct hpdftbl_errcode_entry err_code_entries[] = {
 {"HPDF_ARRAY_COUNT_ERR", 0x1001},
 {"HPDF_ARRAY_ITEM_NOT_FOUND", 0x1002},
 {"HPDF_ARRAY_ITEM_UNEXPECTED_TYPE", 0x1003},
@@ -160,10 +160,10 @@ static struct err_code_entry err_code_entries[] = {
 /**
  * @brief Number of error strings in error table
  */
-static const size_t num_errors = sizeof(err_code_entries)/sizeof(struct err_code_entry);
+static const size_t num_errors = sizeof(err_code_entries)/sizeof(struct hpdftbl_errcode_entry);
 
 /**
- * @brief Function to return a human readable error string for an error code
+ * @brief Function to return a human readable error string for an error code from Core HPDF library
  *
  * The various error codes given by the HPDF library can be translated back to a string by
  * the usage of this function. The function will return a pointer to a static string that can
@@ -171,9 +171,11 @@ static const size_t num_errors = sizeof(err_code_entries)/sizeof(struct err_code
  *
  * @param err_code The error code
  * @return A pointer to an error string, NULL if the error code is invalid
+ *
+ * @see hpdftbl_get_errstr()
  */
 const char *
-hpdf_errstr(const HPDF_STATUS err_code) {
+hpdftbl_hpdf_get_errstr(const HPDF_STATUS err_code) {
 
     for(size_t i=0; i < num_errors; i++) {
         if (err_code == err_code_entries[i].errcode)

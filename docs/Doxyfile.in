@@ -1,0 +1,102 @@
+# Config file for Doxygen generated documentation for libhpdftbl
+# Note: This file is used by config.status to create the real Doxyfile
+
+# -----------------------------
+# Core config
+# -----------------------------
+PROJECT_NAME           = @PACKAGE_NAME@
+PROJECT_NUMBER         = @VERSION@
+PROJECT_BRIEF          = "Table construction library for Haru PDF library"
+OUTPUT_DIRECTORY       = out
+
+# We need to specify all input files manually in order to get them in the right order.
+INPUT                  = ../src \
+						 Intro.md \
+                         Building.md \
+                         GettingStarted.md \
+                         CellAndRowApnning.md \
+                         ContentLabelCallbacks.md \
+                         ErrorHandling.md \
+                         FontAndStyle.md \
+                         TablesFromData.md \
+                         UsingWidgets.md \
+                         APIOverview.md
+RECURSIVE              = NO
+EXAMPLE_PATH           = ../examples
+EXAMPLE_PATTERNS       = *.c
+IMAGE_PATH             = screenshots
+USE_MDFILE_AS_MAINPAGE = Intro.md
+
+# -----------------------------
+# Extra config
+# -----------------------------
+ALLOW_UNICODE_NAMES    = YES
+OUTPUT_LANGUAGE        = English
+BRIEF_MEMBER_DESC      = YES
+REPEAT_BRIEF           = YES
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        =
+SHORT_NAMES            = NO
+TAB_SIZE               = 4
+OPTIMIZE_OUTPUT_FOR_C  = YES
+TOC_INCLUDE_HEADINGS   = 3
+AUTOLINK_SUPPORT       = YES
+NUM_PROC_THREADS       = 4
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+CASE_SENSE_NAMES       = TES
+HIDE_SCOPE_NAMES       = YES
+SHOW_INCLUDE_FILES     = YES
+SORT_BRIEF_DOCS        = NO
+SHOW_USED_FILES        = YES
+WARN_NO_PARAMDOC       = YES
+WARN_LOGFILE           =
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = NO
+REFERENCES_LINK_SOURCE = YES
+TOOLTIPS        	   = YES
+VERBATIM_HEADERS       = YES
+ALPHABETICAL_INDEX     = YES
+IGNORE_PREFIX          = hpdftbl_
+
+# -----------------------------
+# HTML output config
+# -----------------------------
+GENERATE_HTML          = YES
+HTML_FOOTER            =
+HTML_STYLESHEET        =
+HTML_EXTRA_STYLESHEET  =
+HTML_COLORSTYLE_SAT    = 140
+HTML_COLORSTYLE_GAMMA  = 80
+HTML_TIMESTAMP         = YES
+HTML_DYNAMIC_MENUS     = YES
+HTML_DYNAMIC_SECTIONS  = NO
+HTML_INDEX_NUM_ENTRIES = 3
+GENERATE_TREEVIEW      = YES
+FULL_SIDEBAR           = YES
+TREEVIEW_WIDTH         = 250
+SEARCHENGINE           = YES
+
+# -----------------------------
+# Latex output config
+# -----------------------------
+GENERATE_LATEX         = YES
+LATEX_OUTPUT           = latex
+LATEX_CMD_NAME         =
+MAKEINDEX_CMD_NAME     = makeindex
+LATEX_MAKEINDEX_CMD    = makeindex
+COMPACT_LATEX          = NO
+PAPER_TYPE             = a4
+EXTRA_PACKAGES         =
+LATEX_TIMESTAMP        = YES
+ABBREVIATE_BRIEF       = "The $name class" \
+                         "The $name widget" \
+                         "The $name file" \
+                         is \
+                         provides \
+                         specifies \
+                         contains \
+                         represents \
+                         a \
+                         an \
+                         the
