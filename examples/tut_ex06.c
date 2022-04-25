@@ -1,4 +1,7 @@
-/* tut_ex06 */
+/**
+ * @file tut_ex06.c
+ */
+
 
 #include <stdio.h>
 #include <stdlib.h>

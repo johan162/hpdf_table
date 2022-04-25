@@ -48,6 +48,8 @@ of the table from the actual data in the table.
 
 ### Example 3 - Table with labels and cell widgets
 
-@image html screenshots/tblex03.png width=15cm
+@image html screenshots/tblex03.png 
 @image latex screenshots/tblex03.png width=15cm
+
+
 

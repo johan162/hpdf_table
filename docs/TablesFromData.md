@@ -17,7 +17,7 @@ int
 hpdftbl_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdftbl_spec_t tbl_spec, hpdftbl_theme_t *theme);
 ```
 
-In order to populate the table with suitable data callback functions are used (as decribed in section ??)
+In order to populate the table with suitable data callback functions are used (as described in section ??)
 
 The overall table is first defined as an instance of
 
@@ -117,7 +117,7 @@ hpdftbl_spec_t tbl_spec = {
 };
 ```
 
->**Note:** In the table definition we use the C99 feature of specifying the field name when defining data in a structure.
+@note In the table definition we use the C99 feature of specifying the field name when defining data in a structure.
 
 Then the actual API call is trivial to what we seen before and consists of only one line of code
 
@@ -131,7 +131,7 @@ create_table_ex13_1(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
 The result is as expected and shown in **Figure 13** but with much less code!
 
 ![Defining a table as data](screenshots/tut_ex13_1.png "tut_ex13_1")  
-***Figure 13:*** *Defining a table with a data structure [tut_ex13_1.c](../examples/tut_ex13_1.c)*
+***Figure 13:*** *Defining a table with a data structure @ref tut_ex13_1.c "tut_ex13_1.c"*
 
 
 ## A second example of defining a table as data
@@ -230,7 +230,7 @@ hpdftbl_spec_t tbl_spec = {
 };
 ```
 
-When this is run (see [tut_ex13_2.c](../examples/tut_ex13_2.c)) it generates the following image, **Figure 13.2**
+When this is run (see @ref tut_ex13_2.c "tut_ex13_2.c") it generates the following image, **Figure 13.2**
 
 ![tut_13_2.c](screenshots/tut_ex13_2.png )  
 ***Figure 16:*** *Specifying a table as data with cell specifications.*

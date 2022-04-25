@@ -56,7 +56,7 @@ It is possible to specify a callback to adjust content, style, and labels. A cal
 7. `hpdftbl_set_canvas_cb()`: 
     This is an advanced callback to allow for low level painting directly on the canvas that is the cell area. The arguments to the callback is different as it includes the bounding-box for th cell area. We will not further discuss this.
 
-> **A note on the returned content string**. When a content string is added in the table it is added as a copy of the string pointed to by the returned string pointer from the callback function. It is therefore perfectly possible to have a static allocated buffer in the callback function that is used to construct the content. When the table is destroyd using `hpdftbl_destroy()` all used memory will be freed.
+@note **Returned content string**. When a content string is added in the table it is added as a copy of the string pointed to by the returned string pointer from the callback function. It is therefore perfectly possible to have a static allocated buffer in the callback function that is used to construct the content. When the table is destroyd using `hpdftbl_destroy()` all used memory will be freed.
 
 
 ## A content callback example

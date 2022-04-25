@@ -140,7 +140,7 @@ hpdftbl_set_content_style_cb(hpdftbl_t tbl,
                              hpdftbl_content_style_callback_t cb);
 ```
 
-> **Note:** Due to som technicalities **the style callbacks are called twice** per cell. The first call is necessary to setup the background canvas and at that stage the content is not necessarily known since it could be later specified with a content callback. The first time the callback is made the `content` parameter is always guaranteed to be `NULL`
+@note Due to som technicalities **the style callbacks are called twice** per cell. The first call is necessary to setup the background canvas and at that stage the content is not necessarily known since it could be later specified with a content callback. The first time the callback is made the `content` parameter is always guaranteed to be `NULL`
 
 ### Style callback example
 
@@ -198,12 +198,12 @@ create_table_ex09(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
 The resulting table is shown in **Figure 10.** below.
 
 ![tut_ex09.png](screenshots/tut_ex09.png)
-***Figure 10:*** *Using a style callback to highlight header rows & columns.* *[tut_ex09.c](../examples/tut_ex09.c)*
+***Figure 10:*** *Using a style callback to highlight header rows & columns.* *@ref tut_ex09.c "tut_ex09.c"*
 
 
 # Using style themes
 
-if you have multiple table in a document it is possible to create a *table theme* which consiste of some core styling of a table that can be reused. The data saved in a theme is defined by the structure `hpdftbl_theme` whithe the following defintion and members
+if you have multiple table in a document it is possible to create a *table theme* which consists of some core styling of a table that can be reused. The data saved in a theme is defined by the structure `hpdftbl_theme` with the following definition and members
 
 ```c
 typedef struct hpdftbl_theme {
@@ -244,7 +244,7 @@ int
 hpdftbl_destroy_theme(hpdftbl_theme_t *theme);
 ```
 
->**Note:** It is the responsibility of the user of the library to destroy the theme structure by ensuring that `hpdftbl_destroy_theme()` is called when a theme goes out of scope.
+@note It is the responsibility of the user of the library to destroy the theme structure by ensuring that `hpdftbl_destroy_theme()` is called when a theme goes out of scope.
 
 The default font styles for the default theme are shown in table 1. 
 
@@ -279,6 +279,6 @@ The default font styles for the default theme are shown in table 1.
 
 &nbsp;
 
-> **Note:** There is currently no support for serializing a theme to/from a file.
+@note There is currently no support for serializing a theme to/from a file.
 
 

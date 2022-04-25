@@ -1,4 +1,7 @@
-/* tut_ex10 */
+/**
+ * @file tut_ex10.c
+ */
+
 
 #include <stdio.h>
 #include <stdlib.h>

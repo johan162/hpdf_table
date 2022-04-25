@@ -42,16 +42,18 @@ In the following we will focus only on the `create_table_<NAME_OF_EXAMPLE>()` fu
 will use the two parameters `pdf_doc` and `pdf_page` to refer to the document and page to
 construct the table.
 
-> In order to make the examples robust and compatible with both Windows and Linux/OSX systems 
-> some conditional compile instructions are also used but we will not display them while discussing the basic usage to keep the focus on what matters. 
+@note In order to make the examples robust and compatible with both Windows and Linux/OSX systems 
+some conditional compile instructions are also used but we will not display them while discussing 
+the basic usage to keep the focus on what matters. 
 
-The full source for all example are available in the `examples/` directory.
+The full source for all example are available in the `examples/` directory as well as in the 
+@ref Examples "Examples" section of this manul.
 
 &nbsp;
 
 ## Your first table
 
-|[`tut_ex01.c`](../examples/tut_ex01.c)|
+@ref tut_ex01.c "tut_ex01.c"
 
 The first example shows the absolute most basic usage. We create a 2x2 table in steps as follows
 
@@ -77,7 +79,7 @@ hpdftbl_set_cell(tbl, 1, 0, NULL, "Cell 1x0");
 hpdftbl_set_cell(tbl, 1, 1, NULL, "Cell 1x1");
 ```
 
-> You can ignore the `NULL` argument for now (it will be explained shortly).
+@note You can ignore the `NULL` argument for now (it will be explained shortly).
 
 Here we note that: 
 
@@ -89,7 +91,7 @@ The native coordiante system for PDF pages are given as the printing unit of DPI
 
 To make it easier to directly set the size and position in centimeters a convenience function `hpdftbl_cm2dpi()` can be used. 
 
->For precision positioning it is more accurate to give the position and sizes in dots directly. 
+@note For precision positioning it is more accurate to give the position and sizes in dots directly. 
 
 In this example we set the size and position in centimeters. We positionin the top left of the table *1cm* below and *1cm* to the right of the top left corner of the paper and make the table *5cm* wide as follows:
 
@@ -139,7 +141,7 @@ create_table_ex01(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
 }
 ```
-The generated table is shown in **Figure 1.** ([`tut_ex01.c`](../examples/tut_ex01.c))
+The generated table is shown in **Figure 1.** (@ref tut_ex01.c "tut_ex01.c")
 
 ![Figure 1 - tut_ex01.png](screenshots/tut_ex01.png)  
 ***Figure 1:*** *Your first table.*
@@ -181,7 +183,7 @@ void setup_dummy_data(content_t *content, size_t rows, size_t cols) {
 }
 ```
 
-> **Note:** *We allocate each string dynamically in the dummy-data and since the program is just an illustration and terminates after the page has been created we never bother to free this memory. In a real life scenario this would of course be crucial!*
+@note We allocate each string dynamically in the dummy-data and since the program is just an illustration and terminates after the page has been created we never bother to free this memory. In a real life scenario this would of course be crucial!
 
 We could then augment example 01 using this more efficient way to specify data as so:
 
@@ -204,12 +206,12 @@ create_table_ex02(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
 }
 ```
-|[`tut_ex02.c`](../examples/tut_ex02.c)|
+@ref tut_ex02.c "tut_ex02.c"
 
 Running the code above in our infrastructure will give
 
 ![Figure 3 - tut_ex02.png](screenshots/tut_ex02.png)  
-***Figure 3:*** *Specifying data in a table with an array of string pointers.([`tut_ex02.c`](../examples/tut_ex02.c))*
+***Figure 3:*** *Specifying data in a table with an array of string pointers.(@ref tut_ex02.c "tut_ex02.c")*
 
 In the above (small) example it might not have been a big safe but if you have a table with 20x10 rows * cols then you will soon appreciate this way of specifying data. 
 
@@ -243,10 +245,10 @@ create_table_ex11(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
 }
 ```
 
-The resulting table can be seen in **Figure 4**. We also modified the dummy data to have the work "Header" in the first row (for details see [`tut_ex02_1.c`](../examples/tut_ex02_1.c))
+The resulting table can be seen in **Figure 4**. We also modified the dummy data to have the work "Header" in the first row (for details see @ref tut_ex02_1.c "tut_ex02_1.c" )
 
 ![Figure 4 - tut_ex02_1.png](screenshots/tut_ex02_1.png)  
-***Figure 4:*** *Adding automatic header formatted row ([`tut_ex02_1.c`](../examples/tut_ex02_1.c))*
+***Figure 4:*** *Adding automatic header formatted row (@ref tut_ex02_1.c "tut_ex02_1.c")*
 
 
 ## Using labels in the table cells
@@ -254,7 +256,7 @@ The resulting table can be seen in **Figure 4**. We also modified the dummy data
 A variant of a table is to present data with a short label describing what kind of data is displayed. This is often used when a table is used to present a dataform. An example of this is shown in **Figure 4.** below.
 
 ![Figure 4 - tut_ex03.png](screenshots/tut_ex03.png)  
-***Figure 4:*** *Specifying labels for each cell. ([`tut_ex03.c`](../examples/tut_ex03.c))*
+***Figure 4:*** *Specifying labels for each cell. (@ref tut_ex03.c "tut_ex03.c")*
 
 Adding labels requires three things:
 
@@ -340,7 +342,8 @@ create_table_ex04(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
 }
 ```
-([`tut_ex04.c`](../examples/tut_ex04.c))
+
+@ref tut_ex04.c "tut_ex04.c"
 
 ## Adding a table title
 
@@ -356,7 +359,7 @@ hpdftbl_t tbl = hpdftbl_create_title(num_rows, num_cols, table_title);
 A table title occupies the top of the table in it's own row which isn't part of the counting if the normal columns.
 
 ![Figure 6 - tut_ex04.png](screenshots/tut_ex05.png)  
-***Figure 6:*** *Adding a title for the table. ([`tut_ex05.c`](../examples/tut_ex05.c))*
+***Figure 6:*** *Adding a title for the table. (@ref tut_ex05.c "tut_ex05.c")*
 
 It is possible to adjust the colors, font-properties, and aignments of the title with two additional functions `hpdftbl_set_title_style()` and `hpdftbl_set_title_halign()`
 
@@ -374,6 +377,6 @@ It is possible to
 
 It is also possible to adjust the color and thickness of the borders but we will not discuss this more here and instead refer the reader to the API documentation.
 
-> We should also mention that there is a concept of a look&feel theme for the table which can be used to adjust all the parameters at once. This is discussed in "Using themes".
+@note We should also mention that there is a concept of a look&feel theme for the table which can be used to adjust all the parameters at once. This is discussed in "Using themes".
 
 

@@ -63,16 +63,18 @@ IGNORE_PREFIX          = hpdftbl_
 # HTML output config
 # -----------------------------
 GENERATE_HTML          = YES
+GENERATE_TREEVIEW      = YES
 HTML_FOOTER            =
 HTML_STYLESHEET        =
-HTML_EXTRA_STYLESHEET  =
+HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css \
+                         doxygen-awesome-css/doxygen-awesome-sidebar-only.css
+
 HTML_COLORSTYLE_SAT    = 140
 HTML_COLORSTYLE_GAMMA  = 80
 HTML_TIMESTAMP         = YES
 HTML_DYNAMIC_MENUS     = YES
 HTML_DYNAMIC_SECTIONS  = NO
 HTML_INDEX_NUM_ENTRIES = 3
-GENERATE_TREEVIEW      = YES
 FULL_SIDEBAR           = YES
 TREEVIEW_WIDTH         = 250
 SEARCHENGINE           = YES
@@ -81,7 +83,9 @@ SEARCHENGINE           = YES
 # Latex output config
 # -----------------------------
 GENERATE_LATEX         = YES
+LATEX_CMD_NAME         = pdflatex
 LATEX_OUTPUT           = latex
+USE_PDFLATEX           = @USE_PDFLATEX@
 LATEX_CMD_NAME         =
 MAKEINDEX_CMD_NAME     = makeindex
 LATEX_MAKEINDEX_CMD    = makeindex

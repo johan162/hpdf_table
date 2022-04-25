@@ -8,8 +8,10 @@ SUBDIRS = . src docs examples
 
 # Additional clean up files
 DISTCLEANFILES=.dep.inc
-
 CLEANFILES=configure~
 
 ACLOCAL_AMFLAGS=-I m4
+
+EXTRA_DIST=scripts
+
 

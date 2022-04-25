@@ -2096,8 +2096,14 @@ hpdftbl_stroke(HPDF_Doc pdf,
  * @example tut_ex02.c
  * Basic table with content data specified as an array.
  *
+ * @example tut_ex02_1.c
+ * Basic table with content data specified as an array.
+ *
  * @example tut_ex03.c
  * First example with API call to set content in each cell with added labels and shortened grid.
+ *
+ * @example tut_ex04.c
+ * Specifying labels as data array
  *
  * @example tut_ex05.c
  * Set content data specified as an array with added labels and shortened grid.
@@ -2128,5 +2134,8 @@ hpdftbl_stroke(HPDF_Doc pdf,
  *
  * @example tut_ex13_2.c
  * Defining a table with a data structure for table and cells.
+ *
+ * @example tut_ex14.c
+ * Defining a table with widgets.
  */
 /* EOF */

@@ -18,6 +18,7 @@ usage() {
     echo "Usage:"
     echo "\$ $1 [-c]"
     echo "-c          : Clean all generated files"
+    echo "-q          : Quiet"
     echo "-h          : Print help and exit"
 }
 
@@ -34,7 +35,7 @@ errlog() {
     [ $quiet_flag -eq 0 ] && printf "***ERROR***: %s\n" "$1" >&2
 }
 
-# Check that this environment havd autotools && libtool installed
+# Check that this environment have autotools && libtool installed
 chk_pre() {
     if ! command -v glibtool > /dev/null 2>&1  || ! command -v glibtoolize > /dev/null 2>&1 \
     || ! command -v automake > /dev/null 2>&1  || ! command -v autoreconf > /dev/null 2>&1 ; then

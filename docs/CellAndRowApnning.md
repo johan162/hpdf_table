@@ -22,11 +22,11 @@ hpdftbl_set_cellspan(tbl, 0, 0, 1, 3);
 hpdftbl_set_cellspan(tbl, 2, 2, 3, 3);
 hpdftbl_set_cellspan(tbl, 3, 0, 4, 1);
 ```
-For the data we will use the same setup as in [tut_ex06.c](../examples/tut_ex06.c)
+For the data we will use the same setup as in @ref tut_ex06.c "tut_ex06.c"
 This will then give the result shown in **Figure 8.**
 
 ![tut_ex07.png](screenshots/tut_ex07.png)    
-***Figure 8:*** *Having cells spanning multiple rows and columns.*
+***Figure 8:*** *Having cells spanning multiple rows and columns. @ref tut_ex07.c "tut_ex07.c"*
 
 ## Adjusting column width
 
@@ -43,6 +43,6 @@ The width is set as a percentage of the total width and is specified as a floati
 
 
 ![tut_ex08.png](screenshots/tut_ex08.png)     
-***Figure 9:*** *Adjusting width of first columns.*
+***Figure 9:*** *Adjusting width of first columns. @ref tut_ex08.c "tut_ex08.c" *
 
 

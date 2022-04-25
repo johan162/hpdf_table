@@ -1,6 +1,6 @@
 # Error handling
 
-All library function will return an error code < 0 and also set a global variable to a specific error code that can later be read by an error handler. In order to translate the error to a human readable string the function `hpdftbl_get_last_errcode()` can be used as the following error handling snippet examplified by a call to `hpdftbl_set_colwidth_percent()`
+All library function will return an error code < 0 and also set a global variable to a specific error code that can later be read by an error handler. In order to translate the error to a human-readable string the function `hpdftbl_get_last_errcode()` can be used as the following error handling snippet examplified by a call to `hpdftbl_set_colwidth_percent()`
 
 ```c
 if( hpdftbl_set_colwidth_percent(tbl, 5, 110) ) {
@@ -53,9 +53,9 @@ hpdftbl_set_errhandler(hpdftbl_default_table_error_handler);
 
 More advanced error handler must be written for thr particular application they are to be used in. 
 
-> **Note:** A common way to extend the error handling is to log the errors to syslog. When the library is used on OSX from 11.0 and onwards it should be rememberd that OSX is broken by design as far as syslog logging is concerned. Apple in its wisdom introduced "Unified logging" which breaks the `syslog()` function and no logging is ever produced in the filesystem directly (i.e. to `/var/log/system.log`).   
-> Instead the only way to view the logs is by using the utility `log`. So in order to view the log from a particular application the following command has to be given  
-> `log stream --info --debug --predicate 'sender == "APPLICATION_NAME"' --style syslog`
+@note A common way to extend the error handling is to log the errors to syslog. When the library is used on OSX from 11.0 and onwards it should be rememberd that OSX is broken by design as far as syslog logging is concerned. Apple in its wisdom introduced "Unified logging" which breaks the `syslog()` function and no logging is ever produced in the filesystem directly (i.e. to `/var/log/system.log`).   
+Instead the only way to view the logs is by using the utility `log`. So in order to view the log from a particular application the following command has to be given  
+`log stream --info --debug --predicate 'sender == "APPLICATION_NAME"' --style syslog`
 
 ## Translating HPDF error codes
 
@@ -116,7 +116,7 @@ create_table_ex10(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
 
 ```
 
-This is available in the example directory as [tut_ex10.c](../examples/tut_ex10.c). When this code is executed the following will 
+This is available in the example directory as @ref tut_ex10.c "tut_ex10.c". When this code is executed the following will 
 be printed to standard out and the process will be stopped.
 
 ```

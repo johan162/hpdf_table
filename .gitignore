@@ -1,5 +1,4 @@
 *.o
-*.in
 .vscode
 Makefile
 Makefile.in
@@ -42,6 +41,8 @@ doxyref
 null.d
 _bld
 docs/out
+scripts/docupload.sh
+
 
 
 

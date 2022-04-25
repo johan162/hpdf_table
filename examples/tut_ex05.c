@@ -1,4 +1,7 @@
-/* tut_ex05 */
+/**
+ * @file tut_ex05.c
+ */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,7 +76,7 @@ void setup_dummy_data(content_t *content, content_t *labels, size_t rows, size_t
  * Table 4 example - The most basic table with all default settings
  */
 void
-create_table_ex04(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
+create_table_ex05(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     const size_t num_rows = 2;
     const size_t num_cols = 2;
 
@@ -140,7 +143,7 @@ main(int argc, char **argv) {
 
     setup_hpdf(&pdf_doc, &pdf_page, FALSE);
 
-    create_table_ex04(pdf_doc, pdf_page);
+    create_table_ex05(pdf_doc, pdf_page);
     
     stroke_pdfdoc(pdf_doc, OUTPUT_FILE);
     return EXIT_SUCCESS;

@@ -48,7 +48,7 @@ $ make install
 
 ## Pre-requisites
 
-> OSX Package manager: We recommend using `brew` as the package manager for OSX.
+@note OSX Package manager: We recommend using `brew` as the package manager for OSX.
 
 There are two external libraries required to rebuild libhpdftbl and more importantly use the library with an actual application and these are:
 
@@ -110,31 +110,32 @@ There are two levels of rebuilding the library
 
 2. Rebuilding from a cloned repo and rebuild the build environment
 
-### Rebuilding using a build environment
+### Rebuilding using a existing build environment
 
 Rebuilding the library using a pre-configured build environment only requires `gcc` and `make` together with the standard C/C++ libraries to be installed.
 
-The library source with suitable build-environments are distributed as two tar-balls, one setup for OSX and one setup for Linux in the Ubuntu flavor
+The library source with suitable build-environments are distributed as a tar-ball
 
-1. libhpdf-src-x.y.z-osx.tar.gz
-1. libhpdf-src-x.y.z-linux-ubuntu.tar.gz
+1. libhpdf-src-x.y.z.tar.gz
 
-These tar-balls include a build environment for each system as construced with the GNU autotools. This means that after downloading the appropriate tar-ball you can rebuild the library as so:
+This tar-ball include a build environment constructed with the GNU autotools. This means that after downloading the tar-ball you can rebuild the library as so:
 
 ```shell
 $> ./configure && make
 ... (output from the configuration and build omitted) ...
 ```
 
-The git repo mimics the OSX tar ball as it is setup for a OSX based build environment. This means you do not need to install any special tools to rebuild the library on OSX. You only have to clone the repo and compile.
+@note: The git repo do not have a build environment setup.
 
 
 ### Rebuilding from the cloned repo
 
-Rebuilding from the cloned repo requires the GNU autotools tool-chain to be installed. Since it is completely out of the scope decribing the intricities
-of the GNU autotools we will only show what to do assuming thie tool chain have been installed.
+Rebuilding from the cloned repo requires the GNU autotools tool-chain to be installed. Since it is completely out of the scope 
+to decribe the intricacies
+of the GNU autotools we will only show what to do assuming this tool chain have been installed.
 
-To simplify the potetially painful bootstrap of creating a full autotools environment a utility script that does this is provided in the form of "`scripts/bootstrap.sh`". After cloning the repo run (from the `libhpdftbl` directory)
+To simplify the potentially painful bootstrap of creating a full autotools environment a utility script that does this is 
+provided in the form of "`scripts/bootstrap.sh`". After cloning the repo run (from the `libhpdftbl` directory)
 
 ```
 ./scripts/bootstrap.sh
@@ -145,16 +146,19 @@ This script will now run `autoreconf`, `automake`, `glibtoolize` as needed in or
 ```shell
 ...
 config.status: executing libtool commands
-configure: ----------------------------------------------------
-configure: INSTALLATION SUMMARY
-configure:   - Build configured for OSX
-configure: ----------------------------------------------------
+configure: --------------------------------------------------------------------------------
+configure: INSTALLATION SUMMARY:
+configure:   - Build configured for OSX.
+configure:   - Can rebuild HTML docs with Doxygen.
+configure:   - Can also create PDF docs (have LaTeX).
+configure:   - Installing to /usr/local
+configure: --------------------------------------------------------------------------------
 ```
 
 The final step you need to do is compile the library as so
 
 ```shell
-$> make -j4
+$> make
 ```
 
 The simplest way to verify that everything works is to execute one of the example programs (in the `examples/` directory) as so:
@@ -166,13 +170,13 @@ Sending to file "/tmp/example01.pdf" ...
 Done.
 ```
 
-If you would like to install the library 
+If you would like to install the library make the install target
 
 ```shell
 $> make install
 ```
 
-This will install headers and library under "`/usr/local`".
+This will install headers and library under "`/usr/local`" (unless the prefix was changed when running the `configure`)
 
 
 ## Some notes on Windows build

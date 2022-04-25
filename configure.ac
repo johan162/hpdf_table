@@ -1,10 +1,10 @@
 # ===============================================================================
-# Autoconf script for the g7ctrl daemon
-# Use autoreconf to rebuild the build environment
+# Autoconf script for the libhpdftbl library
+# Use scripts/bootstrap.sh to bootstrap the build environment
 # ===============================================================================
 AC_PREREQ([2.69])
-AC_INIT([libhpdftbl],[1.0.0-beta],[johan162@gmail.com])
-AC_COPYRIGHT([Part of configure script Copyright 2015-2022 Johan Persson <johan162@gmail.com>])
+AC_INIT([libhpdftbl],[1.0.0-beta2],[johan162@gmail.com])
+AC_COPYRIGHT([Part of configure script Copyright 2022 Johan Persson <johan162@gmail.com>])
 AC_PREFIX_DEFAULT(/usr/local)
 AM_INIT_AUTOMAKE([dist-xz silent-rules])
 AM_SILENT_RULES
@@ -19,6 +19,7 @@ src/Makefile
 examples/Makefile
 docs/Makefile
 docs/Doxyfile
+scripts/docupload.sh
 ])
 
 SYSTEM_NAME=`uname -s`
@@ -59,6 +60,13 @@ AM_CONDITIONAL(have_doxygen, test "$DOXYGEN" = "yes")
 # Check if pdflatex is installed (can we rebuild the PDF version of Doxygen docs
 AC_CHECK_PROG(PDFLATEX,pdflatex,yes,no)
 AM_CONDITIONAL(have_pdflatex, test "$PDFLATEX" = "yes")
+
+# For use in Doxyfile.in
+if test "$PDFLATEX" = "yes"; then
+	AC_SUBST([USE_PDFLATEX],[YES])
+else
+	AC_SUBST([USE_PDFLATEX],[NO])
+fi
 
 # Output all generated files
 AC_OUTPUT

@@ -233,7 +233,7 @@ hpdftbl_widget_slide_button(HPDF_Doc doc, HPDF_Page page,
  * @param height Height of meter
  * @param color Fill color for bar
  * @param val Percentage fill in range [0.0, 100.0]
- * @param show_val TRUE to show the value (in percent) at the right end of the entire bar
+ * @param hide_val TRUE to hide the value (in percent) at the right end of the entire bar
  */
 void
 hpdftbl_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
@@ -292,7 +292,8 @@ hpdftbl_widget_hbar(const HPDF_Doc doc, const HPDF_Page page,
  * @param height Height of meter
  * @param num_segments Total number of segments
  * @param on_color Color for "on" segment
- * @param num_on_segments Number of on segments
+ * @param val_percent To what extent should the bars be filled (as a value 0.0 - 1.0)
+ * @param hide_val TRUE to hide the value (in percent) at the right end of the entire bar
  */
 void
 hpdftbl_widget_segment_hbar(const HPDF_Doc doc, const HPDF_Page page,

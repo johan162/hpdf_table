@@ -72,6 +72,7 @@ extern "C" {
 #define COLOR_RED           (HPDF_RGBColor) { 1.0f, 0.0f, 0.0f }
 #define COLOR_LIGHT_GREEN   (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
 #define COLOR_GREEN         (HPDF_RGBColor) { 0.4f, 0.9f, 0.4f }
+#define COLOR_DARK_GREEN    (HPDF_RGBColor) { 0.05f, 0.37f, 0.02f }
 #define COLOR_DARK_GRAY     (HPDF_RGBColor) { 0.2f, 0.2f, 0.2f }
 #define COLOR_LIGHT_GRAY    (HPDF_RGBColor) { 0.9f, 0.9f, 0.9f }
 #define COLOR_GRAY          (HPDF_RGBColor) { 0.5f, 0.5f, 0.5f }

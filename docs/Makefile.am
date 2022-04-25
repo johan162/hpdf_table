@@ -1,7 +1,3 @@
-all-local: html-local pdf-local
-html-local:  out/html/index.html
-pdf-local: out/latex/refman.pdf
-
 DOC_FILES = APIOverview.md \
             CellAndRowApnning.md \
             ErrorHandling.md \
@@ -20,35 +16,29 @@ SRC_FILES = ../src/hpdftbl.c \
             ../src/hpdftbl_widget.c \
             ../src/hpdftbl_errstr.c
 
-
 if have_doxygen
 
-out/html/index.html out/latex/refman.tex: Doxyfile.in $(SRC_FILES) $(DOC_FILES)
+html-local: out/html/index.html
+
+maintainer-clean-local:
+	rm -rf out
+
+out/html/index.html: Doxyfile.in $(SRC_FILES) $(DOC_FILES)
 	doxygen
 
 if have_pdflatex
 
+all-local: html-local pdf-local
+pdf-local: out/latex/refman.pdf
 out/latex/refman.pdf: out/latex/refman.tex
 	cd out/latex && $(MAKE) $(AM_MAKEFLAGS)
 
 else
 
-out/latex/refman.pdf: out/latex/refman.tex
-	touch $@
+all-local: html-local
 
 endif
 
-else
-
-out/html/index.html: Doxyfile.in $(SRC_FILES) $(DOC_FILES)
-	touch $@
-
-out/latex/refman.pdf: out/latex/refman.tex
-	touch $@
-
 endif
 
-maintainer-clean-local:
-	rm -rf out
-
-EXTRA_DIST = out screenshots $(DOC_FILES)
+EXTRA_DIST = out screenshots doxygen-awesome-css $(DOC_FILES)
