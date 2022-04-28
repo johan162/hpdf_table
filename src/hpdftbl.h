@@ -68,20 +68,20 @@ extern "C" {
 /**
  * Basic color definitions
  */
-#define COLOR_DARK_RED      (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
-#define COLOR_RED           (HPDF_RGBColor) { 1.0f, 0.0f, 0.0f }
-#define COLOR_LIGHT_GREEN   (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
-#define COLOR_GREEN         (HPDF_RGBColor) { 0.4f, 0.9f, 0.4f }
-#define COLOR_DARK_GREEN    (HPDF_RGBColor) { 0.05f, 0.37f, 0.02f }
-#define COLOR_DARK_GRAY     (HPDF_RGBColor) { 0.2f, 0.2f, 0.2f }
-#define COLOR_LIGHT_GRAY    (HPDF_RGBColor) { 0.9f, 0.9f, 0.9f }
-#define COLOR_GRAY          (HPDF_RGBColor) { 0.5f, 0.5f, 0.5f }
-#define COLOR_SILVER        (HPDF_RGBColor) { 0.75f, 0.75f, 0.75f }
-#define COLOR_LIGHT_BLUE    (HPDF_RGBColor) { 1.0f, 1.0f, 0.9f }
-#define COLOR_BLUE          (HPDF_RGBColor) { 0.0f, 0.0f, 1.0f }
-#define COLOR_DARK_BLUE     (HPDF_RGBColor) { 0.0f, 0.0f, 0.6f }
-#define COLOR_WHITE         (HPDF_RGBColor) { 1.0f, 1.0f, 1.0f }
-#define COLOR_BLACK         (HPDF_RGBColor) { 0.0f, 0.0f, 0.0f }
+#define HPDF_COLOR_DARK_RED      (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
+#define HPDF_COLOR_RED           (HPDF_RGBColor) { 1.0f, 0.0f, 0.0f }
+#define HPDF_COLOR_LIGHT_GREEN   (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
+#define HPDF_COLOR_GREEN         (HPDF_RGBColor) { 0.4f, 0.9f, 0.4f }
+#define HPDF_COLOR_DARK_GREEN    (HPDF_RGBColor) { 0.05f, 0.37f, 0.02f }
+#define HPDF_COLOR_DARK_GRAY     (HPDF_RGBColor) { 0.2f, 0.2f, 0.2f }
+#define HPDF_COLOR_LIGHT_GRAY    (HPDF_RGBColor) { 0.9f, 0.9f, 0.9f }
+#define HPDF_COLOR_GRAY          (HPDF_RGBColor) { 0.5f, 0.5f, 0.5f }
+#define HPDF_COLOR_SILVER        (HPDF_RGBColor) { 0.75f, 0.75f, 0.75f }
+#define HPDF_COLOR_LIGHT_BLUE    (HPDF_RGBColor) { 1.0f, 1.0f, 0.9f }
+#define HPDF_COLOR_BLUE          (HPDF_RGBColor) { 0.0f, 0.0f, 1.0f }
+#define HPDF_COLOR_DARK_BLUE     (HPDF_RGBColor) { 0.0f, 0.0f, 0.6f }
+#define HPDF_COLOR_WHITE         (HPDF_RGBColor) { 1.0f, 1.0f, 1.0f }
+#define HPDF_COLOR_BLACK         (HPDF_RGBColor) { 0.0f, 0.0f, 0.0f }
 
 /**
  * Text encodings
@@ -188,29 +188,29 @@ typedef void (*hpdftbl_canvas_callback_t)(HPDF_Doc, HPDF_Page, void *, size_t, s
 typedef _Bool (*hpdftbl_content_style_callback_t)(void *, size_t, size_t, char *content, hpdf_text_style_t *);
 
 /**
- * @brief Possible line dash styles in table frames.
+ * @brief Possible line dash styles for grid lines.
  */
-typedef enum hpdftbl_dash_style {
-    SOLID = 0,              /**< Solid line */
-    DOT1 = 1,               /**< Dotted line variant 1 */
-    DOT2 = 2,               /**< Dotted line variant 2 */
-    DOT3 = 3,               /**< Dotted line variant 3 */
-    DASH1 = 4,              /**< Dashed line variant 1 */
-    DASH2 = 5,              /**< Dashed line variant 2 */
-    DASH3 = 6,              /**< Dashed line variant 3 */
-    DASHDOT = 7             /**< Dashed-dot line variant 1 */
-} hpdftbl_line_style_t;
+typedef enum hpdftbl_dashstyle {
+    LINE_SOLID = 0,              /**< Solid line */
+    LINE_DOT1 = 1,               /**< Dotted line variant 1 */
+    LINE_DOT2 = 2,               /**< Dotted line variant 2 */
+    LINE_DOT3 = 3,               /**< Dotted line variant 3 */
+    LINE_DASH1 = 4,              /**< Dashed line variant 1 */
+    LINE_DASH2 = 5,              /**< Dashed line variant 2 */
+    LINE_DASH3 = 6,              /**< Dashed line variant 3 */
+    LINE_DASHDOT = 7             /**< Dashed-dot line variant 1 */
+} hpdftbl_line_dashstyle_t;
 
 /**
- * @brief Specification for table borders
+ * @brief Specification for table grid lines
  *
- * Contains line properties used when stroking a border line
+ * Contains line properties used when stroking a grid line
  */
-typedef struct border_style {
-    HPDF_REAL width; /**< Line width of border */
-    HPDF_RGBColor color; /**< Color of line */
-    hpdftbl_line_style_t line_style; /**< Line style (currently not used, preparation for future extensions) */
-} hpdf_border_style_t;
+typedef struct grid_style {
+    HPDF_REAL width; /**< Line width of grids */
+    HPDF_RGBColor color; /**< Color of grids */
+    hpdftbl_line_dashstyle_t line_dashstyle; /**< Line style for grid*/
+} hpdftbl_grid_style_t;
 
 /**
  * @brief Specification of individual cells in the table
@@ -315,10 +315,20 @@ struct hpdftbl {
     /** Reference to all an array of cells in the table*/
     hpdftbl_cell_t *cells;
     /** Table outer border settings */
-    hpdf_border_style_t outer_border;
-    /** Table inner border settings */
-    hpdf_border_style_t inner_border;
-    /** User specified column width as fraction of the table width. Defaults to equ-width */
+    hpdftbl_grid_style_t outer_grid;
+    /** Table inner vertical border settings, if width>0 this takes precedence over the generic inner border */
+    hpdftbl_grid_style_t inner_vgrid;
+    /** Table inner horizontal border settings, if width>0 this takes precedence over the generic inner border */
+    hpdftbl_grid_style_t inner_hgrid;
+    /** Table inner horizontal top border settings, if width>0 this takes precedence over the generic horizontal and inner horizontal border */
+    hpdftbl_grid_style_t inner_tgrid;
+    /** Use alternating background color on every second line TRUE or FALSE. Defaults to FALSE. */
+    _Bool use_zebra;
+    /** First zebra color. @see use_zebra */
+    HPDF_RGBColor zebra1_color;
+    /** Second zebra color. @see use_zebra */
+    HPDF_RGBColor zebra2_color;
+    /** User specified column width array as fraction of the table width. Defaults to equ-width */
     float *col_width_percent;
 };
 
@@ -430,16 +440,26 @@ typedef struct hpdftbl_theme {
     hpdf_text_style_t *header_style;
     /** Table title text style */
     hpdf_text_style_t *title_style;
-    /** Table inner border style */
-    hpdf_border_style_t *inner_border;
     /** Table outer border style */
-    hpdf_border_style_t *outer_border;
+    hpdftbl_grid_style_t outer_border;
     /** Flag if cell labels should be used  */
     _Bool use_labels;
     /** Flag if the special short vertical grid style for labels should be used  */
     _Bool use_label_grid_style;
     /** Flag if header row should be used */
     _Bool use_header_row;
+    /** Table inner vertical border settings, if width>0 this takes precedence over the generic inner border */
+    hpdftbl_grid_style_t inner_vborder;
+    /** Table inner horizontal border settings, if width>0 this takes precedence over the generic inner border */
+    hpdftbl_grid_style_t inner_hborder;
+    /** Table inner horizontal top border settings, if width>0 this takes precedence over the generic horizontal and inner horizontal border */
+    hpdftbl_grid_style_t inner_tborder;
+    /** Use alternating background color on every second line TRUE or FALSE. Defaults to FALSE. */
+    _Bool use_zebra;
+    /** First zebra color. @see use_zebra */
+    HPDF_RGBColor zebra1_color;
+    /** Second zebra color. @see use_zebra */
+    HPDF_RGBColor zebra2_color;
 } hpdftbl_theme_t;
 
 /**
@@ -538,10 +558,19 @@ int
 hpdftbl_set_background(hpdftbl_t t, HPDF_RGBColor background);
 
 int
-hpdftbl_set_outer_border(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color);
+hpdftbl_set_inner_tgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
 
 int
-hpdftbl_set_inner_border(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color);
+hpdftbl_set_inner_vgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
+
+int
+hpdftbl_set_inner_hgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
+
+int
+hpdftbl_set_inner_grid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
+
+int
+hpdftbl_set_outer_grid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
 
 int
 hpdftbl_set_header_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor color, HPDF_RGBColor background);

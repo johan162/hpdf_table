@@ -91,7 +91,7 @@ cb_draw_battery_widget(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r,
     const HPDF_REAL segment_ypos = ypos + 4;
     const size_t num_segments = 10;
 
-    const HPDF_RGBColor on_color = COLOR_DARK_GREEN;
+    const HPDF_RGBColor on_color = HPDF_COLOR_DARK_GREEN;
     const double val_percent = 0.4;
     const _Bool val_text_hide = FALSE;
 
@@ -109,7 +109,7 @@ cb_draw_signal_widget(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r,
     const HPDF_REAL wxpos = xpos + 70;
     const HPDF_REAL wypos = ypos + 4;
     const size_t num_segments = 5;
-    const HPDF_RGBColor on_color = COLOR_DARK_RED;
+    const HPDF_RGBColor on_color = HPDF_COLOR_DARK_RED;
 
     // This should be the real data retrieved from a DB (for example)
     const size_t num_on_segments = 3;

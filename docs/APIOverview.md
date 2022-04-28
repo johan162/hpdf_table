@@ -96,12 +96,18 @@ These function are all about look an feel of the table.
  - hpdftbl_set_background()
    *Set cell background color.*
 
- - hpdftbl_set_outer_border()
-   *Set style of the table outer border.*
+ - hpdftbl_set_outer_grid_style()
+   *Set style of the table outer grid lines.*
 
- - hpdftbl_set_inner_border()
-   *Set the style of table inner borders.*
-   
+ - hpdftbl_set_inner_grid_style()
+   *Set the style of both vertical and horizontal inner grid lines.*
+
+ - hpdftbl_set_inner_vgrid_style()
+   *Set the style of table inner vertical grid lines.*
+
+ -  hpdftbl_set_inner_hgrid_style()
+    *Set the style of table inner horizontal grid lines.*
+
  - hpdftbl_set_header_style()
    *Set the style for the table header row.*
 
@@ -129,7 +135,7 @@ These function are all about look an feel of the table.
  - hpdftbl_set_cell_content_style()
    *Set the stle for specified cell. This overrides andy style on the table level.*
 
- - hpdftbl_set_title_style
+ - hpdftbl_set_title_style()
    *Set the style for the table title.*
 
 ## Content handling

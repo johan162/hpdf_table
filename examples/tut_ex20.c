@@ -1,5 +1,5 @@
 /**
- * @file tut_ex09.c
+ * @file tut_ex20.c
  */
 
 
@@ -23,9 +23,9 @@
 
 // The output after running the program will be written to this file
 #ifdef _WIN32
-#define OUTPUT_FILE "tut_ex09.pdf"
+#define OUTPUT_FILE "tut_ex20.pdf"
 #else
-#define OUTPUT_FILE "/tmp/tut_ex09.pdf"
+#define OUTPUT_FILE "/tmp/tut_ex20.pdf"
 #endif
 #define TRUE 1
 #define FALSE 0
@@ -39,7 +39,6 @@ jmp_buf env;
 // Silent gcc about unused "arg" in the callback and error functions
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
 
 // A standard hpdf error handler which also translates the hpdf error code to a
@@ -51,78 +50,55 @@ static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no,
     longjmp(env, 1);
 }
 
-_Bool
-cb_style(void *tag, size_t r, size_t c, char *content, hpdf_text_style_t *style) {
-    // Format the header row/column with a grey background and Helvetica font while the rest of the
-    // table uses "Times Roman"
-    if( 0==r || 0==c ) { // Headers
-        style->font = HPDF_FF_HELVETICA_BOLD;
-        style->fsize = 12;
-        style->color = HPDF_COLOR_BLACK;
-        style->background = HPDF_COLOR_LIGHT_GRAY;
-        if ( c > 0 )
-            style->halign = CENTER;
-        else
-            style->halign = LEFT;
-    } else { // Content
-        style->font = HPDF_FF_TIMES;
-        style->fsize = 11;
-        style->color = HPDF_COLOR_BLACK;
-        style->background = HPDF_COLOR_WHITE;
-        style->halign = CENTER;
-    }
-    return TRUE;
-}
-
-static char *
-cb_content(void *tag, size_t r, size_t c) {
-    static char buf[32];
-    if( 0==r && 0==c ) return NULL;
-
-    if( 0==c ) {
-#if (defined _WIN32 || defined __WIN32__)
-        snprintf(buf, sizeof buf, "Extra long Header %2ix%2i", r, c);
-#else
-        snprintf(buf, sizeof buf, "Extra long Header %zux%zu", r, c);
-#endif
-    } else if( 0==r ) {
-#if (defined _WIN32 || defined __WIN32__)
-        snprintf(buf, sizeof buf, "Header %2ix%2i", r, c);
-#else
-        snprintf(buf, sizeof buf, "Header %zux%zu", r, c);
-#endif
-    } else {
-#if (defined _WIN32 || defined __WIN32__)
-        snprintf(buf, sizeof buf, "Content %2ix%2i", r, c);
-#else
-        snprintf(buf, sizeof buf, "Content %zux%zu", r, c);
-#endif
-    }
-    return buf;
-}
-
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
 #endif
 
+typedef char **content_t;
+
+void setup_dummy_data(content_t *content, content_t *labels, size_t rows, size_t cols) {
+    char buff[255];
+    *content = calloc(rows*cols, sizeof(char*));
+    *labels = calloc(rows*cols, sizeof(char*));
+    size_t cnt = 0;
+    for (size_t r = 0; r < rows; r++) {
+        for (size_t c = 0; c < cols; c++) {
+            snprintf(buff, sizeof(buff), "Content %zu", cnt);
+            (*content)[cnt] = strdup(buff);
+            snprintf(buff, sizeof(buff), "Label %zu", cnt);
+            (*labels)[cnt] = strdup(buff);
+            cnt++;
+        }
+    }
+}
+
 /**
- * Table 9 example - Table with styles
+ * Table example - Style on vertical/horizontal grid lines
  */
 void
-create_table_ex09(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
-    const size_t num_rows = 4;
+create_table_ex20(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
+    const size_t num_rows = 5;
     const size_t num_cols = 4;
 
     hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
+    content_t content, labels;
 
-    hpdftbl_set_content_cb(tbl, cb_content);
-    hpdftbl_set_content_style_cb(tbl, cb_style);
+    setup_dummy_data(&content, &labels, num_rows, num_cols);
+    hpdftbl_set_content(tbl, content);
+    hpdftbl_set_labels(tbl, labels);
+    
+    hpdftbl_use_labels(tbl, FALSE);
+    hpdftbl_use_labelgrid(tbl, TRUE);
+    hpdftbl_use_header(tbl, FALSE);
 
-    hpdftbl_set_colwidth_percent(tbl, 0, 40);
+    hpdftbl_set_inner_vgrid_style(tbl, 0.7, HPDF_COLOR_DARK_GRAY, LINE_SOLID);
+    hpdftbl_set_inner_hgrid_style(tbl, 0.8, HPDF_COLOR_GRAY, LINE_DOT1);
+    hpdftbl_set_inner_tgrid_style(tbl, 1.5, HPDF_COLOR_BLACK, LINE_SOLID);
+    hpdftbl_set_outer_grid_style(tbl, 1.5, HPDF_COLOR_BLACK, LINE_SOLID);
 
     HPDF_REAL xpos = hpdftbl_cm2dpi(1);
     HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
-    HPDF_REAL width = hpdftbl_cm2dpi(A4PAGE_WIDTH_CM - 4);
+    HPDF_REAL width = hpdftbl_cm2dpi(10);
     HPDF_REAL height = 0;  // Calculate height automatically
 
     // Stroke the table to the page
@@ -154,7 +130,7 @@ stroke_pdfdoc(HPDF_Doc pdf_doc, char *file) {
 }
 
 #ifndef _MSC_VER
-// Silent gcc about unused "arg" in the callback and error functions
+// Silent gcc about unused "arg"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
@@ -172,7 +148,7 @@ main(int argc, char **argv) {
 
     setup_hpdf(&pdf_doc, &pdf_page, FALSE);
 
-    create_table_ex09(pdf_doc, pdf_page);
+    create_table_ex20(pdf_doc, pdf_page);
     
     stroke_pdfdoc(pdf_doc, OUTPUT_FILE);
     return EXIT_SUCCESS;

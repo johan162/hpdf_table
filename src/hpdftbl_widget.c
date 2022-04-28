@@ -43,8 +43,8 @@
 
 #include "hpdftbl.h"
 
-#define TRUE 1
-#define FALSE 0
+#define TRUE 1     /**< C Boolean truth value */
+#define FALSE 0    /**< C Boolean false value */
 
 // Silent gcc about unused "arg"in the widget functions
 #pragma GCC diagnostic push

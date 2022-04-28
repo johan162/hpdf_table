@@ -16,6 +16,9 @@ $ make install
 If you miss any library the `configure` process will discover this and tell you what you need to install.
 This would otherwise compile and install the library in `/usr/local` subtree. It wil build and install both a static and dynamic library.
 
+@note By calling `./configure -h` a list of possible options on how the library should be compiled and installed
+will be shown.
+
 Depending on your system this might also be available as a pre-built package for you to install directly via perhaps `apt`on Linux or `brew` on OSX. 
 
 ### Compiling after cloning the git repo
@@ -33,7 +36,7 @@ If these three pre-requisites are installed then the build environment is bootst
 $ ./scripts/bootstrap.sh
 ```
 
-and then continue to compile
+and then continue to compile the library
 
 ```shell
 $ make

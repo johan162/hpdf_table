@@ -53,21 +53,21 @@
  */
 #ifdef __cplusplus
 
-#define COLOR_DARK_RED \
+#define HPDF_COLOR_DARK_RED \
     { 0.6f, 0.0f, 0.0f }
-#define COLOR_LIGHT_GREEN \
+#define HPDF_COLOR_LIGHT_GREEN \
     { 0.9f, 1.0f, 0.9f }
-#define COLOR_DARK_GRAY \
+#define HPDF_COLOR_DARK_GRAY \
     { 0.2f, 0.2f, 0.2f }
-#define COLOR_LIGHT_GRAY \
+#define HPDF_COLOR_LIGHT_GRAY \
     { 0.9f, 0.9f, 0.9f }
-#define COLOR_GRAY \
+#define HPDF_COLOR_GRAY \
     { 0.5f, 0.5f, 0.5f }
-#define COLOR_LIGHT_BLUE \
+#define HPDF_COLOR_LIGHT_BLUE \
     { 1.0f, 1.0f, 0.9f }
-#define COLOR_WHITE \
+#define HPDF_COLOR_WHITE \
     { 1.0f, 1.0f, 1.0f }
-#define COLOR_BLACK \
+#define HPDF_COLOR_BLACK \
     { 0.0f, 0.0f, 0.0f }
 
 #else
@@ -209,7 +209,7 @@ void cb_draw_segment_hbar(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r,
     const HPDF_REAL segment_ypos = ypos + 4;
     const size_t num_segments = 10;
 
-    const HPDF_RGBColor on_color = COLOR_GREEN;
+    const HPDF_RGBColor on_color = HPDF_COLOR_GREEN;
     const double val_percent = 0.4;
     const _Bool val_text_hide = FALSE;
 
@@ -226,7 +226,7 @@ void cb_draw_hbar(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r, size_t c,
     const HPDF_REAL wxpos = xpos + 40;
     const HPDF_REAL wypos = ypos + 4;
 
-    const HPDF_RGBColor color = COLOR_GREEN;
+    const HPDF_RGBColor color = HPDF_COLOR_GREEN;
     const double val = 0.6;
     const _Bool val_text_hide = FALSE;
 
@@ -263,7 +263,7 @@ void cb_draw_strength_meter(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r,
     const HPDF_REAL wxpos = xpos + 70;
     const HPDF_REAL wypos = ypos + 4;
     const size_t num_segments = 5;
-    const HPDF_RGBColor on_color = COLOR_GREEN;
+    const HPDF_RGBColor on_color = HPDF_COLOR_GREEN;
     const size_t num_on_segments = 3;
 
     hpdftbl_widget_strength_meter(doc, page, wxpos, wypos, wwidth, wheight,
@@ -286,10 +286,10 @@ void cb_draw_boxed_letter(HPDF_Doc doc, HPDF_Page page, void *tag, size_t r,
     const HPDF_REAL wheight = 15;
     const HPDF_REAL wxpos = xpos + 60;
     const HPDF_REAL wypos = ypos + 4;
-    const HPDF_RGBColor on_color = COLOR_DARK_GRAY;
-    const HPDF_RGBColor off_color = COLOR_GRAY;
-    const HPDF_RGBColor on_background = COLOR_GREEN;
-    const HPDF_RGBColor off_background = COLOR_LIGHT_GRAY;
+    const HPDF_RGBColor on_color = HPDF_COLOR_DARK_GRAY;
+    const HPDF_RGBColor off_color = HPDF_COLOR_GRAY;
+    const HPDF_RGBColor on_background = HPDF_COLOR_GREEN;
+    const HPDF_RGBColor off_background = HPDF_COLOR_LIGHT_GRAY;
     const HPDF_REAL fsize = 11;
     const char *letters = "ABCD";
     _Bool state[] = {TRUE, FALSE, TRUE, FALSE};
@@ -400,16 +400,16 @@ void ex_tbl2(void) {
     hpdftbl_t t = hpdftbl_create_title(num_rows, num_cols, table_title);
 
     // Use a red title and center the text
-    const HPDF_RGBColor title_text_color = COLOR_DARK_RED;
-    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GRAY;
+    const HPDF_RGBColor title_text_color = HPDF_COLOR_DARK_RED;
+    const HPDF_RGBColor title_bg_color = HPDF_COLOR_LIGHT_GRAY;
     hpdftbl_set_title_style(t, HPDF_FF_HELVETICA_BOLD, 14, title_text_color,
                                title_bg_color);
     hpdftbl_set_title_halign(t, CENTER);
 
     // Use bold font for content. Use the C99 way to specify constant structure
     // constants
-    const HPDF_RGBColor content_text_color = COLOR_DARK_GRAY;
-    const HPDF_RGBColor content_bg_color = COLOR_LIGHT_BLUE;
+    const HPDF_RGBColor content_text_color = HPDF_COLOR_DARK_GRAY;
+    const HPDF_RGBColor content_bg_color = HPDF_COLOR_LIGHT_BLUE;
     hpdftbl_set_content_style(t, HPDF_FF_COURIER_BOLD, 10,
                                  content_text_color, content_bg_color);
 
@@ -436,8 +436,8 @@ void ex_tbl3(void) {
     hpdftbl_t t = hpdftbl_create_title(num_rows, num_cols, table_title);
 
     // Use a red title and center the text
-    const HPDF_RGBColor title_text_color = COLOR_DARK_RED;
-    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GRAY;
+    const HPDF_RGBColor title_text_color = HPDF_COLOR_DARK_RED;
+    const HPDF_RGBColor title_bg_color = HPDF_COLOR_LIGHT_GRAY;
     hpdftbl_set_title_style(t, HPDF_FF_HELVETICA_BOLD, 14, title_text_color,
                                title_bg_color);
     hpdftbl_set_title_halign(t, CENTER);
@@ -450,8 +450,8 @@ void ex_tbl3(void) {
 
     // Use bold font for content. Use the C99 way to specify constant structure
     // constants
-    const HPDF_RGBColor content_text_color = COLOR_DARK_GRAY;
-    const HPDF_RGBColor content_bg_color = COLOR_WHITE;
+    const HPDF_RGBColor content_text_color = HPDF_COLOR_DARK_GRAY;
+    const HPDF_RGBColor content_bg_color = HPDF_COLOR_WHITE;
     hpdftbl_set_content_style(t, HPDF_FF_COURIER_BOLD, 10,
                                  content_text_color, content_bg_color);
 
@@ -493,8 +493,8 @@ void ex_tbl4(void) {
     hpdftbl_t t = hpdftbl_create_title(num_rows, num_cols, table_title);
 
     // Use a red title and center the text
-    const HPDF_RGBColor title_text_color = COLOR_DARK_RED;
-    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GRAY;
+    const HPDF_RGBColor title_text_color = HPDF_COLOR_DARK_RED;
+    const HPDF_RGBColor title_bg_color = HPDF_COLOR_LIGHT_GRAY;
     hpdftbl_set_title_style(t, HPDF_FF_HELVETICA_BOLD, 14, title_text_color,
                                title_bg_color);
     hpdftbl_set_title_halign(t, CENTER);
@@ -542,8 +542,8 @@ void ex_tbl5(void) {
     hpdftbl_t t = hpdftbl_create_title(num_rows, num_cols, table_title);
 
     // Use a red title and center the text
-    const HPDF_RGBColor title_text_color = COLOR_DARK_RED;
-    const HPDF_RGBColor title_bg_color = COLOR_LIGHT_GRAY;
+    const HPDF_RGBColor title_text_color = HPDF_COLOR_DARK_RED;
+    const HPDF_RGBColor title_bg_color = HPDF_COLOR_LIGHT_GRAY;
     hpdftbl_set_title_style(t, HPDF_FF_HELVETICA_BOLD, 14, title_text_color,
                                title_bg_color);
     hpdftbl_set_title_halign(t, CENTER);

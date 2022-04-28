@@ -1,4 +1,4 @@
-# Style and font setting
+# Style and font setting {#ch_styleandfontsetting}
 
 The format of each cell can be adjusted with respect to:
 
@@ -44,7 +44,7 @@ int hpdftbl_set_col_content_style(hpdftbl_t t,
                                   HPDF_RGBColor color, HPDF_RGBColor background);
 ```
 
-## Specifying fonts and colors
+## Adjusting fonts and colors {#sec_specifyingfontsandcolors}
 
 Fonts are specified as a string with the type font family name as recognized by the core Haru PDF library, e.g. "Times-Roman", "Times-Italic",  "Times-Bold" etc. As a convenience not to have to remember the exact font name strings the following three font family are defined as `HPDF_FF_*` where the last part of the name is specified as the following table shows
 
@@ -61,25 +61,25 @@ So to use the "Helvetic" font family the constant "`HPDF_FF_HELVETICA`" is used 
 Colors are specified in the standard Haru way, i.e as an instance of the structure "`HPDF_RGBColor`". As another convenience the following colors are predefined
 
 ```c
-#define COLOR_DARK_RED      (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
-#define COLOR_RED           (HPDF_RGBColor) { 1.0f, 0.0f, 0.0f }
-#define COLOR_LIGHT_GREEN   (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
-#define COLOR_GREEN         (HPDF_RGBColor) { 0.4f, 0.9f, 0.4f }
-#define COLOR_DARK_GRAY     (HPDF_RGBColor) { 0.2f, 0.2f, 0.2f }
-#define COLOR_LIGHT_GRAY    (HPDF_RGBColor) { 0.9f, 0.9f, 0.9f }
-#define COLOR_GRAY          (HPDF_RGBColor) { 0.5f, 0.5f, 0.5f }
-#define COLOR_SILVER        (HPDF_RGBColor) { 0.75f, 0.75f, 0.75f }
-#define COLOR_LIGHT_BLUE    (HPDF_RGBColor) { 1.0f, 1.0f, 0.9f }
-#define COLOR_BLUE          (HPDF_RGBColor) { 0.0f, 0.0f, 1.0f }
-#define COLOR_WHITE         (HPDF_RGBColor) { 1.0f, 1.0f, 1.0f }
-#define COLOR_BLACK         (HPDF_RGBColor) { 0.0f, 0.0f, 0.0f }
+#define HPDF_COLOR_DARK_RED      (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
+#define HPDF_COLOR_RED           (HPDF_RGBColor) { 1.0f, 0.0f, 0.0f }
+#define HPDF_COLOR_LIGHT_GREEN   (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
+#define HPDF_COLOR_GREEN         (HPDF_RGBColor) { 0.4f, 0.9f, 0.4f }
+#define HPDF_COLOR_DARK_GRAY     (HPDF_RGBColor) { 0.2f, 0.2f, 0.2f }
+#define HPDF_COLOR_LIGHT_GRAY    (HPDF_RGBColor) { 0.9f, 0.9f, 0.9f }
+#define HPDF_COLOR_GRAY          (HPDF_RGBColor) { 0.5f, 0.5f, 0.5f }
+#define HPDF_COLOR_SILVER        (HPDF_RGBColor) { 0.75f, 0.75f, 0.75f }
+#define HPDF_COLOR_LIGHT_BLUE    (HPDF_RGBColor) { 1.0f, 1.0f, 0.9f }
+#define HPDF_COLOR_BLUE          (HPDF_RGBColor) { 0.0f, 0.0f, 1.0f }
+#define HPDF_COLOR_WHITE         (HPDF_RGBColor) { 1.0f, 1.0f, 1.0f }
+#define HPDF_COLOR_BLACK         (HPDF_RGBColor) { 0.0f, 0.0f, 0.0f }
 ```
 
 So for example to set the overall default font to 12pt Times Roman with black text on white bottom the following call must be made
 
 ```c 
 ...
-hpdftbl_set_content_style(tbl, HPDF_FF_TIMES, 12, COLOR_BLACK, COLOR_WHITE);
+hpdftbl_set_content_style(tbl, HPDF_FF_TIMES, 12, HPDF_COLOR_BLACK, HPDF_COLOR_WHITE);
 ...
 ```
 
@@ -154,8 +154,8 @@ cb_style(void *tag, size_t r, size_t c, char *content, hpdf_text_style_t *style)
     if( 0==r || 0==c ) { // Headers
         style->font = HPDF_FF_HELVETICA_BOLD;
         style->fsize = 12;
-        style->color = COLOR_BLACK;
-        style->background = COLOR_LIGHT_GRAY;
+        style->color = HPDF_COLOR_BLACK;
+        style->background = HPDF_COLOR_LIGHT_GRAY;
         if ( c > 0 )
             style->halign = CENTER;
         else
@@ -163,8 +163,8 @@ cb_style(void *tag, size_t r, size_t c, char *content, hpdf_text_style_t *style)
     } else { // Content
         style->font = HPDF_FF_TIMES;
         style->fsize = 11;
-        style->color = COLOR_BLACK;
-        style->background = COLOR_WHITE;
+        style->color = HPDF_COLOR_BLACK;
+        style->background = HPDF_COLOR_WHITE;
         style->halign = CENTER;
     }
     return TRUE;
@@ -201,34 +201,38 @@ The resulting table is shown in **Figure 10.** below.
 ***Figure 10:*** *Using a style callback to highlight header rows & columns.* *@ref tut_ex09.c "tut_ex09.c"*
 
 
-# Using style themes
+## Using style themes {#sec_themes}
 
-if you have multiple table in a document it is possible to create a *table theme* which consists of some core styling of a table that can be reused. The data saved in a theme is defined by the structure `hpdftbl_theme` with the following definition and members
+A theme (or style theme) is a definition of the "look & feel" of a table. It doesn't affect the structure of the table
+such as the size of the table or how many columns or rows a cell spans. It is practical shortcut
+when many different tables should be displayed in the same style. It allows the compact specification
+of the table by applying a theme to the table instead of having to call multiple functions to
+chieve the same thing. In addition if the design should be changed there is only one place to
+update instead of for each table.
 
-```c
-typedef struct hpdftbl_theme {
-    /** Content text style */
-    hpdf_text_style_t *content_style;
-    /** Label text style */
-    hpdf_text_style_t *label_style;
-    /** Header text style */
-    hpdf_text_style_t *header_style;
-    /** Table title text style */
-    hpdf_text_style_t *title_style;
-    /** Table inner border style */
-    hpdf_border_style_t *inner_border;
-    /** Table outer border style */
-    hpdf_border_style_t *outer_border;
-    /** Flag if cell labels should be used  */
-    _Bool use_labels;
-    /** Flag if the special short vertical grid style for labels should be used  */
-    _Bool use_label_grid_style;
-    /** Flag if header row should be used */
-    _Bool use_header_row;
-} hpdftbl_theme_t;
-```
-This allow the setting of all main font/style setting in one go. This strcture can be set up manually and then applied to a table. However, the recommended way is to first use the "theme getter" function to get the default theme and then modify this default theme as needed. The functions to work with a theme are:
+@note There is not yet any support to read and write themes from a file. A theme is therefor
+an *in memory* structure useful within one program.
 
+A theme controls the following aspects of a table
+
+- The content and label text style
+- The header and title text style
+- The inner and outer border style
+- The usage (or not) of labels and whether or not the shorter label grind lines should be used
+- If a header row should be used or not
+- If a title should be used or not
+
+
+if you have multiple table in a document it is possible to create a *table theme* which consists of some core styling 
+of a table that can be reused. 
+
+All information for a theme is encapsulated in the hpdftbl_theme structure.
+
+This structure can be set up manually and then applied to a table. However, the recommended way is to first 
+use the "theme getter" function to get the default theme and then modify this default theme as needed since
+it allows you to only have to update the parts affected by a change.
+
+The functions to work with a theme are as follows:
 
 ```c
 // Apply the given theme to a table
@@ -272,13 +276,74 @@ The default font styles for the default theme are shown in table 1.
 | Border       | Color     | Width (pt) |
 |--------------|-----------|------------|
 | inner_border | Grey      | 0.7        |
-| outer_border | Dark Grey | 1.0        |
+| outer_grid | Dark Grey | 1.0        |
 
 ***Table 3:*** *Default border parameters.* 
 
 
-&nbsp;
+## Adjusting grid line styles {#sec_borderstyles}
 
-@note There is currently no support for serializing a theme to/from a file.
+There are four distinct set of grid lines as far as the library is concerned. 
 
+1. The outer gridline (or border) around the table, and
+2. The inner vertical grid line 
+3. The inner horizontal grid line
+4. The inner top grid line (not the outer border!)
 
+All these types of gridlines are styled in the same way using the functions
+
+```c
+int
+hpdftbl_set_inner_tgrid_style(hpdftbl_t t, 
+                              HPDF_REAL width, HPDF_RGBColor color,hpdftbl_line_dashstyle_t dashstyle);
+
+int
+hpdftbl_set_inner_vgrid_style(hpdftbl_t t, 
+                              HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
+
+int
+hpdftbl_set_inner_hgrid_style(hpdftbl_t t, 
+                              HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
+
+int
+hpdftbl_set_inner_grid_style(hpdftbl_t t, 
+                             HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
+```
+
+Each type of gridline can be adjusted with line width, color and style. The last function in the list, hpdftbl_set_inner_grid_style(), is a convinience function that sets both
+the vertical and horizontal inner lines in one call.
+
+The following example (@ref tut_ex20.c "tut_ex20.c" ) makes use of these settings as shown below
+
+```c
+void
+create_table_ex20(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
+    const size_t num_rows = 5;
+    const size_t num_cols = 4;
+
+    hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
+    content_t content;
+
+    setup_dummy_data(&content, num_rows, num_cols);
+    hpdftbl_set_content(tbl, content);
+
+    hpdftbl_set_inner_vgrid_style(tbl, 0.7, HPDF_COLOR_DARK_GRAY, LINE_SOLID);
+    hpdftbl_set_inner_hgrid_style(tbl, 0.8, HPDF_COLOR_GRAY, LINE_DOT1);
+    hpdftbl_set_inner_tgrid_style(tbl, 1.5, HPDF_COLOR_BLACK, LINE_SOLID);
+    hpdftbl_set_outer_grid_style(tbl, 1.5, HPDF_COLOR_BLACK, LINE_SOLID);
+
+    HPDF_REAL xpos = hpdftbl_cm2dpi(1);
+    HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
+    HPDF_REAL width = hpdftbl_cm2dpi(10);
+    HPDF_REAL height = 0;  // Calculate height automatically
+
+    // Stroke the table to the page
+    hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
+}
+```
+
+and when run will result in the following table:
+
+@image html screenshots/tut_ex20.png
+
+@image latex screenshots/tut_ex20.png width=8cm

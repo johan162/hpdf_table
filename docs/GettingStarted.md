@@ -215,13 +215,13 @@ Running the code above in our infrastructure will give
 
 In the above (small) example it might not have been a big safe but if you have a table with 20x10 rows * cols then you will soon appreciate this way of specifying data. 
 
-There is even one more way of specifying data that in some situations are more effiecient and allows a clear division between the table structure and look&feel and its data. This more efficient way is achieved by using cell callbacks either directly in individual cells or in one go by specifying the entire table as a data structure by using the `hpdftbl_stroke_from_data()` function. This will be decribed later when we discuss how to use callback functions.
+There is even one more way of specifying data that in some situations are more efficient and allows a clear division between the table structure and look&feel and its data. This more efficient way is achieved by using cell callbacks either directly in individual cells or in one go by specifying the entire table as a data structure by using the `hpdftbl_stroke_from_data()` function. This will be decribed later when we discuss how to use callback functions.
 
 But now it is time to explain the `NULL` value in the first example when we specified the content with the `hpdftbl_set_cell()` function.
 
 ## Adding a header row
 
-While it is possible (as discussed in section ??) to manually adjust the font, size, style, background etc. on each cell individually there is a convinient shortcut to create a basic table with a header using the `hpdftbl_use_header()` function. By modifying the code above and add this line we get the following code and resulting table
+While it is possible (as discussed in section @ref ch_styleandfontsetting "Style and font setting" and @ref sec_specifyingfontsandcolors "Fonts and Colors"  ) to manually adjust the font, size, style, background etc. on each cell individually there is a convinient shortcut to create a basic table with a header using the `hpdftbl_use_header()` function. By modifying the code above and add this line we get the following code and resulting table
 
 ```c
 void

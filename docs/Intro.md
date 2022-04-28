@@ -27,26 +27,32 @@ of the table from the actual data in the table.
 
 ## Some Examples
 
-> **Note:** All code examples can be found in the "`examples/`" directory and are thoroughly introduced over the following chapters.
+@note All code examples can be found in the "`examples/`" directory and are thoroughly introduced over the following chapters.
 
 ### Example 1 - Plain table with cell labels  
 
-@image html screenshots/tut_ex02_1.png 
+@ref tut_ex02_1.c "tut_ex02_1.c"
 
+@image html screenshots/tut_ex02_1.png
 @image latex screenshots/tut_ex02_1.png width=15cm
 
 ### Example 2 - Table with cell labels
 
-@image html screenshots/tblex01.png 
+@ref example01.c "example01.c"
 
+@image html screenshots/tblex01.png
 @image latex screenshots/tblex01.png width=15cm
 
 ### Example 2 - Plain table with row/column spanning and table title
+
+@ref example01.c "example01.c"
 
 @image html screenshots/tblex02.png 
 @image latex screenshots/tblex02.png width=15cm
 
 ### Example 3 - Table with labels and cell widgets
+
+@ref example01.c "example01.c"
 
 @image html screenshots/tblex03.png 
 @image latex screenshots/tblex03.png width=15cm

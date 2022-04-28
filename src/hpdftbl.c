@@ -47,10 +47,10 @@
 
 #include "hpdftbl.h"
 
-#define TRUE 1
-#define FALSE 0
+#define TRUE 1 /**< Boolean truth value */
+#define FALSE 0 /**< Boolean false value */
 
-#define _IDX(r, c) (r*t->cols+c)
+#define _IDX(r, c) (r*t->cols+c) /**< Shortcut to calculate the array index from table position */
 
 /* Default styles */
 #ifdef __cplusplus
@@ -58,15 +58,21 @@
 #define HPDFTBL_DEFAULT_HEADER_STYLE		{HPDF_FF_HELVETICA_BOLD,10,{0.2,0,0},{0.9,0.9,0.97}, CENTER}
 #define HPDFTBL_DEFAULT_LABEL_STYLE			{HPDF_FF_TIMES_ITALIC,9,{0.4,0.4,0.4},{1,1,1}, LEFT}
 #define HPDFTBL_DEFAULT_CONTENT_STYLE		{HPDF_FF_COURIER,10,{0.2,0.2,0.2},{1,1,1}, LEFT}
-#define HPDFTBL_DEFAULT_INNER_BORDER_STYLE	{0.7, {0.5,0.5,0.5}, hpdftbl_line_style_t(0)}
-#define hpdftbl_DEFAULT_OUTER_BORDER_STYLE	{1.0, {0.2,0.2,0.2}, hpdftbl_line_style_t(0)}
+#define HPDFTBL_DEFAULT_INNER_BORDER_STYLE	{0.7, {0.5,0.5,0.5}, hpdftbl_line_dashstyle_t(0)}
+#define HPDFTBL_DEFAULT_INNER_VBORDER_STYLE {0,   {0.5f,0.5f,0.5f}, hpdftbl_line_dashstyle_t(0)}
+#define HPDFTBL_DEFAULT_INNER_HBORDER_STYLE {0,   {0.5f,0.5f,0.5f}, hpdftbl_line_dashstyle_t(0)}
+#define hpdftbl_DEFAULT_OUTER_BORDER_STYLE	{1.0, {0.2,0.2,0.2}, hpdftbl_line_dashstyle_t(0)}
 #else
 #define HPDFTBL_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,11,(HPDF_RGBColor){0,0,0},(HPDF_RGBColor){0.9f,0.9f,0.9f}, LEFT}
 #define HPDFTBL_DEFAULT_HEADER_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,10,(HPDF_RGBColor){0,0,0},(HPDF_RGBColor){0.9f,0.9f,0.97f}, CENTER}
 #define HPDFTBL_DEFAULT_LABEL_STYLE (hpdf_text_style_t){HPDF_FF_TIMES_ITALIC,9,(HPDF_RGBColor){0.4f,0.4f,0.4f},(HPDF_RGBColor){1,1,1}, LEFT}
 #define HPDFTBL_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){HPDF_FF_COURIER,10,(HPDF_RGBColor){0.2f,0.2f,0.2f},(HPDF_RGBColor){1,1,1}, LEFT}
-#define HPDFTBL_DEFAULT_INNER_BORDER_STYLE (hpdf_border_style_t){0.7f, (HPDF_RGBColor){0.5f,0.5f,0.5f},0}
-#define HPDFTBL_DEFAULT_OUTER_BORDER_STYLE (hpdf_border_style_t){1.0f, (HPDF_RGBColor){0.2f,0.2f,0.2f},0}
+#define HPDFTBL_DEFAULT_INNER_BORDER_STYLE (hpdftbl_border_style_t){0.7f, (HPDF_RGBColor){0.5f,0.5f,0.5f},0}
+#define HPDFTBL_DEFAULT_INNER_VBORDER_STYLE (hpdftbl_grid_style_t){0, (HPDF_RGBColor){0.5f,0.5f,0.5f},0}
+#define HPDFTBL_DEFAULT_INNER_HBORDER_STYLE (hpdftbl_grid_style_t){0, (HPDF_RGBColor){0.5f,0.5f,0.5f},0}
+#define HPDFTBL_DEFAULT_OUTER_BORDER_STYLE (hpdftbl_grid_style_t){1.0f, (HPDF_RGBColor){0.2f,0.2f,0.2f},0}
+#define HPDFTBL_DEFAULT_ZEBRA1_COLOR (HPDF_RGBColor){1.0f,1.0f,1.0f}
+#define HPDFTBL_DEFAULT_ZEBRA2_COLOR (HPDF_RGBColor){0.95f,0.95f,0.95f}
 #endif
 
 #ifdef _MSC_VER
@@ -152,17 +158,26 @@ static line_dash_style_t dash_styles[] = {
 /**
  * @brief Internal helper to set the line style.
  *
- * The drawing of a dashed line uses the undrlying HPDF function HPDF_Page_SetDash()
+ * The drawing of a dashed line uses the underlying HPDF function HPDF_Page_SetDash()
+ *
  * @param t Table handle
  * @param style
  * @return -1 on error, 0 on success
  *
  * @see line_dash_style
+ *
+ * @todo Complete the usage of dashed styles to the table gridlines. This is not yet supported.
+ * The library should support:
+ *  - Different styles for outer and inner border
+ *  - Different styles for inner vertical and horizontal grid lines
+ *  - Different style for the top inner horizontal gridline
+ *  - Gridstyles should be added to the theme structure
+ *
  */
 int
-hpdftbl_set_line_dash(hpdftbl_t t, hpdftbl_line_style_t style) {
+hpdftbl_set_line_dash(hpdftbl_t t, hpdftbl_line_dashstyle_t style) {
     _CHK_TABLE(t);
-    if (style > DASHDOT) {
+    if (style > LINE_DASHDOT) {
         _SET_ERR(t, -8, -1, -1);
         return -1;
     }
@@ -175,6 +190,7 @@ hpdftbl_set_line_dash(hpdftbl_t t, hpdftbl_line_style_t style) {
  *
  * Set anchor point for table positioning. By default the top left is used as anchor.
  * Calling this function with FALSE can set the basepoint to bottom left instead.
+ *
  * @param anchor Set to TRUE to use top left as anchor, FALSE for bottom left
  */
 void
@@ -187,6 +203,7 @@ hpdftbl_set_anchor_top_left(const _Bool anchor) {
  *
  * Get base point for table positioning. By default the top left is used.
  * @see hpdftbl_set_anchor_top_left
+ * @return TRUE if anchor is top left, FALSE otherwise
  */
 _Bool
 hpdftbl_get_anchor_top_left(void) {
@@ -200,7 +217,7 @@ hpdftbl_get_anchor_top_left(void) {
  * It will translate both internal table error messages as well as generic
  * HPDF library error codes.
  *
- * @param err_code The error code to be translated
+ * @param err The error code to be translated
  * @return Static pointer to string for valid error code, NULL otherwise
  *
  * @see hpdftbl_hpdf_get_errstr()
@@ -514,39 +531,14 @@ hpdftbl_get_default_theme(void) {
     }
     *t->content_style = HPDFTBL_DEFAULT_CONTENT_STYLE;
 
-    // Set default borders and colors
-#ifdef __cplusplus
-    t->outer_border = static_cast<hpdf_border_style_t*>(calloc(1, sizeof(hpdf_border_style_t)));
-#else
-    t->outer_border = calloc(1, sizeof(hpdf_border_style_t));
-#endif
-    if (NULL == t->outer_border) {
-        free(t->content_style);
-        free(t->label_style);
-        free(t->header_style);
-        free(t->title_style);
-        free(t);
-        _SET_ERR(NULL, -5, -1, -1);
-        return NULL;
-    }
-    *t->outer_border = HPDFTBL_DEFAULT_OUTER_BORDER_STYLE;
+    t->outer_border = HPDFTBL_DEFAULT_OUTER_BORDER_STYLE;
+    t->inner_vborder = HPDFTBL_DEFAULT_INNER_VBORDER_STYLE;
+    t->inner_hborder = HPDFTBL_DEFAULT_INNER_HBORDER_STYLE;
+    t->inner_tborder = HPDFTBL_DEFAULT_INNER_HBORDER_STYLE;
 
-#ifdef __cplusplus
-    t->inner_border = static_cast<hpdf_border_style_t*>(calloc(1, sizeof(hpdf_border_style_t)));
-#else
-    t->inner_border = calloc(1, sizeof(hpdf_border_style_t));
-#endif
-    if (NULL == t->inner_border) {
-        free(t->outer_border);
-        free(t->content_style);
-        free(t->label_style);
-        free(t->header_style);
-        free(t->title_style);
-        free(t);
-        _SET_ERR(NULL, -5, -1, -1);
-        return NULL;
-    }
-    *t->inner_border = HPDFTBL_DEFAULT_INNER_BORDER_STYLE;
+    t->use_zebra = FALSE;
+    t->zebra1_color = HPDFTBL_DEFAULT_ZEBRA1_COLOR;
+    t->zebra2_color = HPDFTBL_DEFAULT_ZEBRA1_COLOR;
 
     return t;
 }
@@ -556,6 +548,7 @@ hpdftbl_get_default_theme(void) {
  *
  * Free all memory allocated by a theme
  * @param theme The theme to free
+ * @return -1 for error , 0 for success
  */
 int
 hpdftbl_destroy_theme(hpdftbl_theme_t *theme) {
@@ -567,8 +560,6 @@ hpdftbl_destroy_theme(hpdftbl_theme_t *theme) {
     free(theme->header_style);
     free(theme->label_style);
     free(theme->content_style);
-    free(theme->outer_border);
-    free(theme->inner_border);
     free(theme);
     return 0;
 }
@@ -688,41 +679,103 @@ hpdftbl_set_colwidth_percent(hpdftbl_t t, size_t c, float w) {
 }
 
 /**
- * @brief Specify style for table outer border
+ * @brief Set outer border grid style.
  *
- * Set outer border properties
  * @param t Table handle
- * @param width Line width
+ * @param width Line width (in pt)
  * @param color Line color
+ * @param dashstyle Line dash style
  * @return 0 on success, -1 on failure
  */
 int
-hpdftbl_set_outer_border(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color) {
+hpdftbl_set_outer_grid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
     _CHK_TABLE(t);
-    t->outer_border.width = width;
-    t->outer_border.color = color;
+    t->outer_grid.width = width;
+    t->outer_grid.color = color;
+    t->outer_grid.line_dashstyle = dashstyle;
     return 0;
 }
 
 /**
- * @brief Specify style for table inner border
+ * @brief Set inner border grid style.
  *
- * Set inner border properties
  * @param t Table handle
- * @param width Line width
+ * @param width Line width (in pt)
  * @param color Line color
+ * @param dashstyle Line dash style
  * @return 0 on success, -1 on failure
+ * @see hpdftbl_set_inner_hgrid_style(), hpdftbl_set_inner_vgrid_style
  */
 int
-hpdftbl_set_inner_border(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color) {
+hpdftbl_set_inner_grid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
     _CHK_TABLE(t);
-    t->inner_border.width = width;
-    t->inner_border.color = color;
+    hpdftbl_set_inner_hgrid_style(t, width, color, dashstyle);
+    hpdftbl_set_inner_vgrid_style(t, width, color, dashstyle);
+//    t->inner_grid.width = width;
+//    t->inner_grid.color = color;
+//    t->inner_grid.line_dashstyle = dashstyle;
     return 0;
 }
 
 /**
- * @brief Specify style for table heder row
+ * @brief Set inner horizontal border grid style.
+ *
+ * @param t Table handle
+ * @param width Line width (in pt)
+ * @param color Line color
+ * @param dashstyle Line dash style
+ * @return 0 on success, -1 on failure
+ * @see hpdftbl_set_inner_grid_style()
+ */
+int
+hpdftbl_set_inner_hgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
+    _CHK_TABLE(t);
+    t->inner_hgrid.width = width;
+    t->inner_hgrid.color = color;
+    t->inner_hgrid.line_dashstyle = dashstyle;
+    return 0;
+}
+
+/**
+ * @brief Set inner vertical border grid style.
+ *
+ * @param t Table handle
+ * @param width Line width (in pt)
+ * @param color Line color
+ * @param dashstyle Line dash style
+ * @return 0 on success, -1 on failure
+ * @see hpdftbl_set_inner_grid_style()
+ */
+int
+hpdftbl_set_inner_vgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
+    _CHK_TABLE(t);
+    t->inner_vgrid.width = width;
+    t->inner_vgrid.color = color;
+    t->inner_vgrid.line_dashstyle = dashstyle;
+    return 0;
+}
+
+/**
+ * @brief Set inner horizontal top border grid style. This would be the gridline just below the
+ * header row.
+ *
+ * @param t Table handle
+ * @param width Line width (in pt)
+ * @param color Line color
+ * @param dashstyle Line dash style
+ * @return 0 on success, -1 on failure
+ */
+int
+hpdftbl_set_inner_tgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
+    _CHK_TABLE(t);
+    t->inner_tgrid.width = width;
+    t->inner_tgrid.color = color;
+    t->inner_tgrid.line_dashstyle = dashstyle;
+    return 0;
+}
+
+/**
+ * @brief Specify style for table header row
  *
  * Set the font properties and background for the header row which is the top
  * row if enabled. The header row will be automatically enabled after calling
@@ -1043,6 +1096,7 @@ set_fontc(hpdftbl_t t, char *fontname, HPDF_REAL fsize, HPDF_RGBColor color) {
  * The callback function will receive the Table tag and the row and column
  * @param t Table handle
  * @param cb Callback function
+ * @return -1 for error , 0 otherwise
  *
  * @see hpdftbl_set_cell_content_cb()
  */
@@ -1234,18 +1288,18 @@ table_title_stroke(hpdftbl_t t) {
     const HPDF_REAL height = 1.5f * t->title_style.fsize;
 
     // Stoke outer border and fill
-    HPDF_Page_SetRGBStroke(t->pdf_page, t->outer_border.color.r, t->outer_border.color.g, t->outer_border.color.b);
+    HPDF_Page_SetRGBStroke(t->pdf_page, t->outer_grid.color.r, t->outer_grid.color.g, t->outer_grid.color.b);
     HPDF_Page_SetRGBFill(t->pdf_page, t->title_style.background.r, t->title_style.background.g,
                          t->title_style.background.b);
-    HPDF_Page_SetLineWidth(t->pdf_page, t->outer_border.width);
+    HPDF_Page_SetLineWidth(t->pdf_page, t->outer_grid.width);
     HPDF_Page_Rectangle(t->pdf_page, t->posx, t->posy + t->height, t->width, height);
     HPDF_Page_FillStroke(t->pdf_page);
 
     set_fontc(t, t->title_style.font, t->title_style.fsize, t->title_style.color);
 
-    HPDF_REAL left_right_padding = t->outer_border.width + 3;
+    HPDF_REAL left_right_padding = t->outer_grid.width + 3;
     HPDF_REAL xpos = t->posx + left_right_padding;
-    const HPDF_REAL ypos = t->posy + t->height + t->outer_border.width * 2 + t->title_style.fsize * 0.28f;
+    const HPDF_REAL ypos = t->posy + t->height + t->outer_grid.width * 2 + t->title_style.fsize * 0.28f;
 
     if (t->title_style.halign == CENTER) {
         xpos = t->posx + (t->width - HPDF_Page_TextWidth(t->pdf_page, t->title_txt)) / 2.0f;
@@ -1519,7 +1573,9 @@ hpdftbl_set_title_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor 
 /**
  * @brief Set table title
  *
- * Set table title
+ * Set table title. A title will occupy a separate row above the table that is not included in the
+ * row count. A table is enabled when the table text is <> NULL and disabled when the title text is == NULL.
+ *
  * @param t Table handle
  * @param title Title string
  * @return 0 on success, -1 on failure
@@ -1592,14 +1648,10 @@ hpdftbl_apply_theme(hpdftbl_t t, hpdftbl_theme_t *theme) {
             hpdftbl_set_title_style(t, f->font, f->fsize, f->color, f->background);
             hpdftbl_set_title_halign(t, f->halign);
         }
-        if (theme->inner_border) {
-            hpdf_border_style_t *b = theme->inner_border;
-            hpdftbl_set_inner_border(t, b->width, b->color);
-        }
-        if (theme->outer_border) {
-            hpdf_border_style_t *b = theme->outer_border;
-            hpdftbl_set_outer_border(t, b->width, b->color);
-        }
+        hpdftbl_set_inner_vgrid_style(t, theme->inner_vborder.width, theme->inner_vborder.color, theme->inner_vborder.line_dashstyle);
+        hpdftbl_set_inner_hgrid_style(t, theme->inner_hborder.width, theme->inner_hborder.color, theme->inner_hborder.line_dashstyle);
+        hpdftbl_set_inner_tgrid_style(t, theme->inner_tborder.width, theme->inner_tborder.color, theme->inner_tborder.line_dashstyle);
+        hpdftbl_set_outer_grid_style(t, theme->outer_border.width, theme->outer_border.color, theme->outer_border.line_dashstyle);
         return 0;
     }
     _SET_ERR(t, -9, -1, -1);
@@ -1789,7 +1841,7 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
         return;
     }
 
-    HPDF_REAL left_right_padding = c == 0 ? t->outer_border.width + 2 : t->inner_border.width + 2;
+    HPDF_REAL left_right_padding = c == 0 ? t->outer_grid.width + 2 : t->inner_vgrid.width + 2;
 
     // Check if this is the first row, and we should format it as a header row.
     // In case this is a header row we also ignore the label
@@ -1799,7 +1851,7 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
         HPDF_Page_Rectangle(t->pdf_page,
                             t->posx + cell->delta_x, t->posy + cell->delta_y,
                             cell->width, cell->height);
-        HPDF_Page_FillStroke(t->pdf_page);
+        HPDF_Page_Fill(t->pdf_page);
     }
 
     if (!(t->use_header_row && r == 0)) {
@@ -1992,9 +2044,6 @@ hpdftbl_stroke(HPDF_Doc pdf,
     HPDF_Page_Rectangle(page, x, y, width, height);
     HPDF_Page_Fill(page);
 
-    // Stroke inner border
-    HPDF_Page_SetRGBStroke(page, t->inner_border.color.r, t->inner_border.color.g, t->inner_border.color.b);
-    HPDF_Page_SetLineWidth(page, t->inner_border.width);
     for (size_t r = 0; r < t->rows; r++) {
         for (size_t c = 0; c < t->cols; c++) {
             hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
@@ -2010,7 +2059,6 @@ hpdftbl_stroke(HPDF_Doc pdf,
                                                                t->content_style.halign};
 #endif
                 if (cell->style_cb) {
-
                     if (cell->style_cb(t->tag, r, c, NULL, &style)) {
                         HPDF_Page_SetRGBFill(page, style.background.r, style.background.g, style.background.b);
                         HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
@@ -2038,45 +2086,71 @@ hpdftbl_stroke(HPDF_Doc pdf,
 
                 table_cell_stroke(t, r, c);
 
-                HPDF_Page_SetLineWidth(page, t->inner_border.width);
+                // Vertical grid. This is either a full cell height grid or a shorter depending
+                // on if cell labels are used and the user setting for `use_label_grid_style`.
+                // In case a header row should be used we don't use the shorter grids in the header.
+                if (t->use_label_grid_style && t->use_cell_labels && !(t->use_header_row && 0==r)) {
+                    HPDF_Page_SetRGBStroke(page, t->inner_vgrid.color.r, t->inner_vgrid.color.g,
+                                           t->inner_vgrid.color.b);
 
-                if (t->use_label_grid_style) {
+                    HPDF_Page_SetLineWidth(page, t->inner_vgrid.width);
+                    hpdftbl_set_line_dash(t, t->inner_vgrid.line_dashstyle);
 
                     // If this cell spans multiple rows we draw the left line full and not just the short
                     // label lead since the visual appearance will just be bad otherwise
                     if (cell->rowspan > 1) {
                         HPDF_Page_MoveTo(page, x + cell->delta_x, y + cell->delta_y);
                     } else {
-                        HPDF_Page_MoveTo(page, x + cell->delta_x,
-                                         y + cell->delta_y + cell->height - t->label_style.fsize * 1.2f);
+                        HPDF_Page_MoveTo(page, x + cell->delta_x,y + cell->delta_y + cell->height - t->label_style.fsize * 1.2f);
                     }
                     HPDF_Page_LineTo(page, x + cell->delta_x, y + cell->delta_y + cell->height);
-                    HPDF_Page_MoveTo(page, x + cell->delta_x, y + cell->delta_y + cell->height);
-                    HPDF_Page_LineTo(page, x + cell->delta_x + cell->width, y + cell->delta_y + cell->height);
-
+                    HPDF_Page_Stroke(page);
                 } else {
-
-                    HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
-
+                    HPDF_Page_SetRGBStroke(page, t->inner_vgrid.color.r, t->inner_vgrid.color.g,
+                                           t->inner_vgrid.color.b);
+                    HPDF_Page_SetLineWidth(page, t->inner_vgrid.width);
+                    hpdftbl_set_line_dash(t, t->inner_vgrid.line_dashstyle);
+                    HPDF_Page_MoveTo(page, x + cell->delta_x, y + cell->delta_y);
+                    HPDF_Page_LineTo(page, x + cell->delta_x, y + cell->delta_y + cell->height);
+                    HPDF_Page_Stroke(page);
                 }
 
-                HPDF_Page_Stroke(page);
+                // Horizontal grid
+                if (r > 0 || 0 == t->inner_tgrid.width) {
+                    // Not special top inner gridline
+                    HPDF_Page_SetRGBStroke(page, t->inner_hgrid.color.r, t->inner_hgrid.color.g,t->inner_hgrid.color.b);
+                    HPDF_Page_SetLineWidth(page, t->inner_hgrid.width);
+                    hpdftbl_set_line_dash(t, t->inner_hgrid.line_dashstyle);
+                    HPDF_Page_MoveTo(page, x + cell->delta_x, y + cell->delta_y);
+                    HPDF_Page_LineTo(page, x + cell->delta_x + cell->width, y + cell->delta_y);
+                    HPDF_Page_Stroke(page);
+                } else {
+                    // Draw the top-inner horizontal grid line
+                    HPDF_Page_SetRGBStroke(page, t->inner_tgrid.color.r, t->inner_tgrid.color.g,
+                                           t->inner_tgrid.color.b);
+                    HPDF_Page_SetLineWidth(page, t->inner_tgrid.width);
+                    hpdftbl_set_line_dash(t, t->inner_tgrid.line_dashstyle);
+                    HPDF_Page_MoveTo(page, x + cell->delta_x, y + cell->delta_y);
+                    HPDF_Page_LineTo(page, x + cell->delta_x + cell->width, y + cell->delta_y);
+                    HPDF_Page_Stroke(page);
+                }
             }
         }
     }
 
     // Stoke outer border
-    HPDF_Page_SetRGBStroke(page, t->outer_border.color.r, t->outer_border.color.g, t->outer_border.color.b);
-    HPDF_Page_SetLineWidth(page, t->outer_border.width);
+    HPDF_Page_SetRGBStroke(page, t->outer_grid.color.r, t->outer_grid.color.g, t->outer_grid.color.b);
+    HPDF_Page_SetLineWidth(page, t->outer_grid.width);
+    hpdftbl_set_line_dash(t, t->outer_grid.line_dashstyle);
     HPDF_Page_Rectangle(page, x, y, width, height);
     HPDF_Page_Stroke(page);
 
     // If header row is enabled we add a thicker (same as outer border) line under the top row
     if (t->use_header_row) {
-        hpdftbl_cell_t *cell = &t->cells[_IDX(0, 0)];
-        HPDF_Page_MoveTo(page, x + cell->delta_x, y + cell->delta_y);
-        HPDF_Page_LineTo(page, x + width, y + cell->delta_y);
-        HPDF_Page_Stroke(page);
+        //hpdftbl_cell_t *cell = &t->cells[_IDX(0, 0)];
+        //HPDF_Page_MoveTo(page, x + cell->delta_x, y + cell->delta_y);
+        //HPDF_Page_LineTo(page, x + width, y + cell->delta_y);
+        //HPDF_Page_Stroke(page);
     }
 
     // Stroke title
@@ -2090,6 +2164,11 @@ hpdftbl_stroke(HPDF_Doc pdf,
 
 //  Some Doxygen magic to get all the examples forced to be included in the documentation
 /**
+ * @example example01.c
+ * A collection of more and less advanced examples in one file. For learning the library it is better
+ * to start with the organized tutorial examples like @ref tut_ex01.c "tut_ex01.c"
+ * and @ref tut_ex02.c "tut_ex02.c"
+ *
  * @example tut_ex01.c
  * The very most basic table with API call to set content in each cell.
  *
@@ -2103,7 +2182,7 @@ hpdftbl_stroke(HPDF_Doc pdf,
  * First example with API call to set content in each cell with added labels and shortened grid.
  *
  * @example tut_ex04.c
- * Specifying labels as data array
+ * Specifying labels as data array.
  *
  * @example tut_ex05.c
  * Set content data specified as an array with added labels and shortened grid.
@@ -2137,5 +2216,10 @@ hpdftbl_stroke(HPDF_Doc pdf,
  *
  * @example tut_ex14.c
  * Defining a table with widgets.
+ *
+ * @example tut_ex20.c
+ * Defining a table and adjusting the gridlines.
+ *
+
  */
 /* EOF */

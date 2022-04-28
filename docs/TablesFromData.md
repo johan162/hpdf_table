@@ -8,7 +8,7 @@ This will allow the dynamic construction of tables with only one API call insted
 
 ## Defining a table in data
 
-There are two data structure that are used when defining a table. First there is a data structure for the overall table specifics and then in that structure a structure to specify the layout of each cell. In addition a theme needs to be defined as was discussed in secion ??. It is possible to omit the theme by specifying `NULL` in which case the default theme will be used.
+There are two data structure that are used when defining a table. First there is a data structure for the overall table specifics and then in that structure a structure to specify the layout of each cell. In addition, a theme needs to be defined (see section on @ref sec_themes "Themes"). It is possible to omit the theme by specifying `NULL` in which case the default theme will be used.
 
 To stroke a table from data the following API call is used
 

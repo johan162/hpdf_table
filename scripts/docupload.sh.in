@@ -88,6 +88,11 @@ docupload() {
     # infolog "git commit -m \"${COMMIT_MESSAGE}\""
     git add "${HTMLDIR_COPY##*/}" "${PDFNAME}"
     git commit -m "${COMMIT_MESSAGE}"
+    if [ $? -eq 0 ]; then
+      git push && infolog "Pushed docs to origin" || errlog "Failed to push to origin"
+    else
+      errlog "Failed to commit new docs"
+    fi
 
     # Clean up temp directory
     cd "${ORIG_DIR}"

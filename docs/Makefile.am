@@ -28,14 +28,14 @@ out/html/index.html: Doxyfile.in $(SRC_FILES) $(DOC_FILES)
 
 if have_pdflatex
 
-all-local: html-local pdf-local
+# all-local: html-local pdf-local
 pdf-local: out/latex/refman.pdf
 out/latex/refman.pdf: out/latex/refman.tex
 	cd out/latex && $(MAKE) $(AM_MAKEFLAGS)
 
 else
 
-all-local: html-local
+# all-local: html-local
 
 endif
 
