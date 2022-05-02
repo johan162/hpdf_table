@@ -1,9 +1,11 @@
-/* =========================================================================
- * File:        hpdftbl.c
- * Description: Utility module for flexible table drawing with HPDF library
- * Author:      Johan Persson (johan162@gmail.com)
+/**
+ * @file
+ * @brief    Main module for flexible table drawing with HPDF library
+ * @author   Johan Persson (johan162@gmail.com)
  *
  * Copyright (C) 2022 Johan Persson
+ *
+ * @see LICENSE
  *
  * Released under the MIT License
  *
@@ -24,13 +26,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * =========================================================================
  */
 
-/**
- * @file hpdftbl.c
- * @brief Main source module for hpdftbl.
- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,40 +44,6 @@
 
 #include "hpdftbl.h"
 
-#define TRUE 1 /**< Boolean truth value */
-#define FALSE 0 /**< Boolean false value */
-
-#define _IDX(r, c) (r*t->cols+c) /**< Shortcut to calculate the array index from table position */
-
-/* Default styles */
-#ifdef __cplusplus
-#define HPDFTBL_DEFAULT_TITLE_STYLE			{HPDF_FF_HELVETICA_BOLD,11,{0,0,0},{0.9,0.9,0.9}, LEFT}
-#define HPDFTBL_DEFAULT_HEADER_STYLE		{HPDF_FF_HELVETICA_BOLD,10,{0.2,0,0},{0.9,0.9,0.97}, CENTER}
-#define HPDFTBL_DEFAULT_LABEL_STYLE			{HPDF_FF_TIMES_ITALIC,9,{0.4,0.4,0.4},{1,1,1}, LEFT}
-#define HPDFTBL_DEFAULT_CONTENT_STYLE		{HPDF_FF_COURIER,10,{0.2,0.2,0.2},{1,1,1}, LEFT}
-#define HPDFTBL_DEFAULT_INNER_BORDER_STYLE	{0.7, {0.5,0.5,0.5}, hpdftbl_line_dashstyle_t(0)}
-#define HPDFTBL_DEFAULT_INNER_VBORDER_STYLE {0,   {0.5f,0.5f,0.5f}, hpdftbl_line_dashstyle_t(0)}
-#define HPDFTBL_DEFAULT_INNER_HBORDER_STYLE {0,   {0.5f,0.5f,0.5f}, hpdftbl_line_dashstyle_t(0)}
-#define hpdftbl_DEFAULT_OUTER_BORDER_STYLE	{1.0, {0.2,0.2,0.2}, hpdftbl_line_dashstyle_t(0)}
-#else
-#define HPDFTBL_DEFAULT_TITLE_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,11,(HPDF_RGBColor){0,0,0},(HPDF_RGBColor){0.9f,0.9f,0.9f}, LEFT}
-#define HPDFTBL_DEFAULT_HEADER_STYLE (hpdf_text_style_t){HPDF_FF_HELVETICA_BOLD,10,(HPDF_RGBColor){0,0,0},(HPDF_RGBColor){0.9f,0.9f,0.97f}, CENTER}
-#define HPDFTBL_DEFAULT_LABEL_STYLE (hpdf_text_style_t){HPDF_FF_TIMES_ITALIC,9,(HPDF_RGBColor){0.4f,0.4f,0.4f},(HPDF_RGBColor){1,1,1}, LEFT}
-#define HPDFTBL_DEFAULT_CONTENT_STYLE (hpdf_text_style_t){HPDF_FF_COURIER,10,(HPDF_RGBColor){0.2f,0.2f,0.2f},(HPDF_RGBColor){1,1,1}, LEFT}
-#define HPDFTBL_DEFAULT_INNER_BORDER_STYLE (hpdftbl_border_style_t){0.7f, (HPDF_RGBColor){0.5f,0.5f,0.5f},0}
-#define HPDFTBL_DEFAULT_INNER_VBORDER_STYLE (hpdftbl_grid_style_t){0, (HPDF_RGBColor){0.5f,0.5f,0.5f},0}
-#define HPDFTBL_DEFAULT_INNER_HBORDER_STYLE (hpdftbl_grid_style_t){0, (HPDF_RGBColor){0.5f,0.5f,0.5f},0}
-#define HPDFTBL_DEFAULT_OUTER_BORDER_STYLE (hpdftbl_grid_style_t){1.0f, (HPDF_RGBColor){0.2f,0.2f,0.2f},0}
-#define HPDFTBL_DEFAULT_ZEBRA1_COLOR (HPDF_RGBColor){1.0f,1.0f,1.0f}
-#define HPDFTBL_DEFAULT_ZEBRA2_COLOR (HPDF_RGBColor){0.95f,0.95f,0.95f}
-#endif
-
-#ifdef _MSC_VER
-#define strdup _strdup
-#endif
-
-#define _SET_ERR(t, err, r, c) do {err_code=err;err_row=r;err_col=c; if(hpdftbl_err_handler){hpdftbl_err_handler(t,r,c,err);}} while(0)
-#define _CHK_TABLE(t) do {if(NULL == t) {err_code=-3;err_row=-1;err_col=-1;return -1;}} while(0)
 
 /**
  * @brief Last automatically calculated total height
@@ -102,11 +65,17 @@ static char *target_encoding = HPDFTBL_DEFAULT_TARGET_ENCODING;
  */
 static char *source_encoding = HPDFTBL_DEFAULT_SOURCE_ENCODING;
 
+/** @brief Error code for unknown error */
 #define ERR_UNKNOWN 11
 
-static int err_code = 0; /**< Stores the last generated error code */
-static int err_row = -1; /**< The row where the last error was generated  */
-static int err_col = -1; /**< The column where the last error was generated  */
+/** @brief Stores the last generated error code. */
+int hpdftbl_err_code = 0;
+
+/** @brief The row where the last error was generated.  */
+int hpdftbl_err_row = -1;
+
+/** @brief The column where the last error was generated.  */
+int hpdftbl_err_col = -1;
 
 /**
  * @brief Human readable error strings corresponding to error code
@@ -137,22 +106,30 @@ static const size_t NUM_ERR_MSG = sizeof(error_descriptions) / sizeof(char *);
  * @brief Definition of a dashed line style
  */
 typedef struct line_dash_style {
-    HPDF_UINT16 dash_ptn[8]; /**< HPDF ash line definition */
+    HPDF_UINT16 dash_ptn[8]; /**< HPDF dash line definition */
     size_t num;              /**< Number of segments in the dashed line */
 } line_dash_style_t;
 
 /**
- * @brief Vector with defined line styles
+ * @brief Vector with defined line styles.
+ *
+ * Each row defines a line segment in points and spaces and how many segments are used.
+ * For example: A sgement defined as
+ * (1,1) Means 1pt solid, 1pt space, which are repeated
+ *
+ * @see line_dash_style_t
  */
 static line_dash_style_t dash_styles[] = {
-        {{1, 0, 0, 0, 0, 0, 0, 0}, 0},
-        {{1, 1, 0, 0, 0, 0, 0, 0}, 2},
-        {{2, 3, 0, 0, 0, 0, 0, 0}, 2},
-        {{2, 5, 0, 0, 0, 0, 0, 0}, 2},
-        {{3, 3, 0, 0, 0, 0, 0, 0}, 2},
-        {{6, 3, 0, 0, 0, 0, 0, 0}, 2},
-        {{7, 5, 0, 0, 0, 0, 0, 0}, 2},
-        {{7, 3, 3, 3, 0, 0, 0, 0}, 4},
+        {{1, 0, 0, 0, 0, 0, 0, 0}, 0},  /**< Solid line */
+        {{1, 1, 0, 0, 0, 0, 0, 0}, 2},  /**< Dotted line variant 1 */
+        {{1, 2, 0, 0, 0, 0, 0, 0}, 2},  /**< Dotted line variant 2 */
+        {{1, 3, 0, 0, 0, 0, 0, 0}, 2},  /**< Dotted line variant 3 */
+        {{2, 2, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 1 */
+        {{2, 4, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 2 */
+        {{4, 2, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 3 */
+        {{4, 4, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 4 */
+        {{5, 2, 2, 2, 0, 0, 0, 0}, 4},  /**< Dashed-dot line variant 1 */
+        {{7, 3, 3, 3, 0, 0, 0, 0}, 4},  /**< Dashed-dot line variant 2 */
 };
 
 /**
@@ -166,19 +143,12 @@ static line_dash_style_t dash_styles[] = {
  *
  * @see line_dash_style
  *
- * @todo Complete the usage of dashed styles to the table gridlines. This is not yet supported.
- * The library should support:
- *  - Different styles for outer and inner border
- *  - Different styles for inner vertical and horizontal grid lines
- *  - Different style for the top inner horizontal gridline
- *  - Gridstyles should be added to the theme structure
- *
  */
 int
 hpdftbl_set_line_dash(hpdftbl_t t, hpdftbl_line_dashstyle_t style) {
-    _CHK_TABLE(t);
-    if (style > LINE_DASHDOT) {
-        _SET_ERR(t, -8, -1, -1);
+    _HPDFTBL_CHK_TABLE(t);
+    if (style > LINE_DASHDOT2) {
+        _HPDFTBL_SET_ERR(t, -8, -1, -1);
         return -1;
     }
     HPDF_Page_SetDash(t->pdf_page, dash_styles[style].dash_ptn, dash_styles[style].num, 0);
@@ -189,7 +159,7 @@ hpdftbl_set_line_dash(hpdftbl_t t, hpdftbl_line_dashstyle_t style) {
  * @brief Switch stroking anchor point
  *
  * Set anchor point for table positioning. By default the top left is used as anchor.
- * Calling this function with FALSE can set the basepoint to bottom left instead.
+ * Calling this function with FALSE can sets the anchor to bottom left instead.
  *
  * @param anchor Set to TRUE to use top left as anchor, FALSE for bottom left
  */
@@ -201,7 +171,7 @@ hpdftbl_set_anchor_top_left(const _Bool anchor) {
 /**
  * @brief Get stroking anchor point
  *
- * Get base point for table positioning. By default the top left is used.
+ * Get anchor point for table positioning. By default the top left is used.
  * @see hpdftbl_set_anchor_top_left
  * @return TRUE if anchor is top left, FALSE otherwise
  */
@@ -225,7 +195,7 @@ hpdftbl_get_anchor_top_left(void) {
 const char *
 hpdftbl_get_errstr(int err) {
     if (err < 0) {
-        if (((size_t) (-err_code) < NUM_ERR_MSG))
+        if (((size_t) (-hpdftbl_err_code) < NUM_ERR_MSG))
             return error_descriptions[-err];
         else
             return NULL;
@@ -242,13 +212,16 @@ hpdftbl_get_errstr(int err) {
 #endif
 
 /**
- * @brief A simple default table error handler callback that outputs the error to stderr
+ * @brief A basic default table error handler.
+ *
+ * This error handler is used as a callback that outputs the error to stderr
  * in human readable format and quits the process.
  *
  * @param t Table where the error happened (can be NULL)
  * @param r Cell row
  * @param c Cell column
  * @param err The error code
+ * @see hpdftbl_set_errhandler()
  */
 void
 hpdftbl_default_table_error_handler(hpdftbl_t t, int r, int c, int err) {
@@ -282,28 +255,32 @@ int
 hpdftbl_get_last_errcode(const char **errstr, int *row, int *col) {
     int old_err_code;
     if (errstr) {
-        *errstr = hpdftbl_get_errstr(err_code);
+        *errstr = hpdftbl_get_errstr(hpdftbl_err_code);
         if (*errstr == NULL) {
             *errstr = error_descriptions[ERR_UNKNOWN];
-            old_err_code = err_code;
-            err_row = -1;
-            err_col = -1;
+            old_err_code = hpdftbl_err_code;
+            hpdftbl_err_row = -1;
+            hpdftbl_err_col = -1;
             return ERR_UNKNOWN;
         }
     }
-    *row = err_row;
-    *col = err_col;
-    old_err_code = err_code;
-    err_code = 0;
-    err_row = -1;
-    err_col = -1;
+    *row = hpdftbl_err_row;
+    *col = hpdftbl_err_col;
+    old_err_code = hpdftbl_err_code;
+    hpdftbl_err_code = 0;
+    hpdftbl_err_row = -1;
+    hpdftbl_err_col = -1;
     return old_err_code;
 }
 
 /**
  * @brief Specify errhandler for the table routines
+ *
+ * Note: The library provides a basic default error handler that can be used,
+ *
  * @param err_handler
  * @return The old error handler or NULL if non exists
+ * @see hpdftbl_default_table_error_handler()
  */
 hpdftbl_error_handler_t
 hpdftbl_set_errhandler(hpdftbl_error_handler_t err_handler) {
@@ -318,7 +295,7 @@ hpdftbl_set_errhandler(hpdftbl_error_handler_t err_handler) {
  * The default HPDF encoding is a standard PDF encoding. The problem
  * with that is that now  almost 100% of all code is written in
  * UTF-8 encoding and trying to print text strings with accented
- * charactes will simply not work.
+ * characters will simply not work.
  * For example the default encoding assumes that strings are
  * given in UTF-8 and sets the target to ISO8859-4 which includes
  * northern europe accented characters.
@@ -336,7 +313,7 @@ hpdftbl_set_text_encoding(char *target, char *source) {
 }
 
 /**
- * @brief Internal fucntion to do text encoding
+ * @brief Internal function to do text encoding
  *
  * Utility function to do encoding from UTF-8 to the default
  * target encoding which must match the encoding specified in
@@ -392,7 +369,7 @@ hpdftbl_encoding_text_out(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, char *
     char *output = calloc(1, out_len);
 #endif
     if (-1 == do_encoding(text, output, out_len)) {
-        _SET_ERR(NULL, -4, (int) xpos, (int) ypos);
+        _HPDFTBL_SET_ERR(NULL, -4, (int) xpos, (int) ypos);
         HPDF_Page_TextOut(page, xpos, ypos, "???");
         return -1;
     } else {
@@ -445,123 +422,18 @@ HPDF_RoundedCornerRectangle(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, HPDF
 }
 
 /**
- * @brief Return the default theme
+ * @brief The margin from the bottom of the cell to the baseline of the text is calculated
+ * as a fraction of the font size.
+ * The margin is calculated as:
+ * @code bottom_margin = fontsize * f @endcode
+ * The default margin is specified by the define @ref DEFAULT_AUTO_VBOTTOM_MARGIN_FACTOR "DEFAULT_AUTO_VBOTTOM_MARGIN_FACTOR"
  *
- * Create and return a theme corresponding to the default table theme. It is the calling
- * functions responsibility to call hpdftbl_destroy_theme() to free the allocated
- * memory. The default theme is a good starting point to just make minor modifications
- * without having to define all elements.
- * @return A new theme initialized to the default settings
- *
- * @see hpdftbl_apply_theme()
+ * @param t Table handle
+ * @param f Bottom margin factor
  */
-hpdftbl_theme_t *
-hpdftbl_get_default_theme(void) {
-
-#ifdef __cplusplus
-    hpdftbl_theme_t *t = static_cast<hpdftbl_theme_t*>(calloc(1,sizeof(hpdftbl_theme_t)));
-#else
-    hpdftbl_theme_t *t = calloc(1, sizeof(hpdftbl_theme_t));
-#endif
-    if (NULL == t) {
-        _SET_ERR(NULL, -5, -1, -1);
-        return NULL;
-    }
-
-    // Disable labels and label short style grid by default
-    t->use_labels = FALSE;
-    t->use_label_grid_style = FALSE;
-    t->use_header_row = FALSE;
-
-    // Set default title font
-#ifdef __cplusplus
-    t->title_style = static_cast<hpdf_text_style_t*>(calloc(1, sizeof(hpdf_text_style_t)));
-#else
-    t->title_style = calloc(1, sizeof(hpdf_text_style_t));
-#endif
-    if (NULL == t->title_style) {
-        free(t);
-        _SET_ERR(NULL, -5, -1, -1);
-        return NULL;
-    }
-    *t->title_style = HPDFTBL_DEFAULT_TITLE_STYLE;
-
-    // Set default header font
-#ifdef __cplusplus
-    t->header_style = static_cast<hpdf_text_style_t*>(calloc(1, sizeof(hpdf_text_style_t)));
-#else
-    t->header_style = calloc(1, sizeof(hpdf_text_style_t));
-#endif
-    if (NULL == t->header_style) {
-        free(t->title_style);
-        free(t);
-        _SET_ERR(NULL, -5, -1, -1);
-        return NULL;
-    }
-    *t->header_style = HPDFTBL_DEFAULT_HEADER_STYLE;
-
-    // Set default label font
-#ifdef __cplusplus
-    t->label_style = static_cast<hpdf_text_style_t*>(calloc(1, sizeof(hpdf_text_style_t)));
-#else
-    t->label_style = calloc(1, sizeof(hpdf_text_style_t));
-#endif
-    if (NULL == t->label_style) {
-        free(t->header_style);
-        free(t->title_style);
-        free(t);
-        _SET_ERR(NULL, -5, -1, -1);
-        return NULL;
-    }
-    *t->label_style = HPDFTBL_DEFAULT_LABEL_STYLE;
-
-    // Set default content font
-#ifdef __cplusplus
-    t->content_style = static_cast<hpdf_text_style_t*>(calloc(1, sizeof(hpdf_text_style_t)));
-#else
-    t->content_style = calloc(1, sizeof(hpdf_text_style_t));
-#endif
-    if (NULL == t->content_style) {
-        free(t->label_style);
-        free(t->header_style);
-        free(t->title_style);
-        free(t);
-        _SET_ERR(NULL, -5, -1, -1);
-        return NULL;
-    }
-    *t->content_style = HPDFTBL_DEFAULT_CONTENT_STYLE;
-
-    t->outer_border = HPDFTBL_DEFAULT_OUTER_BORDER_STYLE;
-    t->inner_vborder = HPDFTBL_DEFAULT_INNER_VBORDER_STYLE;
-    t->inner_hborder = HPDFTBL_DEFAULT_INNER_HBORDER_STYLE;
-    t->inner_tborder = HPDFTBL_DEFAULT_INNER_HBORDER_STYLE;
-
-    t->use_zebra = FALSE;
-    t->zebra1_color = HPDFTBL_DEFAULT_ZEBRA1_COLOR;
-    t->zebra2_color = HPDFTBL_DEFAULT_ZEBRA1_COLOR;
-
-    return t;
-}
-
-/**
- * @brief Destroy existing theme structure and free memory
- *
- * Free all memory allocated by a theme
- * @param theme The theme to free
- * @return -1 for error , 0 for success
- */
-int
-hpdftbl_destroy_theme(hpdftbl_theme_t *theme) {
-    if (NULL == theme) {
-        _SET_ERR(NULL, -9, -1, -1);
-        return -1;
-    }
-    free(theme->title_style);
-    free(theme->header_style);
-    free(theme->label_style);
-    free(theme->content_style);
-    free(theme);
-    return 0;
+void
+hpdftbl_set_bottom_vmargin_bottom(hpdftbl_t t, HPDF_REAL f) {
+    t->bottom_vmargin_factor = f;
 }
 
 /**
@@ -598,7 +470,7 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
     hpdftbl_t t = calloc(1, sizeof(struct hpdftbl));
 #endif
     if (t == NULL) {
-        _SET_ERR(t, -5, -1, -1);
+        _HPDFTBL_SET_ERR(t, -5, -1, -1);
         return NULL;
     }
 
@@ -609,7 +481,7 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
 #endif
     if (t->cells == NULL) {
         free(t);
-        _SET_ERR(t, -5, -1, -1);
+        _HPDFTBL_SET_ERR(t, -5, -1, -1);
         return NULL;
     }
 
@@ -625,7 +497,7 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
     if (t->col_width_percent == NULL) {
         free(t->cells);
         free(t);
-        _SET_ERR(t, -5, -1, -1);
+        _HPDFTBL_SET_ERR(t, -5, -1, -1);
         return NULL;
     }
 
@@ -641,10 +513,12 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
             free(t->col_width_percent);
             free(t->cells);
             free(t);
-            _SET_ERR(t, -5, -1, -1);
+            _HPDFTBL_SET_ERR(t, -5, -1, -1);
             return NULL;
         }
     }
+
+    t->bottom_vmargin_factor = DEFAULT_AUTO_VBOTTOM_MARGIN_FACTOR;
 
     hpdftbl_theme_t *theme = hpdftbl_get_default_theme();
     hpdftbl_apply_theme(t, theme);
@@ -654,10 +528,33 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
 }
 
 /**
+ * @brief Set the minimum row height in the table.
+ *
+ * The row height is normally calculated based on the font size and if labels are
+ * displayed or not. However, it is not possible for the table to know the height
+ * of specific widgets (for example) without a two-pass table drawing algorithm.
+ *
+ * To handle thos odd cases when the calculated height is not sufficient a manual
+ * minimum height can be specified.
+ *
+ * @param t Table handler
+ * @param h The minimum height (in points). If specified as 0 the min height will have no effect.
+ * @return 0 on success, -1 on failure
+ */
+int
+hpdftbl_set_min_rowheight(hpdftbl_t t, float h) {
+    t->minheight=h;
+    return 0;
+}
+
+
+/**
  * @brief Set column width as percentage of overall table width
  *
  * Specify column width as percentage of total column width. Note that this will only take effect
- * if the table has an overall width specified when stroked.
+ * if the table has an overall width specified when stroked. Too avoid errors one column should
+ * be left unspecified to let the library use whatever space is left for that column.
+ *
  * @param t Table handle
  * @param c Column to set width of first column has index 0
  * @param w Width as percentage in range [0.0, 100.0]
@@ -665,13 +562,13 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
  */
 int
 hpdftbl_set_colwidth_percent(hpdftbl_t t, size_t c, float w) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     if (c >= t->cols) {
-        _SET_ERR(t, -2, -1, c);
+        _HPDFTBL_SET_ERR(t, -2, -1, c);
         return -1;
     }
     if (w < 0.0 || w > 100.0) {
-        _SET_ERR(t, -12, -1, c);
+        _HPDFTBL_SET_ERR(t, -12, -1, c);
         return -1;
     }
     t->col_width_percent[c] = w;
@@ -686,10 +583,11 @@ hpdftbl_set_colwidth_percent(hpdftbl_t t, size_t c, float w) {
  * @param color Line color
  * @param dashstyle Line dash style
  * @return 0 on success, -1 on failure
+ * @see hpdftbl_set_inner_grid_style()
  */
 int
 hpdftbl_set_outer_grid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->outer_grid.width = width;
     t->outer_grid.color = color;
     t->outer_grid.line_dashstyle = dashstyle;
@@ -699,21 +597,20 @@ hpdftbl_set_outer_grid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, 
 /**
  * @brief Set inner border grid style.
  *
+ * This is a shortform to set both the vertical and horizontal gridline style with one call.
+ *
  * @param t Table handle
  * @param width Line width (in pt)
  * @param color Line color
  * @param dashstyle Line dash style
  * @return 0 on success, -1 on failure
- * @see hpdftbl_set_inner_hgrid_style(), hpdftbl_set_inner_vgrid_style
+ * @see hpdftbl_set_inner_hgrid_style(), hpdftbl_set_inner_vgrid_style(), hpdftbl_set_outer_grid_style()
  */
 int
 hpdftbl_set_inner_grid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     hpdftbl_set_inner_hgrid_style(t, width, color, dashstyle);
     hpdftbl_set_inner_vgrid_style(t, width, color, dashstyle);
-//    t->inner_grid.width = width;
-//    t->inner_grid.color = color;
-//    t->inner_grid.line_dashstyle = dashstyle;
     return 0;
 }
 
@@ -725,11 +622,11 @@ hpdftbl_set_inner_grid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, 
  * @param color Line color
  * @param dashstyle Line dash style
  * @return 0 on success, -1 on failure
- * @see hpdftbl_set_inner_grid_style()
+ * @see hpdftbl_set_inner_grid_style(), hpdftbl_set_inner_vgrid_style()
  */
 int
 hpdftbl_set_inner_hgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->inner_hgrid.width = width;
     t->inner_hgrid.color = color;
     t->inner_hgrid.line_dashstyle = dashstyle;
@@ -744,11 +641,11 @@ hpdftbl_set_inner_hgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color,
  * @param color Line color
  * @param dashstyle Line dash style
  * @return 0 on success, -1 on failure
- * @see hpdftbl_set_inner_grid_style()
+ * @see hpdftbl_set_inner_grid_style(), hpdftbl_set_inner_hgrid_style()
  */
 int
 hpdftbl_set_inner_vgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->inner_vgrid.width = width;
     t->inner_vgrid.color = color;
     t->inner_vgrid.line_dashstyle = dashstyle;
@@ -756,7 +653,9 @@ hpdftbl_set_inner_vgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color,
 }
 
 /**
- * @brief Set inner horizontal top border grid style. This would be the gridline just below the
+ * @brief Set inner horizontal top border grid style.
+ *
+ * This would be the gridline just below the
  * header row.
  *
  * @param t Table handle
@@ -764,10 +663,11 @@ hpdftbl_set_inner_vgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color,
  * @param color Line color
  * @param dashstyle Line dash style
  * @return 0 on success, -1 on failure
+ * @see hpdftbl_set_inner_hgrid_style()
  */
 int
 hpdftbl_set_inner_tgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->inner_tgrid.width = width;
     t->inner_tgrid.color = color;
     t->inner_tgrid.line_dashstyle = dashstyle;
@@ -786,12 +686,12 @@ hpdftbl_set_inner_tgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color,
  * @param color Font color
  * @param background Cell background color
  * @return 0 on success, -1 on failure
- * @ref hpdftbl_use_header()
+ * @see hpdftbl_use_header()
  */
 
 int
 hpdftbl_set_header_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor color, HPDF_RGBColor background) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->header_style.font = font;
     t->header_style.fsize = fsize;
     t->header_style.color = color;
@@ -802,35 +702,37 @@ hpdftbl_set_header_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor
 /**
  * @brief Set table background color
  *
- * Set table background
  * @param t Table handle
  * @param background Background color
  * @return 0 on success, -1 on failure
  */
 int
 hpdftbl_set_background(hpdftbl_t t, HPDF_RGBColor background) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->content_style.background = background;
     return 0;
 }
 
 /**
- * @brief Set table header text align
+ * @brief Set table header horizontal text align
  *
- * Set horizontal text alignment for header row
  * @param t Table handle
  * @param align Alignment
  * @return 0 on success, -1 on failure
  */
 int
 hpdftbl_set_header_halign(hpdftbl_t t, hpdftbl_text_align_t align) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->header_style.halign = align;
     return 0;
 }
 
 /**
- * Enable/disable the interpretation of the top row as a header row
+ * @brief Enable/disable the interpretation of the top row as a header row
+ *
+ * A header row will have a different style and labels will be disabled on this row.
+ * In addition the text will be centered vertically and horizontal in the cell.
+ *
  * @param t Table handle
  * @param use TRUE to enable, FALSE to disable
  * @return 0 on success, -1 on failure
@@ -838,16 +740,19 @@ hpdftbl_set_header_halign(hpdftbl_t t, hpdftbl_text_align_t align) {
  */
 int
 hpdftbl_use_header(hpdftbl_t t, _Bool use) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->use_header_row = use;
     return 0;
 }
 
 /**
- * Enable/Disable the use of cell labels. By default a newly created
+ * @bref Enable/Disable the use of cell labels.
+ *
+ * By default a newly created
  * table will not use cell labels. Enabling labels will also by default
  * enable the special label grid style. To adjust the grid style separately
  * us the @ref hpdftbl_use_labelgrid() method.
+ *
  * @param t Table handle
  * @param use Set to TRUE for cell labels
  * @return 0 on success, -1 on failure
@@ -855,25 +760,28 @@ hpdftbl_use_header(hpdftbl_t t, _Bool use) {
  */
 int
 hpdftbl_use_labels(hpdftbl_t t, _Bool use) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->use_cell_labels = use;
     t->use_label_grid_style = use;
     return 0;
 }
 
 /**
+ * @brief Shorter vertical line to mark labels.
+ *
  * Set the usage of special grid style where the vertical grid
  * only covers the label text and a gap to the next line. Horizontal
  * lines are drawn as usual.
  * The label grid style gives the table a "lighter" look.
+ *
  * @param t Table handle
  * @param use TRUE to use label grid, FALSE o disable it
  * @return 0 on success, -1 on failure
- * @see hpdftbl_use_labels
+ * @see hpdftbl_use_labels()
  */
 int
 hpdftbl_use_labelgrid(hpdftbl_t t, _Bool use) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->use_label_grid_style = use;
     return 0;
 }
@@ -892,7 +800,7 @@ hpdftbl_use_labelgrid(hpdftbl_t t, _Bool use) {
  */
 int
 hpdftbl_set_tag(hpdftbl_t t, void *tag) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->tag = tag;
     return 0;
 }
@@ -908,8 +816,8 @@ hpdftbl_set_tag(hpdftbl_t t, void *tag) {
  */
 static int
 cell_destroy(hpdftbl_t t, size_t r, size_t c) {
-    _CHK_TABLE(t);
-    hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+    _HPDFTBL_CHK_TABLE(t);
+    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
     if (cell->label)
         free(cell->label);
     if (cell->content)
@@ -921,13 +829,14 @@ cell_destroy(hpdftbl_t t, size_t r, size_t c) {
 /**
  * @brief Destroy a table and free all memory
  *
- * Destroy a table previous created with table_create()
+ * Destroy a table previous created with table_create(), It is the calling routines
+ * responsibility not to acceess \c t again.
  * @param t Handle to table
  * @return 0 on success, -1 on failure
  */
 int
 hpdftbl_destroy(hpdftbl_t t) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     if (t->title_txt)
         free(t->title_txt);
     for (size_t r = 0; r < t->rows; r++) {
@@ -953,7 +862,7 @@ static _Bool
 chktbl(hpdftbl_t t, size_t r, size_t c) {
     if (r < t->rows && c < t->cols)
         return TRUE;
-    _SET_ERR(t, -2, r, c);
+    _HPDFTBL_SET_ERR(t, -2, r, c);
     return FALSE;
 }
 
@@ -961,7 +870,7 @@ chktbl(hpdftbl_t t, size_t r, size_t c) {
  * @brief Set content for specific cell
  *
  * Set label and content for a specific cell. If the specified cell is part of
- * another cells spanning then error is given (returns -1),
+ * another cells spanning an error occurs (returns -1),
  * @param t Table handle
  * @param r Row
  * @param c Column
@@ -971,14 +880,14 @@ chktbl(hpdftbl_t t, size_t r, size_t c) {
  */
 int
 hpdftbl_set_cell(hpdftbl_t t, int r, int c, char *label, char *content) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     if (!chktbl(t, r, c)) return -1;
-    hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
 
     // If we are trying to specify a cell that is part of another cell that spans we
     // indicate this as an error
     if (cell->parent_cell) {
-        _SET_ERR(t, -1, r, c);
+        _HPDFTBL_SET_ERR(t, -1, r, c);
         return -1;
     }
 
@@ -992,7 +901,8 @@ hpdftbl_set_cell(hpdftbl_t t, int r, int c, char *label, char *content) {
 /**
  * @brief Set cell spanning
  *
- * Set row and column spanning for a cell
+ * Set row and column spanning for a cell, an expanded cell is referenced via the position of it's top-left
+ * cell
  * @param t Table handle
  * @param r Row
  * @param c Column
@@ -1004,20 +914,20 @@ hpdftbl_set_cell(hpdftbl_t t, int r, int c, char *label, char *content) {
  */
 int
 hpdftbl_set_cellspan(hpdftbl_t t, size_t r, size_t c, size_t rowspan, size_t colspan) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     if (!chktbl(t, r, c))
         return -1;
 
     if (r + rowspan - 1 >= t->rows || c + colspan - 1 >= t->cols) {
-        _SET_ERR(t, -7, r, c);
+        _HPDFTBL_SET_ERR(t, -7, r, c);
         return -1;
     }
-    hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
 
     // If this cell is part of another cells spanning then
     // indicate this as an error
     if (cell->parent_cell) {
-        _SET_ERR(t, -1, r, c);
+        _HPDFTBL_SET_ERR(t, -1, r, c);
         return -1;
     }
 
@@ -1025,7 +935,7 @@ hpdftbl_set_cellspan(hpdftbl_t t, size_t r, size_t c, size_t rowspan, size_t col
     if (cell->colspan > 1 || cell->rowspan > 1) {
         for (size_t rr = r; rr < cell->rowspan + r; rr++) {
             for (size_t cc = c; cc < cell->colspan + c; cc++) {
-                t->cells[_IDX(rr, cc)].parent_cell = NULL;
+                t->cells[_HPDFTBL_IDX(rr, cc)].parent_cell = NULL;
             }
         }
     }
@@ -1036,11 +946,11 @@ hpdftbl_set_cellspan(hpdftbl_t t, size_t r, size_t c, size_t rowspan, size_t col
         for (size_t cc = c; cc < colspan + c; cc++) {
             if (rr != r || cc != c) {
                 // Point back to the parent cell
-                t->cells[_IDX(rr, cc)].parent_cell = cell;
+                t->cells[_HPDFTBL_IDX(rr, cc)].parent_cell = cell;
 
                 // Reset the row and col-span in covered cells
-                t->cells[_IDX(rr, cc)].colspan = 1;
-                t->cells[_IDX(rr, cc)].rowspan = 1;
+                t->cells[_HPDFTBL_IDX(rr, cc)].colspan = 1;
+                t->cells[_HPDFTBL_IDX(rr, cc)].rowspan = 1;
             }
         }
     }
@@ -1058,12 +968,12 @@ hpdftbl_set_cellspan(hpdftbl_t t, size_t r, size_t c, size_t rowspan, size_t col
  */
 int
 hpdftbl_clear_spanning(hpdftbl_t t) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     for (size_t r = 0; r < t->rows; r++) {
         for (size_t c = 0; c < t->cols; c++) {
-            t->cells[_IDX(r, c)].colspan = 1;
-            t->cells[_IDX(r, c)].rowspan = 1;
-            t->cells[_IDX(r, c)].parent_cell = NULL;
+            t->cells[_HPDFTBL_IDX(r, c)].colspan = 1;
+            t->cells[_HPDFTBL_IDX(r, c)].rowspan = 1;
+            t->cells[_HPDFTBL_IDX(r, c)].parent_cell = NULL;
         }
     }
     return 0;
@@ -1088,12 +998,13 @@ set_fontc(hpdftbl_t t, char *fontname, HPDF_REAL fsize, HPDF_RGBColor color) {
 /**
  * @brief Set table content callback
  *
- * Set content callback. This callback gets called for each cell in the
+ * This callback gets called for each cell in the
  * table and the returned string will be used as the content. The string
  * will be duplicated so it is safe for a client to reuse the string space.
  * If NULL is returned from the callback then the content will be set to the
  * content specified with the direct content setting.
- * The callback function will receive the Table tag and the row and column
+ * The callback function will receive the Table tag and the row and column for the
+ * cell the callback is made for.
  * @param t Table handle
  * @param cb Callback function
  * @return -1 for error , 0 otherwise
@@ -1102,16 +1013,17 @@ set_fontc(hpdftbl_t t, char *fontname, HPDF_REAL fsize, HPDF_RGBColor color) {
  */
 int
 hpdftbl_set_content_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->content_cb = cb;
     return 0;
 }
 
 /**
- * @brief Set cell content callback
+ * @brief Set cell content callback.
  *
  * Set a content callback for an individual cell. This will override the table content
- * callback.
+ * callback. The callback function will receive the Table tag and the row and column for the
+ * cell the callback is made for.
  * @param t Table handle
  * @param cb Callback function
  * @param r Cell row
@@ -1122,16 +1034,16 @@ hpdftbl_set_content_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
  */
 int
 hpdftbl_set_cell_content_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_callback_t cb) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     if (!chktbl(t, r, c))
         return -1;
 
-    hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
 
     // If this cell is part of another cells spanning then
     // indicate this as an error
     if (cell->parent_cell) {
-        _SET_ERR(t, -1, r, c);
+        _HPDFTBL_SET_ERR(t, -1, r, c);
         return -1;
     }
 
@@ -1142,8 +1054,9 @@ hpdftbl_set_cell_content_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_cal
 /**
  * @brief Set cell label callback
  *
- * Set a label callback for an individual cell. This will override the table content
- * callback.
+ * Set a label callback for an individual cell. This will override the table label
+ * callback. The callback function will receive the Table tag and the row and column for the
+ * cell the callback is made for.
  * @param t Table handle
  * @param cb Callback function
  * @param r Cell row
@@ -1154,16 +1067,16 @@ hpdftbl_set_cell_content_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_cal
  */
 int
 hpdftbl_set_cell_label_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_callback_t cb) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     if (!chktbl(t, r, c))
         return -1;
 
-    hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
 
     // If this cell is part of another cells spanning then
     // indicate this as an error
     if (cell->parent_cell) {
-        _SET_ERR(t, -1, r, c);
+        _HPDFTBL_SET_ERR(t, -1, r, c);
         return -1;
     }
 
@@ -1192,16 +1105,16 @@ hpdftbl_set_cell_label_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_callb
  */
 int
 hpdftbl_set_cell_canvas_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_canvas_callback_t cb) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     if (!chktbl(t, r, c))
         return -1;
 
-    hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
 
     // If this cell is part of another cells spanning then
     // indicate this as an error
     if (cell->parent_cell) {
-        _SET_ERR(t, -1, r, c);
+        _HPDFTBL_SET_ERR(t, -1, r, c);
         return -1;
     }
 
@@ -1226,7 +1139,7 @@ hpdftbl_set_cell_canvas_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_canvas_callb
  */
 int
 hpdftbl_set_label_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->label_cb = cb;
     return 0;
 }
@@ -1252,7 +1165,7 @@ hpdftbl_set_label_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
  */
 int
 hpdftbl_set_canvas_cb(hpdftbl_t t, hpdftbl_canvas_callback_t cb) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->canvas_cb = cb;
     return 0;
 }
@@ -1274,7 +1187,7 @@ _stroke_haligned_text(hpdftbl_t t, char *txt, hpdftbl_text_align_t align, HPDF_R
 */
 
 /**
- * @brief Internal function
+ * @brief Internal function t stroke the title.
  *
  * Internal function.Stroke the optional table title
  * @param t Table handle
@@ -1323,12 +1236,14 @@ table_title_stroke(hpdftbl_t t) {
  * corresponds to a flattened 2-d array and the label for cell (r,c) is
  * calculated as (r * num_cols + c) where num_cols is the number of columns
  * in the table.
+ *
  * It is allowed to specify NULL as placeholder for empty labels.
  * The actual text in the table will be allocated with strdup() so it is safe
  * to free the memory for the labels after the call to this function.
  * Please note that even if the table contains spanning cells the content
  * data must include empty data for covered cells. For a N x M table the data
  * must have (N*M) entries.
+ *
  * @param t Table handle
  * @param labels A one dimensional string array of labels
  * @return -1 on error, 0 if successful
@@ -1337,7 +1252,7 @@ table_title_stroke(hpdftbl_t t) {
  */
 int
 hpdftbl_set_labels(hpdftbl_t t, char **labels) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     for (size_t r = 0; r < t->rows; r++) {
         for (size_t c = 0; c < t->cols; c++) {
             size_t idx = r * t->cols + c;
@@ -1356,14 +1271,17 @@ hpdftbl_set_labels(hpdftbl_t t, char **labels) {
  * corresponds to a flattened 2-d array and the label for cell (r,c) is
  * calculated as (r * num_cols + c) where num_cols is the number of columns
  * in the table.
+ *
  * It is allowed to specify NULL as placeholder for empty labels.
  *  The actual text in the table will be allocated with strdup() so it is safe
  * to free the memory for the labels after the call to this function.
  * Please note that even if the table contains spanning cells the content
  * data must include empty data for covered cells. For a N x M table the data
  * must have (N*M) entries.
+ *
  * Another way to specify the content is to use the callback mechanism. By setting
- * up a content callback function that returns the content for a cell
+ * up a content callback function that returns the content for a cell.
+ *
  * @param t Table handle
  * @param content A one dimensional string array of content string
  * @return -1 on error, 0 if successful
@@ -1372,7 +1290,7 @@ hpdftbl_set_labels(hpdftbl_t t, char **labels) {
  */
 int
 hpdftbl_set_content(hpdftbl_t t, char **content) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     for (size_t r = 0; r < t->rows; r++) {
         for (size_t c = 0; c < t->cols; c++) {
             size_t idx = r * t->cols + c;
@@ -1384,9 +1302,11 @@ hpdftbl_set_content(hpdftbl_t t, char **content) {
 }
 
 /**
- * @brief Set the font style for labels.
+ * @brief Set the style for labels in the entire table.
  *
- * Set font, color and background options for cell labels.
+ * Set font, color and background options for cell labels. If a style callback have been
+ * specified for either the table or a cell that style take precedence.
+ *
  * @param t Table handle
  * @param font Font name
  * @param fsize Font size
@@ -1396,7 +1316,7 @@ hpdftbl_set_content(hpdftbl_t t, char **content) {
  */
 int
 hpdftbl_set_label_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor color, HPDF_RGBColor background) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->label_style.font = font;
     t->label_style.fsize = fsize;
     t->label_style.color = color;
@@ -1405,9 +1325,12 @@ hpdftbl_set_label_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor 
 }
 
 /**
- * @brief Set font style for text content.
+ * @brief Set style for text content.
  *
- * Set font options for cell content. This will be applied for all cells in the table.
+ * Set style options for cell content (font, color, background). This will be applied for all cells in the table.
+ * If a style callback have been
+ * specified for either the table or a cell that style take precedence.
+ *
  * @param t Table handle
  * @param font Font name
  * @param fsize Font size
@@ -1419,7 +1342,7 @@ hpdftbl_set_label_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor 
  */
 int
 hpdftbl_set_content_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor color, HPDF_RGBColor background) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->content_style.font = font;
     t->content_style.fsize = fsize;
     t->content_style.color = color;
@@ -1428,9 +1351,9 @@ hpdftbl_set_content_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColo
 }
 
 /**
- * @brief Set the font style for an entire row of cells.
+ * @brief Set the style for an entire row of cells.
  *
- * Set font options for the specified row of cells. This will override the global cell content .
+ * Set font options for the specified row of cells. This will override the global cell content.
  * @param t Table handle
  * @param r Row to affect
  * @param font Font name
@@ -1491,9 +1414,9 @@ hpdftbl_set_col_content_style(hpdftbl_t t, size_t c, char *font, HPDF_REAL fsize
 int
 hpdftbl_set_cell_content_style(hpdftbl_t t, size_t r, size_t c, char *font, HPDF_REAL fsize, HPDF_RGBColor color,
                                HPDF_RGBColor background) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     chktbl(t, r, c);
-    hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
     cell->content_style.font = font;
     cell->content_style.fsize = fsize;
     cell->content_style.color = color;
@@ -1515,13 +1438,13 @@ hpdftbl_set_cell_content_style(hpdftbl_t t, size_t r, size_t c, char *font, HPDF
  */
 int
 hpdftbl_set_cell_content_style_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_style_callback_t cb) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     chktbl(t, r, c);
     // If this cell is part of another cells spanning then
     // indicate this as an error
-    hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
     if (cell->parent_cell) {
-        _SET_ERR(t, -1, r, c);
+        _HPDFTBL_SET_ERR(t, -1, r, c);
         return -1;
     }
     cell->style_cb = cb;
@@ -1541,7 +1464,7 @@ hpdftbl_set_cell_content_style_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_conte
  */
 int
 hpdftbl_set_content_style_cb(hpdftbl_t t, hpdftbl_content_style_callback_t cb) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->content_style_cb = cb;
     return 0;
 }
@@ -1562,7 +1485,7 @@ hpdftbl_set_content_style_cb(hpdftbl_t t, hpdftbl_content_style_callback_t cb) {
  */
 int
 hpdftbl_set_title_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor color, HPDF_RGBColor background) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->title_style.font = font;
     t->title_style.fsize = fsize;
     t->title_style.color = color;
@@ -1585,7 +1508,7 @@ hpdftbl_set_title_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor 
  */
 int
 hpdftbl_set_title(hpdftbl_t t, char *title) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     if (t->title_txt)
         free(t->title_txt);
     t->title_txt = strdup(title);
@@ -1595,7 +1518,6 @@ hpdftbl_set_title(hpdftbl_t t, char *title) {
 /**
  * @brief Set horizontal alignment for table title
  *
- * Set horizontal text alignment for title
  * @param t Table handle
  * @param align Alignment
  * @return 0 on success, -1 on failure
@@ -1605,57 +1527,9 @@ hpdftbl_set_title(hpdftbl_t t, char *title) {
  */
 int
 hpdftbl_set_title_halign(hpdftbl_t t, hpdftbl_text_align_t align) {
-    _CHK_TABLE(t);
+    _HPDFTBL_CHK_TABLE(t);
     t->title_style.halign = align;
     return 0;
-}
-
-/**
- * @brief Apply a specified theme to a table
- *
- * Apply a specified theme to a table. The default table can be retrieved with
- * hpdftbl_get_default_theme()
- * @param t Table handle
- * @param theme Theme reference
- * @return 0 on success, -1 on failure
- *
- * @see hpdftbl_get_default_theme()
- */
-int
-hpdftbl_apply_theme(hpdftbl_t t, hpdftbl_theme_t *theme) {
-    _CHK_TABLE(t);
-    if (theme) {
-
-        t->use_header_row = theme->use_header_row;
-        t->use_cell_labels = theme->use_labels;
-        t->use_label_grid_style = theme->use_label_grid_style;
-
-        if (theme->label_style) {
-            hpdf_text_style_t *f = theme->label_style;
-            hpdftbl_set_label_style(t, f->font, f->fsize, f->color, f->background);
-        }
-        if (theme->content_style) {
-            hpdf_text_style_t *f = theme->content_style;
-            hpdftbl_set_content_style(t, f->font, f->fsize, f->color, f->background);
-        }
-        if (theme->header_style) {
-            hpdf_text_style_t *f = theme->header_style;
-            hpdftbl_set_header_style(t, f->font, f->fsize, f->color, f->background);
-            hpdftbl_set_header_halign(t, f->halign);
-        }
-        if (theme->title_style) {
-            hpdf_text_style_t *f = theme->title_style;
-            hpdftbl_set_title_style(t, f->font, f->fsize, f->color, f->background);
-            hpdftbl_set_title_halign(t, f->halign);
-        }
-        hpdftbl_set_inner_vgrid_style(t, theme->inner_vborder.width, theme->inner_vborder.color, theme->inner_vborder.line_dashstyle);
-        hpdftbl_set_inner_hgrid_style(t, theme->inner_hborder.width, theme->inner_hborder.color, theme->inner_hborder.line_dashstyle);
-        hpdftbl_set_inner_tgrid_style(t, theme->inner_tborder.width, theme->inner_tborder.color, theme->inner_tborder.line_dashstyle);
-        hpdftbl_set_outer_grid_style(t, theme->outer_border.width, theme->outer_border.color, theme->outer_border.line_dashstyle);
-        return 0;
-    }
-    _SET_ERR(t, -9, -1, -1);
-    return -1;
 }
 
 /**
@@ -1679,7 +1553,7 @@ hpdftbl_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdftbl_spec_t *t
 
     hpdftbl_t t = hpdftbl_create_title(tbl_spec->rows, tbl_spec->cols, tbl_spec->title);
     if (NULL == t) {
-        _SET_ERR(NULL, -5, -1, -1);
+        _HPDFTBL_SET_ERR(NULL, -5, -1, -1);
         return -1;
     }
 
@@ -1687,11 +1561,12 @@ hpdftbl_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdftbl_spec_t *t
     hpdftbl_set_content_cb(t, tbl_spec->content_cb);
     hpdftbl_set_label_cb(t, tbl_spec->label_cb);
     hpdftbl_set_content_style_cb(t, tbl_spec->style_cb);
-    hpdftbl_use_labels(t, tbl_spec->use_labels);
-    hpdftbl_use_labelgrid(t, tbl_spec->use_labelgrid);
 
     if (theme)
         hpdftbl_apply_theme(t, theme);
+
+    hpdftbl_use_labels(t, tbl_spec->use_labels);
+    hpdftbl_use_labelgrid(t, tbl_spec->use_labelgrid);
 
     if (tbl_spec->cell_spec) {
         size_t i = 0;
@@ -1755,7 +1630,7 @@ calc_cell_pos(hpdftbl_t t) {
     }
 
     if (tot_specified_width_percent > 100.0) {
-        _SET_ERR(t, -12, -1, -1);
+        _HPDFTBL_SET_ERR(t, -12, -1, -1);
         return -1;
     }
 
@@ -1768,8 +1643,8 @@ calc_cell_pos(hpdftbl_t t) {
     }
 
     // Sanity check
-    if (base_cell_width_percent < MIN_CALCULATED_PERCENT_CELL_WIDTH) {
-        _SET_ERR(t, -13, -1, -1);
+    if (base_cell_width_percent < HPDFTBL_MIN_CALCULATED_PERCENT_CELL_WIDTH) {
+        _HPDFTBL_SET_ERR(t, -13, -1, -1);
         return -1;
     }
 
@@ -1785,7 +1660,7 @@ calc_cell_pos(hpdftbl_t t) {
     // taking spanning in consideration
     for (int r = t->rows - 1; r >= 0; r--) {
         for (size_t c = 0; c < t->cols; c++) {
-            hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+            hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
             cell->delta_x = delta_x;
             cell->delta_y = delta_y;
             cell->width = (t->col_width_percent[c] / 100.0f) * t->width;//base_cell_width;
@@ -1799,7 +1674,7 @@ calc_cell_pos(hpdftbl_t t) {
     // Adjust for row and column spanning
     for (size_t r = 0; r < t->rows; r++) {
         for (size_t c = 0; c < t->cols; c++) {
-            hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+            hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
             if (cell->rowspan > 1) {
                 cell->delta_y = t->cells[(r + cell->rowspan - 1) * t->cols + c].delta_y;
                 cell->height = cell->rowspan * base_cell_height;
@@ -1807,7 +1682,7 @@ calc_cell_pos(hpdftbl_t t) {
             if (cell->colspan > 1) {
                 HPDF_REAL col_span_with = 0.0;
                 for (size_t cc = 0; cc < cell->colspan; cc++) {
-                    col_span_with += t->cells[_IDX(r, cc + c)].width;
+                    col_span_with += t->cells[_HPDFTBL_IDX(r, cc + c)].width;
                 }
                 cell->width = col_span_with;
             }
@@ -1816,13 +1691,44 @@ calc_cell_pos(hpdftbl_t t) {
 
 #ifdef ENABLE_DEBUG_TRACE_PRINT
     for (size_t c = 0; c < t->cols; c++) {
-        printf("%.1f (%.1f) @ %.1f, \n",t->col_width_percent[c],t->cells[_IDX(0, c)].width,t->cells[_IDX(0, c)].delta_x);
+        printf("%.1f (%.1f) @ %.1f, \n",t->col_width_percent[c],t->cells[_HPDFTBL_IDX(0, c)].width,t->cells[_HPDFTBL_IDX(0, c)].delta_x);
     }
     printf("\n");
 #endif
 
     return 0;
 }
+
+
+/**
+ * @brief Get the height calculated for the last constructed table
+ *
+ * Get the last automatically calculated heigh when stroking a table.
+ * (The height will be automatically calculated if it was specified as 0)
+ * @param height Returned height
+ * @return -1 on error, 0 if successful
+ */
+int
+hpdftbl_get_last_auto_height(HPDF_REAL *height) {
+    if (last_auto_height > 0) {
+        *height = last_auto_height;
+        return 0;
+    }
+    _HPDFTBL_SET_ERR(NULL, -10, -1, -1);
+    return -1;
+}
+
+//static void
+//_draw_cross(hpdftbl_t t, HPDF_REAL x, HPDF_REAL y, HPDF_REAL l) {
+//    HPDF_Page_SetRGBStroke(t->pdf_page, 1, 0, 0);
+//    HPDF_Page_SetLineWidth(t->pdf_page, 1.2);
+//    HPDF_Page_MoveTo(t->pdf_page, x, y-l);
+//    HPDF_Page_LineTo(t->pdf_page, x, y+l);
+//    HPDF_Page_MoveTo(t->pdf_page, x-l, y);
+//    HPDF_Page_LineTo(t->pdf_page, x+l, y);
+//    HPDF_Page_Stroke(t->pdf_page);
+//}
+
 
 /**
  * @brief Internal function.
@@ -1871,9 +1777,6 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
                     label = strdup(_label);
             }
 
-            // An individual cell label callback overrides table callback
-
-
             HPDF_Page_BeginText(t->pdf_page);
             hpdftbl_encoding_text_out(t->pdf_page,
                                       t->posx + cell->delta_x + left_right_padding,
@@ -1902,7 +1805,7 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
         set_fontc(t, t->header_style.font, t->header_style.fsize, t->header_style.color);
     } else {
         set_fontc(t, t->content_style.font, t->content_style.fsize, t->content_style.color);
-        // Check if cell has its own stye which should override global setting but a defined
+        // Check if cell has its own style which should override global setting but a defined
         // callback will override both
 #ifdef __cplusplus
         hpdf_text_style_t cb_val = {	t->content_style.font, t->content_style.fsize,
@@ -1921,6 +1824,8 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
             halign = cb_val.halign;
         } else if (cell->content_style.font) {
             set_fontc(t, cell->content_style.font, cell->content_style.fsize, cell->content_style.color);
+        } else {
+            set_fontc(t, t->content_style.font, t->content_style.fsize, t->content_style.color);
         }
     }
 
@@ -1930,10 +1835,19 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
     } else if (halign == CENTER) { // Center text
         xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) / 2.0f;
     }
-    HPDF_REAL ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.25f;
+
+    //HPDF_REAL ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.15f;
+    //if (t->use_cell_labels) {
+    //    ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.4f;
+    //}
+
+    //_draw_cross( t, t->posx + cell->delta_x + left_right_padding, t->posy + cell->delta_y + t->content_style.fsize * 0.5f, 5);
+    //_draw_cross( t, xpos, ypos, 5)
+
+    HPDF_REAL ypos = t->posy + cell->delta_y + t->content_style.fsize * t->bottom_vmargin_factor; //AUTO_VBOTTOM_MARGIN_FACTOR;
 
     if (t->use_header_row && r == 0) {
-        // Roughly center the text vertically
+        // Roughly center the text vertical
         ypos = t->posy + cell->delta_y + (cell->height / 2 - t->header_style.fsize / 2) + t->header_style.fsize / 5;
 
         // Center the header
@@ -1942,35 +1856,22 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
         else if (t->header_style.halign == RIGHT)
             xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) -
                    left_right_padding;
-    } else {
-        if (t->use_cell_labels)
-            ypos -= (t->label_style.fsize * 1.15f);
     }
 
+    //else {
+    //    if (t->use_cell_labels)
+    //        ypos -= (t->label_style.fsize * 1.15f);
+    //}
+//
+    //xpos = t->posx + cell->delta_x + left_right_padding;
+    //ypos = t->posy + cell->delta_y + t->content_style.fsize * 0.5f;
+//
     if (content) {
         HPDF_Page_BeginText(t->pdf_page);
         hpdftbl_encoding_text_out(t->pdf_page, xpos, ypos, content);
         HPDF_Page_EndText(t->pdf_page);
     }
 
-}
-
-/**
- * @brief Get the height calculated for the last constructed table
- *
- * Get the last automatically calculated heigh when stroking a table.
- * (The height will be automatically calculated if it was specified as 0)
- * @param height Returned height
- * @return -1 on error, 0 if successful
- */
-int
-hpdftbl_get_last_auto_height(HPDF_REAL *height) {
-    if (last_auto_height > 0) {
-        *height = last_auto_height;
-        return 0;
-    }
-    _SET_ERR(NULL, -10, -1, -1);
-    return -1;
 }
 
 /**
@@ -2000,7 +1901,7 @@ hpdftbl_stroke(HPDF_Doc pdf,
                const HPDF_REAL width, HPDF_REAL height) {
 
     if (NULL == pdf || NULL == page || NULL == t) {
-        _SET_ERR(t, -6, -1, -1);
+        _HPDFTBL_SET_ERR(t, -6, -1, -1);
         return -1;
     }
 
@@ -2012,9 +1913,14 @@ hpdftbl_stroke(HPDF_Doc pdf,
     if (height <= 0) {
         // Calculate height automagically based on number of rows and font sizes
         height = t->content_style.fsize;
-        if (t->use_cell_labels)
+        if (t->use_cell_labels) {
             height += t->label_style.fsize;
-        height *= 1.5f * t->rows;
+            height = max(t->minheight, height);
+            height *= 1.5f * t->rows;
+        } else {
+            height = max(t->minheight, height);
+            height *= 1.6f * t->rows;
+        }
         last_auto_height = height;
     }
 
@@ -2046,7 +1952,7 @@ hpdftbl_stroke(HPDF_Doc pdf,
 
     for (size_t r = 0; r < t->rows; r++) {
         for (size_t c = 0; c < t->cols; c++) {
-            hpdftbl_cell_t *cell = &t->cells[_IDX(r, c)];
+            hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
 
             // Only cells which are not covered by a parent spanning cell will be stroked
             if (cell->parent_cell == NULL) {
@@ -2147,7 +2053,7 @@ hpdftbl_stroke(HPDF_Doc pdf,
 
     // If header row is enabled we add a thicker (same as outer border) line under the top row
     if (t->use_header_row) {
-        //hpdftbl_cell_t *cell = &t->cells[_IDX(0, 0)];
+        //hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(0, 0)];
         //HPDF_Page_MoveTo(page, x + cell->delta_x, y + cell->delta_y);
         //HPDF_Page_LineTo(page, x + width, y + cell->delta_y);
         //HPDF_Page_Stroke(page);

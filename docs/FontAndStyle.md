@@ -200,7 +200,7 @@ The resulting table is shown in **Figure 10.** below.
 ![tut_ex09.png](screenshots/tut_ex09.png)
 ***Figure 10:*** *Using a style callback to highlight header rows & columns.* *@ref tut_ex09.c "tut_ex09.c"*
 
-
+ 
 ## Using style themes {#sec_themes}
 
 A theme (or style theme) is a definition of the "look & feel" of a table. It doesn't affect the structure of the table
@@ -276,7 +276,7 @@ The default font styles for the default theme are shown in table 1.
 | Border       | Color     | Width (pt) |
 |--------------|-----------|------------|
 | inner_border | Grey      | 0.7        |
-| outer_grid | Dark Grey | 1.0        |
+| outer_grid   | Dark Grey | 1.0        |
 
 ***Table 3:*** *Default border parameters.* 
 
@@ -310,8 +310,30 @@ hpdftbl_set_inner_grid_style(hpdftbl_t t,
                              HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
 ```
 
-Each type of gridline can be adjusted with line width, color and style. The last function in the list, hpdftbl_set_inner_grid_style(), is a convinience function that sets both
+Each type of gridline can be adjusted with line width, color and style. 
+The last function in the list, hpdftbl_set_inner_grid_style(), is a convenience function that sets both
 the vertical and horizontal inner lines in one call.
+
+The table below illustrates the various dashed line styles available and their names.
+See also @ref hpdftbl_dashstyle
+and grid style functions
+@ref hpdftbl_set_inner_grid_style(),
+@ref hpdftbl_set_inner_vgrid_style() and
+@ref hpdftbl_set_inner_hgrid_style()
+
+| Dash Style    | Illustration                                       |
+|---------------|----------------------------------------------------|
+| LINE_SOLID    | `xxx`                                              |
+| LINE_DOT1     | `"x_x_x_"`                                         |
+| LINE_DOT2     | `x__x__x__`                                        |
+| LINE_DOT3     | `"x___x___x___`                                    |
+| LINE_DASH1    | `xx__xx__xx__`                                     |
+| LINE_DASH2    | `xx___xx___xx___`                                  |
+| LINE_DASH3    | `xxxx__xxxx__xxxx__`                               |
+| LINE_DASH4    | `xxxx____xxxx____xxxx____`                         |
+| LINE_DASHDOT1 | `xxxxx__xx__xxxxx__xx__xxxxx__xx__`                |
+| LINE_DASHDOT2 | `xxxxxxx___xxx___xxxxxxx___xxx___xxxxxxx___xxx___` |
+
 
 The following example (@ref tut_ex20.c "tut_ex20.c" ) makes use of these settings as shown below
 

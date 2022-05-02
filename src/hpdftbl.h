@@ -1,9 +1,11 @@
-/* =========================================================================
- * File:        hpdftbl.h
- * Description: Utility module for flexible table drawing with HPDF library
- * Author:      Johan Persson (johan162@gmail.com)
+/**
+ * @file
+ * @brief    Header file for libhpdftbl
+ * @author   Johan Persson (johan162@gmail.com)
  *
  * Copyright (C) 2022 Johan Persson
+ *
+ * @see LICENSE
  *
  * Released under the MIT License
  *
@@ -24,15 +26,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * =========================================================================
  */
 
-/** 
- * @file hpdftbl.h
- * 
- * @brief Necessary header file for HPDF table usage
- * 
- */
 
 #ifndef hpdftbl_H
 #define    hpdftbl_H
@@ -47,27 +42,45 @@ typedef std::_Bool _Bool;
 extern "C" {
 #endif
 
-/**
- * Definition of built-in HPDF font families
- */
+#ifndef TRUE
+/** @brief Boolean truth value */
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+/** @brief Boolean false value */
+#define FALSE 0
+#endif
+
+#ifndef max
+#define max(a,b) (((a)>(b)) ? (a):(b))
+#define min(a,b) (((a)<(b)) ? (a):(b))
+#endif
+
+/** @brief Stores the last generated error code. */
+extern int hpdftbl_err_code ;
+
+/** @brief The row where the last error was generated.  */
+extern int hpdftbl_err_row ;
+
+/** @brief The column where the last error was generated.  */
+extern int hpdftbl_err_col ;
+
+
 #define HPDF_FF_TIMES "Times-Roman"
 #define HPDF_FF_TIMES_ITALIC "Times-Italic"
 #define HPDF_FF_TIMES_BOLD "Times-Bold"
 #define HPDF_FF_TIMES_BOLDITALIC "Times-BoldItalic"
-
 #define HPDF_FF_HELVETICA "Helvetica"
 #define HPDF_FF_HELVETICA_ITALIC "Helvetica-Oblique"
 #define HPDF_FF_HELVETICA_BOLD "Helvetica-Bold"
 #define HPDF_FF_HELVETICA_BOLDITALIC "Helvetica-BoldOblique"
-
 #define HPDF_FF_COURIER "Courier"
 #define HPDF_FF_COURIER_BOLD "Courier-Bold"
 #define HPDF_FF_COURIER_IALIC "Courier-Oblique"
 #define HPDF_FF_COURIER_BOLDITALIC "Courier-BoldOblique"
 
-/**
- * Basic color definitions
- */
+
 #define HPDF_COLOR_DARK_RED      (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
 #define HPDF_COLOR_RED           (HPDF_RGBColor) { 1.0f, 0.0f, 0.0f }
 #define HPDF_COLOR_LIGHT_GREEN   (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
@@ -84,41 +97,81 @@ extern "C" {
 #define HPDF_COLOR_BLACK         (HPDF_RGBColor) { 0.0f, 0.0f, 0.0f }
 
 /**
- * Text encodings
+ * @brief The margin from the bottom of the cell to the baseline of the text is calculated
+ * as a fraction of the font size.
+ *
+ * The margin is calculated as:
+ * @code bottom_margin = fontsize * AUTO_VBOTTOM_MARGIN_FACTOR @endcode
+ * @see hpdftbl_set_bottom_vmargin_bottom()
  */
-#define HPDFTBL_DEFAULT_TARGET_ENCODING "ISO8859-4"
-#define HPDFTBL_DEFAULT_SOURCE_ENCODING "UTF-8"
+#define DEFAULT_AUTO_VBOTTOM_MARGIN_FACTOR 0.5
 
-#define HPDFTBL_TEXT_HALIGN_LEFT 0
-#define HPDFTBL_TEXT_HALIGN_CENTER 1
-#define HPDFTBL_TEXT_HALIGN_RIGHT 2
-
-/*
- * Standard paper heights
- */
-#define A4PAGE_HEIGHT_CM 29.7       /**< A4 Height in CM */
-#define A4PAGE_WIDTH_CM 21.0        /**< A4 Width in CM */
-#define A3PAGE_HEIGHT_CM 42.0       /**< A3 Height in CM */
-#define A3PAGE_WIDTH_CM 29.7        /**< A3 Width in CM */
-#define LETTERRPAGE_HEIGHT_CM 27.9  /**< US Letter Height in CM */
-#define LETTERRPAGE_WIDTH_CM 21.6   /**< US Letter Width in CM */
-#define LEGALPAGE_HEIGHT_CM 35.6    /**< US Legal Height in CM */
-#define LEGALPAGE_WIDTH_CM 21.6     /**< US Legal Width in CM */
 
 /**
- * Sentinel to mark the end of Cell Specifications for data driven table definition
+ * @brief Default PDF text encodings
+ */
+#define HPDFTBL_DEFAULT_TARGET_ENCODING "ISO8859-4"
+
+/**
+ * @brief Default input source text encodings
+ */
+#define HPDFTBL_DEFAULT_SOURCE_ENCODING "UTF-8"
+
+
+/**
+ * @brief Standard A4 paper height in cm
+ */
+#define A4PAGE_HEIGHT_CM 29.7
+
+/**
+ * @brief Standard A4 paper width in cm
+ */
+#define A4PAGE_WIDTH_CM 21.0
+
+/**
+ * @brief Standard A3 paper height in cm
+ */
+#define A3PAGE_HEIGHT_CM 42.0
+
+/**
+ * @brief Standard A3 paper width in cm
+ */
+#define A3PAGE_WIDTH_CM 29.7
+
+/**
+ * @brief US Letter Height in cm
+ */
+#define LETTERRPAGE_HEIGHT_CM 27.9
+
+/**
+ * @brief US Letter width in cm
+ */
+#define LETTERRPAGE_WIDTH_CM 21.6
+
+/**
+ * @brief US Legal Height in cm
+ */
+#define LEGALPAGE_HEIGHT_CM 35.6
+
+/**
+ * @brief US Legal Width in cm
+ */
+#define LEGALPAGE_WIDTH_CM 21.6
+
+/**
+ * @brief Sentinel to mark the end of Cell Specifications for data driven table definition
  */
 #define HPDFTBL_END_CELLSPECS {0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /** 
- * Utility macro to calculate a color constant from RGB integer values [0,255] 
+ * @brief Utility macro to calculate a color constant from RGB integer values [0,255]
  */
 #define HPDF_COLOR_FROMRGB(r, g, b) (HPDF_RGBColor){(r)/255.0,(g)/255.0,(b)/255.0}
 
 /** 
- * The smallest size in percent of table width allowed by automatic calculation before giving an error 
+ * @brief The smallest size in percent of table width allowed by automatic calculation before giving an error
  */
-#define MIN_CALCULATED_PERCENT_CELL_WIDTH 2.0
+#define HPDFTBL_MIN_CALCULATED_PERCENT_CELL_WIDTH 2.0
 
 /**
  * @brief Convert cm to dots using the default resolution (72 DPI)
@@ -127,6 +180,25 @@ extern "C" {
  * @return HPDF_REAL Converted value in dots
  */
 #define hpdftbl_cm2dpi(c) (((HPDF_REAL)(c))/2.54*72)
+
+/**
+ * @brief Call the error handler with specified error code and table row, col where error occured.
+ * @param t Table handler
+ * @param err Error code
+ * @param r Row where error occured
+ * @param c Column where error occured
+ */
+#define _HPDFTBL_SET_ERR(t, err, r, c) do {hpdftbl_err_code=err;hpdftbl_err_row=r;hpdftbl_err_col=c; if(hpdftbl_err_handler){hpdftbl_err_handler(t,r,c,err);}} while(0)
+
+/**
+ * @brief NPE check before using a table handler
+ */
+#define _HPDFTBL_CHK_TABLE(t) do {if(NULL == t) {hpdftbl_err_code=-3;hpdftbl_err_row=-1;hpdftbl_err_col=-1;return -1;}} while(0)
+
+/**
+ * @brief Shortcut to calculate the index in an array from a row,column (table) position.
+ */
+#define _HPDFTBL_IDX(r, c) (r*t->cols+c)
 
 /**
  * @brief Enumeration for horizontal text alignment
@@ -189,16 +261,23 @@ typedef _Bool (*hpdftbl_content_style_callback_t)(void *, size_t, size_t, char *
 
 /**
  * @brief Possible line dash styles for grid lines.
+ *
+ * In the illustration of the patterns "x"=solid and "_"=space.
+ *
+ * For each pattern we show
+ * two full cycles which should give a good visual indication of the different patterns.
  */
 typedef enum hpdftbl_dashstyle {
     LINE_SOLID = 0,              /**< Solid line */
-    LINE_DOT1 = 1,               /**< Dotted line variant 1 */
-    LINE_DOT2 = 2,               /**< Dotted line variant 2 */
-    LINE_DOT3 = 3,               /**< Dotted line variant 3 */
-    LINE_DASH1 = 4,              /**< Dashed line variant 1 */
-    LINE_DASH2 = 5,              /**< Dashed line variant 2 */
-    LINE_DASH3 = 6,              /**< Dashed line variant 3 */
-    LINE_DASHDOT = 7             /**< Dashed-dot line variant 1 */
+    LINE_DOT1 = 1,               /**< Dotted line variant 1 "x_x_x_" */
+    LINE_DOT2 = 2,               /**< Dotted line variant 2 "x__x__x__" */
+    LINE_DOT3 = 3,               /**< Dotted line variant 3 "x___x___x___" */
+    LINE_DASH1 = 4,              /**< Dashed line variant 1 "xx__xx__xx__" */
+    LINE_DASH2 = 5,              /**< Dashed line variant 2 "xx___xx___xx___" */
+    LINE_DASH3 = 6,              /**< Dashed line variant 3 "xxxx__xxxx__xxxx__" */
+    LINE_DASH4 = 7,              /**< Dashed line variant 4 "xxxx____xxxx____xxxx____" */
+    LINE_DASHDOT1 = 8,           /**< Dashed-dot line variant 1 "xxxxx__xx__xxxxx__xx__xxxxx__xx__" */
+    LINE_DASHDOT2 = 9            /**< Dashed-dot line variant 1 "xxxxxxx___xxx___xxxxxxx___xxx___xxxxxxx___xxx___" */
 } hpdftbl_line_dashstyle_t;
 
 /**
@@ -284,6 +363,10 @@ struct hpdftbl {
     HPDF_REAL posy;
     /** Table height. If specified as 0 then the height will be automatically calculated */
     HPDF_REAL height;
+    /** Minimum table height. If specified as 0 it has no effect */
+    HPDF_REAL minheight;
+    /** The content text bottom margin as a factor of the fontsize */
+    HPDF_REAL bottom_vmargin_factor;
     /** Table width */
     HPDF_REAL width;
     /** Optional tag used in callbacks. This can be used to identify the table or add any reference needed by a particular application  */
@@ -433,13 +516,13 @@ typedef struct hpdftbl_spec {
  */
 typedef struct hpdftbl_theme {
     /** Content text style */
-    hpdf_text_style_t *content_style;
+    hpdf_text_style_t content_style;
     /** Label text style */
-    hpdf_text_style_t *label_style;
+    hpdf_text_style_t label_style;
     /** Header text style */
-    hpdf_text_style_t *header_style;
+    hpdf_text_style_t header_style;
     /** Table title text style */
-    hpdf_text_style_t *title_style;
+    hpdf_text_style_t title_style;
     /** Table outer border style */
     hpdftbl_grid_style_t outer_border;
     /** Flag if cell labels should be used  */
@@ -536,6 +619,13 @@ hpdftbl_destroy_theme(hpdftbl_theme_t *theme);
 /*
  * Table layout adjusting functions
  */
+
+void
+hpdftbl_set_bottom_vmargin_bottom(hpdftbl_t t, HPDF_REAL f);
+
+int
+hpdftbl_set_min_rowheight(hpdftbl_t t, float h);
+
 int
 hpdftbl_set_colwidth_percent(hpdftbl_t t, size_t c, float w);
 

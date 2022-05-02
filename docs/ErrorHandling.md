@@ -15,7 +15,8 @@ if( hpdftbl_set_colwidth_percent(tbl, 5, 110) ) {
 }
 ```
 
-As can be seen from the snippet above it would yield quite longwinding error handling if one where to check every soingle library call. Instead there is the option of installing an error handler that would be called in the eent of an error.
+As can be seen from the snippet above it would yield quite longwinding error handling if one where to check every single library call. 
+Instead, there is the option of installing an error handler that would be called in the event of an error.
 
 The table error handle has the signature
 
@@ -43,9 +44,9 @@ my_table_error_handler(hpdftbl_t t, int r, int c, int err) {
 }
 ```
 In the above error handler we have made use of the utility function `hpdftbl_get_errstr()` that translates the
-internal error code to a human readable string. 
+internal error code to a human-readable string. 
 
-In fact this exact error handler is available as a convinience in the librry under the name `hpdftbl_default_table_error_handler` so to use this trivial error handler just add the following line to your code
+In fact this exact error handler is available as a convenience in the library under the name `hpdftbl_default_table_error_handler` so to use this trivial error handler just add the following line to your code
 
 ```c
 hpdftbl_set_errhandler(hpdftbl_default_table_error_handler);
@@ -75,7 +76,7 @@ static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *use
 ```
 
 It is then up to the application code to decide how to handle the error. To simplify the handling of core HPDF error the
-library also offer a convinience function to translate the Haru library error code into a human readable string. This function 
+library also offer a convenience function to translate the Haru library error code into a human-readable string. This function 
 is
 
 ```c

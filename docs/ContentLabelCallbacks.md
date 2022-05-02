@@ -21,7 +21,7 @@ my_cell_cb(void *tag, size_t row, size_t col) { ... }
 
 The parameters in the callback are
 
-1. **`tag`**: Since a callback sometimes must know from what table or in what circumstances it is called it is possible to add a "tag" to ech table. This could be something as simple as pointer to a numeric identifier that uniquely identifies the table or perhaps a pointer to some function that retrives data for this particular table. The `tag` for a table is specified with the `hpdftbl_set_tag()` function.
+1. **`tag`**: Since a callback sometimes must know from what table or in what circumstances it is called it is possible to add a "tag" to ech table. This could be something as simple as pointer to a numeric identifier that uniquely identifies the table or perhaps a pointer to some function that retrieves data for this particular table. The `tag` for a table is specified with the `hpdftbl_set_tag()` function.
  When the callback is made this table tag is provided as the first argument. 
 
 
@@ -31,7 +31,9 @@ The parameters in the callback are
 3. **`col`**: The cell column
 
 
-It is possible to specify a callback to adjust content, style, and labels. A callback function can be specfied either for both the entire table as well as individual cells. The API to specify these callbacks are:
+It is possible to specify a callback to adjust content, style, and labels. 
+A callback function can be specified either for both the entire table or for individual cells. 
+The API to specify these callbacks are:
 
 1. `hpdftbl_set_content_cb()`:  
    Specify a content callback for the entire table.   
@@ -99,7 +101,7 @@ static char * cb_labels(void *tag, size_t r, size_t c) {
 
 We note that we ignore the tag argument. Since we only have one table there is no need to use a tag to different from which table a callback comes.
 
-For the table structure we will re-use our previous example and create a 2x2 table and we get the following table creation code:
+For the table structure we will re-use our previous example and create a 2x2 table, and we get the following table creation code:
 
 ```c
 void

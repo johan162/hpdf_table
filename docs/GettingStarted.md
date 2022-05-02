@@ -12,7 +12,7 @@ that you are familiar with the plain Haru PDF library**.
 ## Creating a PDF page infrastructure
 Before we start creating a
 table we need to setup a plain PDF page with the core HPDF library. The HPDF library 
-has excellent documentation on how to do this and we will use the same simple setup for 
+has excellent documentation on how to do this, and we will use the same simple setup for 
 all our examples. We will create a document in A4 size that have one page. For this
 we use a few utility functions and our `main()` will always have the following structure:
 
@@ -36,7 +36,8 @@ main(int argc, char **argv) {
 }
 ```
 
-In the Appendix you can find the full code for the setup and troke function. They are very basic and follows the standard hpdf library methoddology. The `setup_hpdf()` creates a new document and a A4 page and the `stroke_pdfdoc()` strokes the document to the given output file.
+In the example directory ou can find the full code for the setup and stroke function in for example @ref tut_ex01.c "tut_ex01.c" 
+They are very basic and follows the standard hpdf library methodology. The `setup_hpdf()` creates a new document and a A4 page and the `stroke_pdfdoc()` strokes the document to the given output file.
 
 In the following we will focus only on the `create_table_<NAME_OF_EXAMPLE>()` function which 
 will use the two parameters `pdf_doc` and `pdf_page` to refer to the document and page to
@@ -47,7 +48,7 @@ some conditional compile instructions are also used but we will not display them
 the basic usage to keep the focus on what matters. 
 
 The full source for all example are available in the `examples/` directory as well as in the 
-@ref Examples "Examples" section of this manul.
+@ref Examples "Examples" section of this manual.
 
 &nbsp;
 
@@ -87,7 +88,7 @@ Here we note that:
 
 Now its time to size and position the the table on the page. As a minimum you must specify the `x` and `y` position as well as the width of the table. The library is smart enough to automatically figure out the height (but it is also possible to force a larger height than strictly necessary)
 
-The native coordiante system for PDF pages are given as the printing unit of DPI or *dots per inch*. By default the resolution of a PDF is 72 DPI. 
+The native coordiante system for PDF pages are given as the printing unit of DPI or *dots per inch*. By default, the resolution of a PDF is 72 DPI. 
 
 To make it easier to directly set the size and position in centimeters a convenience function `hpdftbl_cm2dpi()` can be used. 
 
@@ -164,7 +165,7 @@ The function to do just that is
 hpdftbl_set_content(hpdftbl_t tbl, char **content)
 ```
 
-The content data is a 1-dimensional array of string pointers. Where ecah row is consecutive in the array. For example to create dummy data indicating what array position goes into what cell you could use the following setup:
+The content data is a 1-dimensional array of string pointers. Where each row is consecutive in the array. For example to create dummy data indicating what array position goes into what cell you could use the following setup:
 
 ```C
 typedef char **content_t;
@@ -215,7 +216,7 @@ Running the code above in our infrastructure will give
 
 In the above (small) example it might not have been a big safe but if you have a table with 20x10 rows * cols then you will soon appreciate this way of specifying data. 
 
-There is even one more way of specifying data that in some situations are more efficient and allows a clear division between the table structure and look&feel and its data. This more efficient way is achieved by using cell callbacks either directly in individual cells or in one go by specifying the entire table as a data structure by using the `hpdftbl_stroke_from_data()` function. This will be decribed later when we discuss how to use callback functions.
+There is even one more way of specifying data that in some situations are more efficient and allows a clear division between the table structure and look&feel and its data. This more efficient way is achieved by using cell callbacks either directly in individual cells or in one go by specifying the entire table as a data structure by using the `hpdftbl_stroke_from_data()` function. This will be described later when we discuss how to use callback functions.
 
 But now it is time to explain the `NULL` value in the first example when we specified the content with the `hpdftbl_set_cell()` function.
 

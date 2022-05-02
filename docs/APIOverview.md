@@ -76,6 +76,12 @@ Adjusting the structure of the table (apart from number of rows and columns)
  - hpdftbl_set_colwidth_percent()
    *Set the column width as a percentage of the entire table width.*
 
+ - hpdftbl_set_min_rowheight()
+   *Specify the minimum row height in points*
+
+ - hpdftbl_set_bottom_vmargin_bottom()
+   *Specfy the bottom margin for content as a fraction of the specified fontsize*
+
  - hpdftbl_set_cellspan()
    *Define a cell to span multiple rows and columns."
 

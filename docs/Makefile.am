@@ -1,5 +1,5 @@
 DOC_FILES = APIOverview.md \
-            CellAndRowApnning.md \
+            CellAndRowSpanning.md \
             ErrorHandling.md \
             GettingStarted.md \
             UsingWidgets.md \
@@ -14,7 +14,11 @@ SRC_FILES = ../src/hpdftbl.c \
             ../src/hpdftbl.h \
             ../src/hpdftbl_grid.c \
             ../src/hpdftbl_widget.c \
-            ../src/hpdftbl_errstr.c
+            ../src/hpdftbl_errstr.c \
+            ../scripts/bootstrap.sh \
+            ../scripts/stdbld.sh \
+            ../scripts/dbgbld.sh \
+            ../scripts/docupload.sh.in
 
 if have_doxygen
 

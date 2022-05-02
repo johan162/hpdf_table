@@ -21,32 +21,6 @@ will be shown.
 
 Depending on your system this might also be available as a pre-built package for you to install directly via perhaps `apt`on Linux or `brew` on OSX. 
 
-### Compiling after cloning the git repo
-
-The repo does not include any generated files as the tar-ball does. This means that the following build tools
-needs to be setup in order to rebuild from a cloned repo. 
-
-1. A complete set of GNU compiler chain (or on OSX clang)
-2. An installation of the autotools (autoconf, automake, libtool)
-3. An installation of Doxygen (to generate documentation)
-
-If these three pre-requisites are installed then the build environment is bootstrapped by running
-
-```shell
-$ ./scripts/bootstrap.sh
-```
-
-and then continue to compile the library
-
-```shell
-$ make
-```
-
-and (optionally) install the library
-
-```shell
-$ make install
-```
 
 
 ## Pre-requisites
@@ -60,7 +34,7 @@ There are two external libraries required to rebuild libhpdftbl and more importa
 2. **iconv** - The character encoding conversion library. On OSX > 11.x this is included by default once you have `xcode` command line tools installed which is basically a pre-requisite required for all development on OSX.  
 *(On really old versions of OSX this was not the case.)*
 
-## Different versions of iconv on OSX
+### Different versions of iconv on OSX
 
 Unfortunately there are two main versions of `libiconv` readily available for OSX which are incompatible as one uses the prefix "`iconv_*`" and the other "`libiconv_*`" on its exported functions. Compiling `libhpdftbl` requires the first of these which is the prevelant version and the default on both OSX and Linux.
 
@@ -113,38 +87,53 @@ There are two levels of rebuilding the library
 
 2. Rebuilding from a cloned repo and rebuild the build environment
 
-### Rebuilding using a existing build environment
+### Rebuilding using av existing build environment
 
-Rebuilding the library using a pre-configured build environment only requires `gcc` and `make` together with the standard C/C++ libraries to be installed.
+Rebuilding the library using a pre-configured build environment only requires `gcc` and `make`
+together with the standard C/C++ libraries to be installed.
 
-The library source with suitable build-environments are distributed as a tar-ball
+The library source with suitable build-environment is distributed as a tar-ball
 
 1. libhpdf-src-x.y.z.tar.gz
 
-This tar-ball include a build environment constructed with the GNU autotools. This means that after downloading the tar-ball you can rebuild the library as so:
+This tar-ball include a build environment constructed with the GNU autotools. 
+This means that after downloading the tar-ball you can rebuild the library as so:
 
 ```shell
 $> ./configure && make
 ... (output from the configuration and build omitted) ...
 ```
 
-@note: The git repo do not have a build environment setup.
+and then (optionally) install the library
 
+```shell
+$ make install
+```
 
-### Rebuilding from the cloned repo
+### Rebuilding from a cloned repo
 
-Rebuilding from the cloned repo requires the GNU autotools tool-chain to be installed. Since it is completely out of the scope 
-to decribe the intricacies
-of the GNU autotools we will only show what to do assuming this tool chain have been installed.
+@note This is for experienced developers!
 
-To simplify the potentially painful bootstrap of creating a full autotools environment a utility script that does this is 
-provided in the form of "`scripts/bootstrap.sh`". After cloning the repo run (from the `libhpdftbl` directory)
+The repo does not include any of the generated files as the tar-ball does. This means that the following build tools
+needs to be setup in order to fully rebuild from a cloned repo.
+
+1. A complete set of GNU compiler chain (or on OSX clang)
+2. the [GNU autotools](https://www.wikiwand.com/en/GNU_Autotools) (autoconf, automake, libtool)
+3. [Doxygen](https://www.doxygen.nl/manual/index.html) in order to rebuild the documentation
+
+Since it is completely out of the scope to describe the intricacies
+of the GNU autotools we will only show what to do assuming this tool chain have already been installed.
+
+To simplify the potentially painful bootstrap of creating a full autotools environment from the cloned
+repo a utility script that does this is  provided in the form of `scripts/bootstrap.sh`. After cloning the 
+repo run (from the `libhpdftbl` directory)
 
 ```
 ./scripts/bootstrap.sh
 ```
 
-This script will now run `autoreconf`, `automake`, `glibtoolize` as needed in order to create a full build environment. It will also run `configure` and if everything works as expected the last lines you will see (on OSX) will be
+This script will now run `autoreconf`, `automake`, `glibtoolize` as needed in order to create a full build environment. 
+It will also run `configure` and if everything works as expected the last lines you will see (on OSX) will be
 
 ```shell
 ...
@@ -158,7 +147,7 @@ configure:   - Installing to /usr/local
 configure: --------------------------------------------------------------------------------
 ```
 
-The final step you need to do is compile the library as so
+The final step you need to do is compile the library 
 
 ```shell
 $> make
@@ -173,7 +162,7 @@ Sending to file "/tmp/example01.pdf" ...
 Done.
 ```
 
-If you would like to install the library make the install target
+If you would like to install the library make the `install` target
 
 ```shell
 $> make install
@@ -181,14 +170,66 @@ $> make install
 
 This will install headers and library under "`/usr/local`" (unless the prefix was changed when running the `configure`)
 
+## Miscellaneous 
 
-## Some notes on Windows build
+### Some notes on Compiling for debugging
 
-The source files are suitable augmented to also compile on MS Windows with selective defines. However, since I have no access to a Windows system to verify the workings this is left as an exercise to the reader.
+Since the library builds with `libtool` and this tool will generate a wrapper shell script for each example to
+load the, not yet installed, library it also means this "executable" shell script cannot directly be used to debug with
+for example `gdb`. 
 
-## Using C or C++ to build
+The solution for this is to configure the library to only build static libraries which are directly linked
+with the example binaries and as such can be debugged as usual. This configuration is done with:
 
-The source files are also suitable augmented to compile on both a C and a C++ compiler. However, the default build environment is setup for a pure C library build. To add a configuration switch for this would be the sensible way to handle this. This is not done and again, is left as an exercise for the reader.
+```shell
+$> ./configure --enable-debug --disable-shared
+```
+
+After this all the examples will be statically linked and can be debugged as usual
+
+An alternative way (as recommended in the 
+[libtool manual](https://www.gnu.org/software/libtool/manual/html_node/Debugging-executables.html))
+is to launch the debugger with:
+
+```shell
+$> libtool --mode=execute gdb <example program>
+```
+
+As a convenience a script is provided to handle the debug build configuration scripts/dbgbld.sh
+
+
+### Some notes on updating the documentation
+
+By design the documentation is not updated by the default make target in order minimize the build time during
+development. To rebuild the *html* documentation build the target
+
+```shell
+$> make html
+```
+
+and to rebuild the *PDF* version build the target
+
+```shell
+$> make pdf
+```
+
+@warning There is a shell script scripts/docupload.sh.in that the author (i.e. me!) uses to upload the
+HTML and PDF documentation to the Github pages of the author. For obvious reason this script will 
+not work for anyone else since it requires write access to the doc repo (through a SSL certificate).
+
+
+### Some notes on Windows build
+
+The source files are suitable augmented to also compile on MS Windows with selective defines. However, since 
+I have no longer access to a Windows system to verify the workings this is left as an exercise to the reader. 
+Hence this should be considered as a best effort
+
+### Some notes on using C or C++ to build
+
+The source files are also suitable augmented to compile on both a C and a C++ compiler. However, 
+the default build environment is setup for a pure C library build. To add a configuration switch for 
+this would be the sensible way to handle this. This is not done and again, is left as an exercise 
+for the reader.
 
 
 

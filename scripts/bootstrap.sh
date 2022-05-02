@@ -1,15 +1,23 @@
 #!/usr/bin/env bash
-# Script to both bootstrap the autoconf/automake environment as well as clean it to pristine shape
-# See LICENSE file. (c) 2022 Johan Persson <johan162@gmail.com>
+## @file
+## @brief Bootstrap the autotools environment and configure a build setup.
+##
+## @note This must be run when the source have been obtained by cloning the repo and
+## requires a full installation of GNU autotools as a pre-requisite.
+##
+##  **Usage:**
+##
+##  bootstrap.sh [-q] [-h]
+##
+##  -c          : Clean **all** generated files. This is equivalent with cloning from the repo.<br>
+##  -q          : Quiet <br>
+##  -h          : Print help and exit
+##
+## See LICENSE file. (C) 2022 Johan Persson <johan162@gmail.com>
 set -u
 
-# Find out if we are running from the script directory
-# or from the parent directory
-if [ -f "bootstrap.sh" ]; then
-    pdir="../"
-else
-    pdir="./"
-fi
+## The original directory from where this script is run
+declare -s ORIG_DIR="${PWD}"
 
 # Print usage
 # Arg 1: name of script
@@ -35,6 +43,14 @@ errlog() {
     [ $quiet_flag -eq 0 ] && printf "***ERROR***: %s\n" "$1" >&2
 }
 
+# Figure out the basedir
+setupbasedir() {
+    # Sanity check to check if script is rung from top directory or one below
+    [ -d "src" ] && PACKAGE_BASEDIR="${PWD}"
+    [ -d "../src" ]  &&  PACKAGE_BASEDIR="${PWD}/.."
+    [ -z ${PACKAGE_BASEDIR} ] && errlog "Please run from package top directory" && exit 1
+}
+
 # Check that this environment have autotools && libtool installed
 chk_pre() {
     if ! command -v glibtool > /dev/null 2>&1  || ! command -v glibtoolize > /dev/null 2>&1 \
@@ -47,11 +63,11 @@ chk_pre() {
 # Delete all files that can be regenerated
 really_clean() {
     declare files="ar-lib compile depcomp install-sh missing aclocal.m4 Makefile.in src/Makefile.in examples/Makefile.in configure autom4te.cache ltmain.sh libtool m4 config.guess config.sub config.log config.status"
-    if [ -e "${pdir}Makefile" ]; then
-        cd "${pdir}" && make maintainer-clean > /dev/null 2>&1
+    if [ -e "${PACKAGE_BASEDIR}Makefile" ]; then
+        cd "${PACKAGE_BASEDIR}" && make maintainer-clean > /dev/null 2>&1
     fi
     for val in ${files}; do
-        [ -e "${pdir}${val}" ] && rm -rf "${pdir}${val}"
+        [ -e "${PACKAGE_BASEDIR}${val}" ] && rm -rf "${PACKAGE_BASEDIR}${val}"
     done
     rm -f *.gz *.xz
 }
@@ -59,21 +75,21 @@ really_clean() {
 
 # Bootstrap autoconf/automake environment
 bootstrap() {
-    if [ -f "${pdir}compile" -a -f "${pdir}install-sh" -a -f "${pdir}aclocal.m4" -a -f "${pdir}missing" -a -f "${pdir}libtool" ]; then
+    if [ -f "${PACKAGE_BASEDIR}compile" -a -f "${PACKAGE_BASEDIR}install-sh" -a -f "${PACKAGE_BASEDIR}aclocal.m4" -a -f "${PACKAGE_BASEDIR}missing" -a -f "${PACKAGE_BASEDIR}libtool" ]; then
         infolog "automake -a has already been run so only run autoreconf and configure"
-        cd "${pdir}" && autoreconf && ./configure
+        cd "${PACKAGE_BASEDIR}" && autoreconf && ./configure
     else
         infolog  "Need to add the missing standard automake files"
         infolog "Running 'autoreconf' .. "
-        cd "${pdir}" && autoreconf  > /dev/null 2>&1
+        cd "${PACKAGE_BASEDIR}" && autoreconf  > /dev/null 2>&1
         infolog "Running 'automake -ac' .. "
-        cd "${pdir}" && automake -ac > /dev/null 2>&1
+        cd "${PACKAGE_BASEDIR}" && automake -ac > /dev/null 2>&1
         infolog "Running 'glibtoolize -ci' .. "
-        cd "${pdir}" && glibtoolize -ic > /dev/null 2>&1
+        cd "${PACKAGE_BASEDIR}" && glibtoolize -ic > /dev/null 2>&1
         infolog "Running 'autoreconf' .. "
-        cd "${pdir}" && autoreconf  > /dev/null 2>&1
+        cd "${PACKAGE_BASEDIR}" && autoreconf  > /dev/null 2>&1
         infolog "configure .. "
-        cd "${pdir}" && ./configure
+        cd "${PACKAGE_BASEDIR}" && ./configure CFLAGS="-O3"
     fi
 }
 
@@ -99,6 +115,9 @@ while [[ $OPTIND -le "$#" ]]; do
         esac
     fi
 done
+
+# Setup the directory we are running from
+setupbasedir
 
 # Make sure autotools && libtool are installed
 chk_pre

@@ -1,24 +1,64 @@
 #!/usr/bin/env bash
-# Upload the generated documentation to the github pages doc site.
-#
-# See LICENSE file. (c) 2022 Johan Persson <johan162@gmail.com>
+## @file
+## @brief  Upload the generated documentation to the github pages doc site
+## for the author
+##
+## @note This file is used to generate the actual runnable
+## script via autoconf (e.g. AC_OUTPUT) as part of the configuration.
+##
+##  **Usage:**
+##
+##  docupload.sh [-q] [-h]
+##
+##  -q          : Quiet <br>
+##  -h          : Print help and exit
+##
+## See LICENSE file. (C) 2022 Johan Persson <johan162@gmail.com>
 set -u
 
-# This is the user for which to upload the docs to.
-GITHUB_USER="johan162"
+## @brief Specifies the user for github.
+##
+## This user name dictates the path
+## to the repo as well as the github pages site. The default value here `johan162`
+## corresponds to the authors github account and as such this script will not work
+## without modification for anyone else since the github repos do not have world write
+## permissions.
+declare -s GITHUB_USER="johan162"
 
-PACKAGE_NAME="@PACKAGE_NAME@"
-VERSION="@VERSION@"
-DOCVERSION="v${VERSION}"
-PDFNAME="${PACKAGE_NAME}-${VERSION}.pdf"
-COMMIT_MESSAGE="Documentation update for ${PACKAGE_NAME} ${DOCVERSION}"
-GITHUB_PAGES_URL="git@github.com:${GITHUB_USER}/${GITHUB_USER}.github.io.git"
-GITHUB_PAGES_REPO="${GITHUB_USER}.github.io"
+## @brief Specifies the package name. Used to construct the PDF name for the manual.
+declare -s PACKAGE_NAME="@PACKAGE_NAME@"
 
-HTMLDIR_COPY="/docs/out/html"
-PDFFILE_COPY="/docs/out/latex/refman.pdf"
+## @brief Defines the version number.
+declare -s VERSION="@VERSION@"
 
-ORIG_DIR="${PWD}"
+## @brief The variant of the version number used for documentation
+declare -s DOCVERSION="v${VERSION}"
+
+## @brief The full PDF name.
+declare -s PDFNAME="${PACKAGE_NAME}-${VERSION}.pdf"
+
+## @brief The git commit message for the doc update.
+declare -s COMMIT_MESSAGE="Documentation update for ${PACKAGE_NAME} ${DOCVERSION}"
+
+## @brief The full URL for the github pages.
+declare -s GITHUB_PAGES_URL="git@github.com:${GITHUB_USER}/${GITHUB_USER}.github.io.git"
+
+## @brief The repo that corresponds to these pages.
+declare -s GITHUB_PAGES_REPO="${GITHUB_USER}.github.io"
+
+## @brief The directory of HTML files to copy to the github pages.
+declare -s HTMLDIR_COPY="/docs/out/html"
+
+## @brief The PDF file to copy to the github pages.
+##
+## Note that the name is fixed by Doxygen to `refman.pdf`
+## and is renamed to PDFNAME in the copying process.
+declare -s PDFFILE_COPY="/docs/out/latex/refman.pdf"
+
+## The original directory from where this script is run.
+declare -s ORIG_DIR="${PWD}"
+
+# Don't make modifications beyond this point
 
 quiet_flag=0
 # User information
@@ -36,7 +76,7 @@ errlog() {
 # Print usage
 # Arg 1: name of script
 usage() {
-    echo "Update documentaion on github pages for libhpdftbl"
+    echo "Update documentation on github pages for libhpdftbl"
     echo "Usage:"
     echo "\$ $1 [-q]"
     echo "-q          : Quiet"

@@ -14,18 +14,33 @@ INPUT                  = ../src \
 						 Intro.md \
                          Building.md \
                          GettingStarted.md \
-                         CellAndRowApnning.md \
+                         CellAndRowSpanning.md \
                          ContentLabelCallbacks.md \
                          ErrorHandling.md \
                          FontAndStyle.md \
                          TablesFromData.md \
                          UsingWidgets.md \
-                         APIOverview.md
+                         APIOverview.md \
+                         ../scripts/bootstrap.sh \
+                         ../scripts/dbgbld.sh \
+                         ../scripts/stdbld.sh \
+                         ../scripts/docupload.sh.in
+
+
 RECURSIVE              = NO
 EXAMPLE_PATH           = ../examples
 EXAMPLE_PATTERNS       = *.c
 IMAGE_PATH             = screenshots
 USE_MDFILE_AS_MAINPAGE = Intro.md
+
+# -----------------------------
+# Input filter to make trivial parsing of shell scripts
+# -----------------------------
+#FILTER_PATTERNS = *.sh="sed -e 's|##|//!|'"
+FILTER_PATTERNS = *.sh="/Users/ljp/Devel/hpdf_table/docs/doxygen-bash.sed" *.in="/Users/ljp/Devel/hpdf_table/docs/doxygen-bash.sed"
+#FILTER_SOURCE_FILES = NO
+EXTENSION_MAPPING = sh=C++ in=C++
+# sed -n -f /path/to/doxygen-bash.sed --
 
 # -----------------------------
 # Extra config
