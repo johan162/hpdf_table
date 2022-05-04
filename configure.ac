@@ -3,7 +3,7 @@
 # Use scripts/bootstrap.sh to bootstrap the build environment
 # ===============================================================================
 AC_PREREQ([2.69])
-AC_INIT([libhpdftbl],[1.0.0],[johan162@gmail.com])
+AC_INIT([libhpdftbl],[1.0.1-wip],[johan162@gmail.com])
 AC_COPYRIGHT([Part of configure script Copyright 2022 Johan Persson <johan162@gmail.com>])
 AC_PREFIX_DEFAULT(/usr/local)
 AM_INIT_AUTOMAKE([dist-xz silent-rules])
@@ -14,13 +14,17 @@ LT_INIT
 AC_CONFIG_MACRO_DIRS([m4])
 
 AC_CONFIG_FILES([
+scripts/docupload.sh
+examples/verify.sh
 Makefile
 src/Makefile
 examples/Makefile
 docs/Makefile
 docs/Doxyfile
-scripts/docupload.sh
 ])
+
+# The AC_OUTPUT strips files of the x mode so we need to restore it
+AC_CONFIG_COMMANDS([set-xmode], [chmod +x examples/verify.sh scripts/docupload.sh])
 
 SYSTEM_NAME=`uname -s`
 

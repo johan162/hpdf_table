@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# @configure_input@
+## @file
+## @brief Run all the example as test and compare generated PDFs against correct PDFs.
+##
+## Usage:
+## $> check-local [-q|-h|-r]"
+## -h          : Print help and exit
+## -q          : Quiet
+## -r          : Reset tests with new generated PDF
+
+declare -i quiet_flag=0
+# User information
+# Arg 1: Info text to display
+infolog() {
+    [ $quiet_flag -eq 0 ] && printf "Info: %s\n" "$1"
+}
+
+# User information
+# Arg 1: Info text to display
+errlog() {
+    [ $quiet_flag -eq 0 ] && printf "***ERROR***: %s\n" "$1" >&2
+}
+
+# Print usage
+# Arg 1: name of script
+usage() {
+    echo "Run auto-tests for libhpdftbl"
+    echo "Usage:"
+    echo "\$ $1 [-q|-h|-r]"
+    echo "-h          : Print help and exit "
+    echo "-q          : Quiet"
+    echo "-r          : Reset tests generated PDF"
+}
+
+check_rundir() {
+  # Verify that we are running from the examples directory
+  parent_dir=${PWD##*/}
+  [ ! "$parent_dir" == examples ] && echo "Script must be run from examples directory" && exit 1
+}
+
+# Remove old aand reset tests with latest generated PDFs
+reset_tests() {
+  rm -rf tests out
+  mkdir tests
+  infolog "Resetting test data ..."
+  for f in *.c; do
+    prog=${f%%.c}
+    outfile="@srcdir@/tests/${f%%.c}.pdf"
+    ./${prog} "$outfile" > /dev/null
+    if [ $? -ne 0 ]; then
+      errlog "${prog} failed to run"
+    fi
+  done
+}
+
+# Run all programs and stor the output in "out/" and then compare
+# the newly generated PDFs with the previous "correct" PDFs in
+# tests.
+cmp_outputs() {
+  rm -rf out
+  mkdir out
+  declare -i success=1
+  declare -i cnt=0
+  declare -i passcnt=0
+
+  for f in @srcdir@/*.c; do
+    cnt=$((cnt+1))
+    ff=${f##*/}
+    prog=${ff%%.c}
+    outfile="out/${prog}.pdf"
+    "./$prog" "$outfile" > /dev/null
+    if [ $? -ne 0 ]; then
+      errlog "${prog} failed to run"
+      success=0
+    else
+      tstfile="@srcdir@/tests/${prog}.pdf"
+      diff "$outfile" "$tstfile" > /dev/null
+      if [ $? -eq 0 ]; then
+        infolog "PASS: ${prog}"
+        passcnt=$((passcnt+1))
+      else
+        errlog "FAIL: ${prog}"
+        success=0
+      fi
+    fi
+  done
+  infolog "================================="
+  if [ $success -eq 1 ]; then
+    infolog "SUCCESS! $passcnt/$cnt tests passed."
+  else
+    errlog "FAIL! $passcnt/$cnt tests passed."
+  fi
+  infolog "================================="
+}
+
+# Validate current working dir
+check_rundir
+
+# Parse options and run program
+while [[ $OPTIND -le "$#" ]]; do
+    if getopts chr option; then
+        case $option in
+        r)
+            reset_tests
+            exit 0
+            ;;
+        h)
+            usage "$(basename $0)"
+            exit 0
+            ;;
+        q)
+            quiet_flag=1
+            ;;
+        [?])
+            usage "$(basename $0)"
+            exit 1
+            ;;
+        esac
+    fi
+done
+
+# Compare generated files with previous saved correct outputs
+cmp_outputs
+

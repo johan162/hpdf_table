@@ -7,6 +7,8 @@
 #include <string.h>
 #if !(defined _WIN32 || defined __WIN32__)
 #include <unistd.h>
+#include <libgen.h>
+#include <sys/stat.h>
 #endif
 #include <hpdf.h>
 #include <math.h>
@@ -14,20 +16,13 @@
 #include <time.h>
 #if !(defined _WIN32 || defined __WIN32__)
 #include <sys/utsname.h>
+#include <libgen.h>
+#include <sys/stat.h>
+
 #endif
 
 // This include should always be used
 #include "../src/hpdftbl.h"
-
-// The output after running the program will be written to this file
-#ifdef _WIN32
-#define OUTPUT_FILE "tut_ex01.pdf"
-#else
-#define OUTPUT_FILE "/tmp/tut_ex01.pdf"
-#endif
-#define TRUE 1
-#define FALSE 0
-
 
 
 // For simulated exception handling
@@ -121,11 +116,24 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+
+
     setup_hpdf(&pdf_doc, &pdf_page, FALSE);
 
     create_table_ex01(pdf_doc, pdf_page);
-    
-    stroke_pdfdoc(pdf_doc, OUTPUT_FILE);
+
+    if ( 2==argc ) {
+        struct stat sb;
+        if (stat(dirname(argv[1]), &sb) == 0 && S_ISDIR(sb.st_mode)) {
+            stroke_pdfdoc(pdf_doc, argv[1]);
+            return EXIT_SUCCESS;
+        }
+    }
+
+    char fname[255];
+    snprintf(fname, sizeof fname, "out/%s.pdf", basename(argv[0]));
+    stroke_pdfdoc(pdf_doc, fname);
+
     return EXIT_SUCCESS;
 }
 

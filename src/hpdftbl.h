@@ -81,6 +81,41 @@ extern int hpdftbl_err_col ;
 #define HPDF_FF_COURIER_BOLDITALIC "Courier-BoldOblique"
 
 
+
+#ifdef __cplusplus
+/**
+ * @brief Utility macro to create a HPDF color constant from integer RGB values
+ */
+#define _TO_HPDF_RGB(r, g, b) \
+    { r / 255.0f, g / 255.0f, b / 255.0f }
+#else
+/**
+ * @brief Utility macro to create a HPDF color constant from integer RGB values
+ */
+#define _TO_HPDF_RGB(r, g, b) \
+    (HPDF_RGBColor) { r / 255.0f, g / 255.0f, b / 255.0f }
+#endif
+
+#ifdef __cplusplus
+
+#define HPDF_COLOR_DARK_RED      { 0.6f, 0.0f, 0.0f }
+#define HPDF_COLOR_RED           { 1.0f, 0.0f, 0.0f }
+#define HPDF_COLOR_LIGHT_GREEN   { 0.9f, 1.0f, 0.9f }
+#define HPDF_COLOR_GREEN         { 0.4f, 0.9f, 0.4f }
+#define HPDF_COLOR_DARK_GREEN    { 0.05f, 0.37f, 0.02f }
+#define HPDF_COLOR_DARK_GRAY     { 0.2f, 0.2f, 0.2f }
+#define HPDF_COLOR_LIGHT_GRAY    { 0.9f, 0.9f, 0.9f }
+#define HPDF_COLOR_XLIGHT_GRAY   { 0.95f, 0.95f, 0.95f }
+#define HPDF_COLOR_GRAY          { 0.5f, 0.5f, 0.5f }
+#define HPDF_COLOR_SILVER        { 0.75f, 0.75f, 0.75f }
+#define HPDF_COLOR_LIGHT_BLUE    { 1.0f, 1.0f, 0.9f }
+#define HPDF_COLOR_BLUE          { 0.0f, 0.0f, 1.0f }
+#define HPDF_COLOR_DARK_BLUE     { 0.0f, 0.0f, 0.6f }
+#define HPDF_COLOR_WHITE         { 1.0f, 1.0f, 1.0f }
+#define HPDF_COLOR_BLACK         { 0.0f, 0.0f, 0.0f }
+
+#else
+
 #define HPDF_COLOR_DARK_RED      (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
 #define HPDF_COLOR_RED           (HPDF_RGBColor) { 1.0f, 0.0f, 0.0f }
 #define HPDF_COLOR_LIGHT_GREEN   (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
@@ -88,6 +123,7 @@ extern int hpdftbl_err_col ;
 #define HPDF_COLOR_DARK_GREEN    (HPDF_RGBColor) { 0.05f, 0.37f, 0.02f }
 #define HPDF_COLOR_DARK_GRAY     (HPDF_RGBColor) { 0.2f, 0.2f, 0.2f }
 #define HPDF_COLOR_LIGHT_GRAY    (HPDF_RGBColor) { 0.9f, 0.9f, 0.9f }
+#define HPDF_COLOR_XLIGHT_GRAY   (HPDF_RGBColor) { 0.95f, 0.95f, 0.95f }
 #define HPDF_COLOR_GRAY          (HPDF_RGBColor) { 0.5f, 0.5f, 0.5f }
 #define HPDF_COLOR_SILVER        (HPDF_RGBColor) { 0.75f, 0.75f, 0.75f }
 #define HPDF_COLOR_LIGHT_BLUE    (HPDF_RGBColor) { 1.0f, 1.0f, 0.9f }
@@ -95,6 +131,11 @@ extern int hpdftbl_err_col ;
 #define HPDF_COLOR_DARK_BLUE     (HPDF_RGBColor) { 0.0f, 0.0f, 0.6f }
 #define HPDF_COLOR_WHITE         (HPDF_RGBColor) { 1.0f, 1.0f, 1.0f }
 #define HPDF_COLOR_BLACK         (HPDF_RGBColor) { 0.0f, 0.0f, 0.0f }
+
+#endif
+
+#define HPDF_COLOR_ORANGE              _TO_HPDF_RGB(0xF5, 0xD0, 0x98);
+#define HPDF_COLOR_ALMOST_BLACK        _TO_HPDF_RGB(0x14, 0x14, 0x14);
 
 /**
  * @brief The margin from the bottom of the cell to the baseline of the text is calculated
@@ -176,7 +217,7 @@ extern int hpdftbl_err_col ;
 /**
  * @brief Convert cm to dots using the default resolution (72 DPI)
  *
- * @param cm Measure in cm
+ * @param c Measure in cm
  * @return HPDF_REAL Converted value in dots
  */
 #define hpdftbl_cm2dpi(c) (((HPDF_REAL)(c))/2.54*72)
@@ -232,7 +273,7 @@ typedef struct text_style {
  * The content callback is used to specify the textual content in a cell and is an alternative
  * method to specifying the content to be displayed.
  *
- * @see hpdftbl_set_content_callback()
+ * @see hpdftbl_set_content_cb()
  */
 typedef char *(*hpdftbl_content_callback_t)(void *, size_t, size_t);
 
@@ -243,7 +284,7 @@ typedef char *(*hpdftbl_content_callback_t)(void *, size_t, size_t);
  * callback will be given the bounding box for the cell (x,y,width,height) in addition to the
  * row and column the cell has.
  *
- * @see hpdftbl_set_canvas_callback()
+ * @see hpdftbl_set_canvas_cb()
  */
 typedef void (*hpdftbl_canvas_callback_t)(HPDF_Doc, HPDF_Page, void *, size_t, size_t, HPDF_REAL, HPDF_REAL, HPDF_REAL,
                                           HPDF_REAL);
@@ -254,7 +295,7 @@ typedef void (*hpdftbl_canvas_callback_t)(HPDF_Doc, HPDF_Page, void *, size_t, s
  * The content callback is used to specify the textual style in a cell and is an alternative
  * method to specifying the style of content to be displayed.
  *
- * @see hpdftbl_set_content_style_callback()
+ * @see hpdftbl_set_content_style_cb()
  *
  */
 typedef _Bool (*hpdftbl_content_style_callback_t)(void *, size_t, size_t, char *content, hpdf_text_style_t *);
@@ -405,12 +446,18 @@ struct hpdftbl {
     hpdftbl_grid_style_t inner_hgrid;
     /** Table inner horizontal top border settings, if width>0 this takes precedence over the generic horizontal and inner horizontal border */
     hpdftbl_grid_style_t inner_tgrid;
-    /** Use alternating background color on every second line TRUE or FALSE. Defaults to FALSE. */
+    /** Use alternating background color on every second line TRUE or FALSE. Defaults to FALSE.
+     * @see hpdftbl_set_zebra()
+     */
     _Bool use_zebra;
-    /** First zebra color. @see use_zebra */
-    HPDF_RGBColor zebra1_color;
-    /** Second zebra color. @see use_zebra */
-    HPDF_RGBColor zebra2_color;
+    /** Determine if we start with color1 (phase=0) or start with color2 (phase=1)
+     * @see hpdftbl_set_zebra()
+     */
+    int zebra_phase;
+    /** First zebra color. @see hpdftbl_set_zebra_color() */
+    HPDF_RGBColor zebra_color1;
+    /** Second zebra color. @see hpdftbl_set_zebra_color() */
+    HPDF_RGBColor zebra_color2;
     /** User specified column width array as fraction of the table width. Defaults to equ-width */
     float *col_width_percent;
 };
@@ -539,10 +586,14 @@ typedef struct hpdftbl_theme {
     hpdftbl_grid_style_t inner_tborder;
     /** Use alternating background color on every second line TRUE or FALSE. Defaults to FALSE. */
     _Bool use_zebra;
-    /** First zebra color. @see use_zebra */
-    HPDF_RGBColor zebra1_color;
-    /** Second zebra color. @see use_zebra */
-    HPDF_RGBColor zebra2_color;
+    /** Start with color1 or color2 */
+    int zebra_phase;
+    /** First zebra color. */
+    HPDF_RGBColor zebra_color1;
+    /** Second zebra color.  */
+    HPDF_RGBColor zebra_color2;
+    /** Specify the vertical margin factor */
+    HPDF_REAL bottom_vmargin_factor;
 } hpdftbl_theme_t;
 
 /**
@@ -621,7 +672,7 @@ hpdftbl_destroy_theme(hpdftbl_theme_t *theme);
  */
 
 void
-hpdftbl_set_bottom_vmargin_bottom(hpdftbl_t t, HPDF_REAL f);
+hpdftbl_set_bottom_vmargin_factor(hpdftbl_t t, HPDF_REAL f);
 
 int
 hpdftbl_set_min_rowheight(hpdftbl_t t, float h);
@@ -638,6 +689,12 @@ hpdftbl_set_cellspan(hpdftbl_t t, size_t r, size_t c, size_t rowspan, size_t col
 /*
  * Table style handling functions
  */
+int
+hpdftbl_set_zebra(hpdftbl_t t, _Bool use, int phase);
+
+int
+hpdftbl_set_zebra_color(hpdftbl_t t, HPDF_RGBColor z1,  HPDF_RGBColor z2);
+
 int
 hpdftbl_use_labels(hpdftbl_t t, _Bool use);
 

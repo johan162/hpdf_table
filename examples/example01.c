@@ -1,17 +1,5 @@
-/*
- * Example on how to use the hpdftbl module to facilitate the creation of
- * structured tables with Haru PF library. 
- *
- * So on OSX Compile this with:
- *
- *  gcc --std=c99 -lm -lhpdf -liconv example01.c
- *
- * However, it is usually a good idea to enable as many compiler warnings as
- * possible so the recommended way to compile is:
- *
- *  gcc --std=c99 -Wall -Wpedantic -Wextra -Wpointer-arith -lm -lhpdf -liconv example01.c
- *
- *  Adjust as needed for other environments
+/**
+ * @file tut_ex01.c
  */
 
 #include <stdio.h>
@@ -28,6 +16,8 @@
 #include <math.h>
 #include <setjmp.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <libgen.h>
 
 #if !(defined _WIN32 || defined __WIN32__)
 
@@ -44,64 +34,10 @@
 #else
 #define OUTPUT_FILE "/tmp/example01.pdf"
 #endif
-#define TRUE 1
-#define FALSE 0
 
-// Utility macro to create a HPDF color constant from integer RGB values
-#ifdef __cplusplus
-#define _TO_HPDF_RGB(r, g, b) \
-    (HPDF_RGBColor) { r / 255.0f, g / 255.0f, b / 255.0f }
-#else
-#define _TO_HPDF_RGB(r, g, b) \
-    { r / 255.0f, g / 255.0f, b / 255.0f }
-#endif
-/**
- * Color constants
- */
-#ifdef __cplusplus
 
-#define HPDF_COLOR_DARK_RED \
-    { 0.6f, 0.0f, 0.0f }
-#define HPDF_COLOR_LIGHT_GREEN \
-    { 0.9f, 1.0f, 0.9f }
-#define HPDF_COLOR_DARK_GRAY \
-    { 0.2f, 0.2f, 0.2f }
-#define HPDF_COLOR_LIGHT_GRAY \
-    { 0.9f, 0.9f, 0.9f }
-#define HPDF_COLOR_GRAY \
-    { 0.5f, 0.5f, 0.5f }
-#define HPDF_COLOR_LIGHT_BLUE \
-    { 1.0f, 1.0f, 0.9f }
-#define HPDF_COLOR_WHITE \
-    { 1.0f, 1.0f, 1.0f }
-#define HPDF_COLOR_BLACK \
-    { 0.0f, 0.0f, 0.0f }
-
-#else
-
-#define COLOR_DARK_RED \
-    (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
-#define COLOR_LIGHT_GREEN \
-    (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
-#define COLOR_GREEN \
-    (HPDF_RGBColor) { 0.4f, 0.9f, 0.4f }
-#define COLOR_DARK_GRAY \
-    (HPDF_RGBColor) { 0.2f, 0.2f, 0.2f }
-#define COLOR_LIGHT_GRAY \
-    (HPDF_RGBColor) { 0.9f, 0.9f, 0.9f }
-#define COLOR_GRAY \
-    (HPDF_RGBColor) { 0.5f, 0.5f, 0.5f }
-#define COLOR_LIGHT_BLUE \
-    (HPDF_RGBColor) { 1.0f, 1.0f, 0.9f }
-#define COLOR_WHITE \
-    (HPDF_RGBColor) { 1.0f, 1.0f, 1.0f }
-#define COLOR_BLACK \
-    (HPDF_RGBColor) { 0.0f, 0.0f, 0.0f }
-
-#endif
-
-#define COLOR_ORANGE _TO_HPDF_RGB(0xF5, 0xD0, 0x98);
-#define COLOR_ALMOST_BLACK _TO_HPDF_RGB(0x14, 0x14, 0x14);
+// For the case when we use this example as a unit/integration test
+_Bool static_date = FALSE;
 
 // For simulated exception handling
 jmp_buf env;
@@ -149,7 +85,7 @@ setup_dummy_data(void) {
 #endif
 
 // A standard hpdf error handler which also translates the hpdf error code to a
-// human readable string
+// human-readable string
 static void
 error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no,
               void *user_data) {
@@ -192,9 +128,13 @@ cb_name(void *tag, size_t r, size_t c) {
 static char *
 cb_date(void *tag, size_t r, size_t c) {
     static char buf[64];
-    time_t t = time(NULL);
-    ctime_r(&t, buf);
-    return buf;
+    if ( ! static_date ) {
+        time_t t = time(NULL);
+        ctime_r(&t, buf);
+        return buf;
+    } else {
+        return "Wed May 4 19:01:01 2022";
+    }
 }
 
 /**
@@ -377,14 +317,17 @@ add_a4page(void) {
     HPDF_Page_SetSize(pdf_page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
 }
 
-// Stroke the generated PDF to a fil
-static void
-stroke_page_tofile(void) {
-    if (HPDF_OK != HPDF_SaveToFile(pdf_doc, OUTPUT_FILE)) {
+
+void
+stroke_pdfdoc(char *file) {
+    printf("Sending to file \"%s\" ...\n", file);
+    if (HPDF_OK != HPDF_SaveToFile(pdf_doc, file)) {
         fprintf(stderr, "ERROR: Cannot save to file!");
     }
     HPDF_Free(pdf_doc);
+    printf("Done.\n");
 }
+
 
 /**
  * Table 1 example - Basic table with default settings
@@ -538,8 +481,8 @@ ex_tbl4(void) {
     hpdftbl_set_title_halign(t, CENTER);
 
     // Set the top left and bottom right with orange bg_color
-    const HPDF_RGBColor content_bg_color = COLOR_ORANGE;
-    const HPDF_RGBColor content_text_color = COLOR_ALMOST_BLACK;
+    const HPDF_RGBColor content_bg_color = HPDF_COLOR_ORANGE;
+    const HPDF_RGBColor content_text_color = HPDF_COLOR_ALMOST_BLACK;
     hpdftbl_set_cell_content_style(t, 0, 0, HPDF_FF_COURIER_BOLD, 10,
                                    content_text_color, content_bg_color);
     hpdftbl_set_cell_content_style(t, 4, 3, HPDF_FF_COURIER_BOLD, 10,
@@ -676,6 +619,11 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    // For the case when we use this example as a unit/integration test we need to
+    // look down a static date since we cannot compare otherwise since the date
+    // strings will be different.
+    static_date = 2==argc ;
+
     // Get some dummy data to fill the table§
     setup_dummy_data();
 
@@ -691,10 +639,15 @@ main(int argc, char **argv) {
         (*examples[i])();
     }
 
-    printf("Sending to file \"%s\" ...\n", OUTPUT_FILE);
-    stroke_page_tofile();
-    printf("Done.\n");
+    if ( 2==argc ) {
+        struct stat sb;
+        if (stat(dirname(argv[1]), &sb) == 0 && S_ISDIR(sb.st_mode)) {
+            stroke_pdfdoc(argv[1]);
+            return EXIT_SUCCESS;
+        }
+    }
 
+    stroke_pdfdoc( OUTPUT_FILE);
     return (EXIT_SUCCESS);
 }
 

@@ -27,7 +27,8 @@ of the table from the actual data in the table.
 
 ## Some Examples
 
-@note All code examples can be found in the "`examples/`" directory and are thoroughly introduced over the following chapters.
+@note All code examples can be found in the `examples/` directory (and in section [Examples](examples.html)) 
+and are thoroughly introduced over the following chapters.
 
 ### Example 1 - Plain table with cell labels  
 

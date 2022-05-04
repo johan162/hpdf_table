@@ -79,7 +79,7 @@ Adjusting the structure of the table (apart from number of rows and columns)
  - hpdftbl_set_min_rowheight()
    *Specify the minimum row height in points*
 
- - hpdftbl_set_bottom_vmargin_bottom()
+ - hpdftbl_set_bottom_vmargin_factor()
    *Specfy the bottom margin for content as a fraction of the specified fontsize*
 
  - hpdftbl_set_cellspan()

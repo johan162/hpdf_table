@@ -1,5 +1,5 @@
 /**
- * @file tut_ex20.c
+ * @file
  */
 
 
@@ -25,6 +25,9 @@
 // This include should always be used
 #include "../src/hpdftbl.h"
 
+// For the case when we use this example as a unit/integration test
+_Bool static_date = FALSE;
+
 // For simulated exception handling
 jmp_buf env;
 
@@ -32,6 +35,7 @@ jmp_buf env;
 // Silent gcc about unused "arg" in the callback and error functions
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
 
 // A standard hpdf error handler which also translates the hpdf error code to a
@@ -43,55 +47,45 @@ static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no,
     longjmp(env, 1);
 }
 
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
-
 typedef char **content_t;
 
-void setup_dummy_data(content_t *content, content_t *labels, size_t rows, size_t cols) {
+void setup_dummy_data(content_t *content, size_t rows, size_t cols) {
     char buff[255];
     *content = calloc(rows*cols, sizeof(char*));
-    *labels = calloc(rows*cols, sizeof(char*));
     size_t cnt = 0;
     for (size_t r = 0; r < rows; r++) {
         for (size_t c = 0; c < cols; c++) {
             snprintf(buff, sizeof(buff), "Content %zu", cnt);
             (*content)[cnt] = strdup(buff);
-            snprintf(buff, sizeof(buff), "Label %zu", cnt);
-            (*labels)[cnt] = strdup(buff);
             cnt++;
         }
     }
 }
 
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+
 /**
- * Table example - Style on vertical/horizontal grid lines
+ * Table 15 example - Table with zebra row coloring
  */
 void
-create_table_ex20(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
-    const size_t num_rows = 5;
-    const size_t num_cols = 4;
+create_table_ex15(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
+    const size_t num_rows = 7;
+    const size_t num_cols = 5;
 
     hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
-    content_t content, labels;
 
-    setup_dummy_data(&content, &labels, num_rows, num_cols);
+    content_t content;
+    setup_dummy_data(&content, num_rows, num_cols);
     hpdftbl_set_content(tbl, content);
-    hpdftbl_set_labels(tbl, labels);
-    
-    hpdftbl_use_labels(tbl, FALSE);
-    hpdftbl_use_labelgrid(tbl, TRUE);
-    hpdftbl_use_header(tbl, FALSE);
+    //hpdftbl_use_header(tbl, TRUE);
 
-    hpdftbl_set_inner_vgrid_style(tbl, 0.7, HPDF_COLOR_DARK_GRAY, LINE_SOLID);
-    hpdftbl_set_inner_hgrid_style(tbl, 0.8, HPDF_COLOR_GRAY, LINE_DOT1);
-    hpdftbl_set_inner_tgrid_style(tbl, 1.5, HPDF_COLOR_BLACK, LINE_SOLID);
-    hpdftbl_set_outer_grid_style(tbl, 1.5, HPDF_COLOR_BLACK, LINE_SOLID);
+    hpdftbl_set_zebra(tbl, TRUE, 0);
 
     HPDF_REAL xpos = hpdftbl_cm2dpi(1);
     HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
-    HPDF_REAL width = hpdftbl_cm2dpi(10);
+    HPDF_REAL width = hpdftbl_cm2dpi(18);
     HPDF_REAL height = 0;  // Calculate height automatically
 
     // Stroke the table to the page
@@ -123,7 +117,7 @@ stroke_pdfdoc(HPDF_Doc pdf_doc, char *file) {
 }
 
 #ifndef _MSC_VER
-// Silent gcc about unused "arg"
+// Silent gcc about unused "arg" in the callback and error functions
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
@@ -139,9 +133,14 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    // For the case when we use this example as a unit/integration test we need to
+    // look down a static date since we cannot compare otherwise since the date
+    // strings will be different.
+    static_date = 2==argc ;
+
     setup_hpdf(&pdf_doc, &pdf_page, FALSE);
 
-    create_table_ex20(pdf_doc, pdf_page);
+    create_table_ex15(pdf_doc, pdf_page);
 
     if ( 2==argc ) {
         struct stat sb;

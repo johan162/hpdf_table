@@ -285,7 +285,7 @@ The default font styles for the default theme are shown in table 1.
 
 There are four distinct set of grid lines as far as the library is concerned. 
 
-1. The outer gridline (or border) around the table, and
+1. The outer gridlines (or border) around the table, and
 2. The inner vertical grid line 
 3. The inner horizontal grid line
 4. The inner top grid line (not the outer border!)
@@ -369,3 +369,100 @@ and when run will result in the following table:
 @image html screenshots/tut_ex20.png
 
 @image latex screenshots/tut_ex20.png width=8cm
+
+## Adding zebra lines in a table
+
+A common way to make it easier to read a table is to make every other row a different color. 
+This is sometimes known as zebra lines (or rows). This can be easily accomplished in the
+library by using the functions
+
+```c
+int
+hpdftbl_set_zebra(hpdftbl_t t, _Bool use, int phase);
+
+int
+hpdftbl_set_zebra_color(hpdftbl_t t, HPDF_RGBColor z1,  HPDF_RGBColor z2);
+```
+
+The first function is used to enable/disable row coloring and the second to set the first
+and second color. The `phase` parameter determines if color 1 is used first or is color 2
+is used on the first row. Setting phase tom0 will make the first row use color 1 as background.
+
+The default color are white and light gray. The following example 
+( @ref tut_ex15.c "tut_ex15.c" ) shows how this can be
+done:
+
+```c
+void
+create_table_ex15(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
+    const size_t num_rows = 7;
+    const size_t num_cols = 5;
+
+    hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
+
+    content_t content;
+    setup_dummy_data(&content, num_rows, num_cols);
+    hpdftbl_set_content(tbl, content);
+
+    hpdftbl_set_zebra(tbl, TRUE, 1);
+
+    HPDF_REAL xpos = hpdftbl_cm2dpi(1);
+    HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
+    HPDF_REAL width = hpdftbl_cm2dpi(18);
+    HPDF_REAL height = 0;  // Calculate height automatically
+
+    // Stroke the table to the page
+    hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
+}
+```
+
+Running this example will give the following result
+
+@ref tut_ex15.c "tut_ex15.c"
+
+@image html screenshots/tut_ex15.png
+@image latex screenshots/tut_ex15.png width=15cm
+
+We can make a small modification by setting `phase` = 1 (instead of the default 0) to start
+with color2. In addition, we can adjust the inner horizontal gridlines to have the same 
+extra light gray as the zebra line making them "invisible" by modifying the table setup as 
+follows (@ref tut_ex15_1.c "tut_ex15_1.c").
+
+```c
+void
+create_table_ex15(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
+    const size_t num_rows = 7;
+    const size_t num_cols = 5;
+
+    hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
+
+    content_t content;
+    setup_dummy_data(&content, num_rows, num_cols);
+    hpdftbl_set_content(tbl, content);
+    //hpdftbl_use_header(tbl, TRUE);
+
+    hpdftbl_set_zebra(tbl, TRUE, 1);
+
+    // Normal inner line (same color as default Zebra to make them "invisible"
+    hpdftbl_set_inner_hgrid_style(tbl, 0.5, HPDF_COLOR_XLIGHT_GRAY,LINE_SOLID );
+
+    // Top inner line. Comment this line to get a visible top line
+    hpdftbl_set_inner_tgrid_style(tbl, 0.5, HPDF_COLOR_XLIGHT_GRAY,LINE_SOLID );
+
+    HPDF_REAL xpos = hpdftbl_cm2dpi(1);
+    HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
+    HPDF_REAL width = hpdftbl_cm2dpi(18);
+    HPDF_REAL height = 0;  // Calculate height automatically
+
+    // Stroke the table to the page
+    hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
+}
+```
+
+Running this gives the following result:
+
+@ref tut_ex15_1.c "tut_ex15_1.c"
+
+@image html screenshots/tut_ex15_1.png
+@image latex screenshots/tut_ex15_1.png width=15cm
+

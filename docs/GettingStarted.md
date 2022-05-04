@@ -1,8 +1,8 @@
 # Getting started
 
-In this section we will introduce you to the basic usage of the 
+In this section we will introduce the basic usage of the 
 `hpdftbl` library. We will start simple and work us all the way to
-complex tables and exaplin what is happening as we go along.
+complex tables and explain what is happening as we go along.
 
 We will not assume any knowledge of the table library but **we will assume
 that you are familiar with the plain Haru PDF library**.
@@ -11,7 +11,7 @@ that you are familiar with the plain Haru PDF library**.
 
 ## Creating a PDF page infrastructure
 Before we start creating a
-table we need to setup a plain PDF page with the core HPDF library. The HPDF library 
+table we need to set up a plain PDF page with the core HPDF library. The HPDF library 
 has excellent documentation on how to do this, and we will use the same simple setup for 
 all our examples. We will create a document in A4 size that have one page. For this
 we use a few utility functions and our `main()` will always have the following structure:
@@ -36,8 +36,10 @@ main(int argc, char **argv) {
 }
 ```
 
-In the example directory ou can find the full code for the setup and stroke function in for example @ref tut_ex01.c "tut_ex01.c" 
-They are very basic and follows the standard hpdf library methodology. The `setup_hpdf()` creates a new document and a A4 page and the `stroke_pdfdoc()` strokes the document to the given output file.
+In the `examples` directory the full source code for the setup and stroke function can be found
+in all the tutorial examples, for example @ref tut_ex01.c "tut_ex01.c".
+They are very basic and follows the standard hpdf library methodology. The `setup_hpdf()` 
+creates a new document and one A4 page and the `stroke_pdfdoc()` strokes the document to the given output file.
 
 In the following we will focus only on the `create_table_<NAME_OF_EXAMPLE>()` function which 
 will use the two parameters `pdf_doc` and `pdf_page` to refer to the document and page to
@@ -48,7 +50,7 @@ some conditional compile instructions are also used but we will not display them
 the basic usage to keep the focus on what matters. 
 
 The full source for all example are available in the `examples/` directory as well as in the 
-@ref Examples "Examples" section of this manual.
+@ref examples "Examples" section of this manual.
 
 &nbsp;
 
@@ -68,10 +70,12 @@ hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
 
 Here we note that:
 - The size of the table has to be determined before the table handle is created
-- Most other table function will refer to this handle and we will always use the varaiable name `tbl` for this handle
-- We use `size_t` instead of `int` since the table dimension is a size and as such can never be negative. In C it is alwyas good practice to use `size_t` for positive numeric entities.
+- Most other table function will refer to this handle and we will always use the variable name `tbl` for this handle
+- We use `size_t` instead of `int` since the table dimension is a size and as such can never be negative. In C it is 
+  always good practice to use `size_t` for positive numeric entities.
 
-Once we have the table handle we can start to add content in these cells. For now lets just put a string that indicates the cells position.
+Once we have the table handle we can start to add content in these cells. For now lets just put a string that 
+indicates the cells position.
 
 ```c
 hpdftbl_set_cell(tbl, 0, 0, NULL, "Cell 0x0");
@@ -84,9 +88,9 @@ hpdftbl_set_cell(tbl, 1, 1, NULL, "Cell 1x1");
 
 Here we note that: 
 
-- Cells are refered to starting from the top left cell that is cell (0x0)
+- Cells are referred to starting from the top left cell that is cell (0x0)
 
-Now its time to size and position the the table on the page. As a minimum you must specify the `x` and `y` position as well as the width of the table. The library is smart enough to automatically figure out the height (but it is also possible to force a larger height than strictly necessary)
+Now its time to size and position the table on the page. As a minimum you must specify the `x` and `y` position as well as the width of the table. The library is smart enough to automatically figure out the height (but it is also possible to force a larger height than strictly necessary)
 
 The native coordiante system for PDF pages are given as the printing unit of DPI or *dots per inch*. By default, the resolution of a PDF is 72 DPI. 
 

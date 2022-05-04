@@ -44,15 +44,62 @@
 
 /* Default styles */
 #ifdef __cplusplus
-#define HPDFTBL_DEFAULT_TITLE_STYLE			{HPDF_FF_HELVETICA_BOLD,11,{0,0,0},{0.9,0.9,0.9}, LEFT}
-#define HPDFTBL_DEFAULT_HEADER_STYLE		{HPDF_FF_HELVETICA_BOLD,10,{0.2,0,0},{0.9,0.9,0.97}, CENTER}
-#define HPDFTBL_DEFAULT_LABEL_STYLE			{HPDF_FF_TIMES_ITALIC,9,{0.4,0.4,0.4},{1,1,1}, LEFT}
-#define HPDFTBL_DEFAULT_CONTENT_STYLE		{HPDF_FF_COURIER,10,{0.2,0.2,0.2},{1,1,1}, LEFT}
-#define HPDFTBL_DEFAULT_INNER_GRID_STYLE	{0.7, {0.5,0.5,0.5}, hpdftbl_line_dashstyle_t(0)}
-#define HPDFTBL_DEFAULT_INNER_VGRID_STYLE {0,   {0.5f,0.5f,0.5f}, hpdftbl_line_dashstyle_t(0)}
-#define HPDFTBL_DEFAULT_INNER_HGRID_STYLE {0,   {0.5f,0.5f,0.5f}, hpdftbl_line_dashstyle_t(0)}
-#define hpdftbl_DEFAULT_OUTER_BORDER_STYLE	{1.0, {0.2,0.2,0.2}, hpdftbl_line_dashstyle_t(0)}
+
+/**
+ * @brief Default style for table title
+ */
+#define HPDFTBL_DEFAULT_TITLE_STYLE {HPDF_FF_HELVETICA_BOLD,11,{0,0,0},{0.9f,0.9f,0.9f}, LEFT}
+
+/**
+ * @brief Default style for table header row
+ * @see hpdftbl_set_header_style()
+ */
+#define HPDFTBL_DEFAULT_HEADER_STYLE {HPDF_FF_HELVETICA_BOLD,10,{0,0,0},{0.9f,0.9f,0.97f}, CENTER}
+
+/**
+ * @brief Default style for table header row
+ * @see hpdftbl_set_label_style()
+ */
+#define HPDFTBL_DEFAULT_LABEL_STYLE {HPDF_FF_TIMES_ITALIC,9,{0.4f,0.4f,0.4f},{1,1,1}, LEFT}
+
+/**
+ * @brief Default style for table header row
+ * @see hpdftbl_set_content_style()
+ */
+#define HPDFTBL_DEFAULT_CONTENT_STYLE {HPDF_FF_COURIER,10,{0.2f,0.2f,0.2f},{1,1,1}, LEFT}
+
+/**
+ * @brief Default style for table vertical inner grid
+ * @see hpdftbl_set_inner_vgrid_style()
+ */
+#define HPDFTBL_DEFAULT_INNER_VGRID_STYLE {0.7, {0.5f,0.5f,0.5f},hpdftbl_line_dashstyle_t(0)}
+
+/**
+ * @brief Default style for table horizontal inner grid
+ * @see hpdftbl_set_inner_hgrid_style()
+ */
+#define HPDFTBL_DEFAULT_INNER_HGRID_STYLE {0.7, {0.5f,0.5f,0.5f},hpdftbl_line_dashstyle_t(0)}
+
+/**
+ * @brief Default style for table outer grid (border)
+ * @see hpdftbl_set_outer_grid_style()
+ */
+#define HPDFTBL_DEFAULT_OUTER_GRID_STYLE {1.0f, {0.2f,0.2f,0.2f},hpdftbl_line_dashstyle_t(0)}
+
+/**
+ * @brief Default style for alternating row backgrounds color 1
+ * @todo Implement zebra table coloring
+ */
+#define HPDFTBL_DEFAULT_ZEBRA_COLOR1 {1.0f,1.0f,1.0f}
+
+/**
+ * @brief Default style for alternating row backgrounds color 2
+ * @todo Implement zebra table coloring
+ */
+#define HPDFTBL_DEFAULT_ZEBRA_COLOR2 {0.95f,0.95f,0.95f}
+
 #else
+
 /**
  * @brief Default style for table title
  */
@@ -98,13 +145,13 @@
  * @brief Default style for alternating row backgrounds color 1
  * @todo Implement zebra table coloring
  */
-#define HPDFTBL_DEFAULT_ZEBRA1_COLOR (HPDF_RGBColor){1.0f,1.0f,1.0f}
+#define HPDFTBL_DEFAULT_ZEBRA_COLOR1    HPDF_COLOR_WHITE
 
 /**
  * @brief Default style for alternating row backgrounds color 2
  * @todo Implement zebra table coloring
  */
-#define HPDFTBL_DEFAULT_ZEBRA2_COLOR (HPDF_RGBColor){0.95f,0.95f,0.95f}
+#define HPDFTBL_DEFAULT_ZEBRA_COLOR2    HPDF_COLOR_XLIGHT_GRAY
 #endif
 
 #ifdef _MSC_VER
@@ -140,6 +187,9 @@ hpdftbl_apply_theme(hpdftbl_t t, hpdftbl_theme_t *theme) {
         hpdftbl_set_inner_hgrid_style(t, theme->inner_hborder.width, theme->inner_hborder.color, theme->inner_hborder.line_dashstyle);
         hpdftbl_set_inner_tgrid_style(t, theme->inner_tborder.width, theme->inner_tborder.color, theme->inner_tborder.line_dashstyle);
         hpdftbl_set_outer_grid_style(t, theme->outer_border.width, theme->outer_border.color, theme->outer_border.line_dashstyle);
+        hpdftbl_set_zebra(t, theme->use_zebra, theme->zebra_phase);
+        hpdftbl_set_zebra_color(t, theme->zebra_color1, theme->zebra_color2);
+        hpdftbl_set_bottom_vmargin_factor(t, theme->bottom_vmargin_factor);
         return 0;
     }
     _HPDFTBL_SET_ERR(t, -9, -1, -1);
@@ -164,32 +214,34 @@ hpdftbl_get_default_theme(void) {
 #ifdef __cplusplus
     hpdftbl_theme_t *t = static_cast<hpdftbl_theme_t*>(calloc(1,sizeof(hpdftbl_theme_t)));
 #else
-    hpdftbl_theme_t *t = calloc(1, sizeof(hpdftbl_theme_t));
+    hpdftbl_theme_t *theme = calloc(1, sizeof(hpdftbl_theme_t));
 #endif
-    if (NULL == t) {
+    if (NULL == theme) {
         _HPDFTBL_SET_ERR(NULL, -5, -1, -1);
         return NULL;
     }
 
     // Disable labels and label short style grid by default
-    t->use_labels = FALSE;
-    t->use_label_grid_style = FALSE;
-    t->use_header_row = FALSE;
+    theme->use_labels = FALSE;
+    theme->use_label_grid_style = FALSE;
+    theme->use_header_row = FALSE;
 
-    t->title_style = HPDFTBL_DEFAULT_TITLE_STYLE;
-    t->header_style = HPDFTBL_DEFAULT_HEADER_STYLE;
-    t->label_style = HPDFTBL_DEFAULT_LABEL_STYLE;
-    t->content_style = HPDFTBL_DEFAULT_CONTENT_STYLE;
-    t->outer_border = HPDFTBL_DEFAULT_OUTER_GRID_STYLE;
-    t->inner_vborder = HPDFTBL_DEFAULT_INNER_VGRID_STYLE;
-    t->inner_hborder = HPDFTBL_DEFAULT_INNER_HGRID_STYLE;
-    t->inner_tborder = HPDFTBL_DEFAULT_INNER_HGRID_STYLE;
+    theme->title_style = HPDFTBL_DEFAULT_TITLE_STYLE;
+    theme->header_style = HPDFTBL_DEFAULT_HEADER_STYLE;
+    theme->label_style = HPDFTBL_DEFAULT_LABEL_STYLE;
+    theme->content_style = HPDFTBL_DEFAULT_CONTENT_STYLE;
+    theme->outer_border = HPDFTBL_DEFAULT_OUTER_GRID_STYLE;
+    theme->inner_vborder = HPDFTBL_DEFAULT_INNER_VGRID_STYLE;
+    theme->inner_hborder = HPDFTBL_DEFAULT_INNER_HGRID_STYLE;
+    theme->inner_tborder = HPDFTBL_DEFAULT_INNER_HGRID_STYLE;
 
-    t->use_zebra = FALSE;
-    t->zebra1_color = HPDFTBL_DEFAULT_ZEBRA1_COLOR;
-    t->zebra2_color = HPDFTBL_DEFAULT_ZEBRA1_COLOR;
+    theme->use_zebra = FALSE;
+    theme->zebra_color1 = HPDFTBL_DEFAULT_ZEBRA_COLOR1;
+    theme->zebra_color2 = HPDFTBL_DEFAULT_ZEBRA_COLOR2;
+    theme->zebra_phase = 0;
+    theme->bottom_vmargin_factor = DEFAULT_AUTO_VBOTTOM_MARGIN_FACTOR;
 
-    return t;
+    return theme;
 }
 
 /**

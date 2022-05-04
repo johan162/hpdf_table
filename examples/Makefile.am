@@ -1,10 +1,14 @@
 AM_CFLAGS =  -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes \
 -Wextra -Wshadow -Wno-error=unknown-pragmas -Werror=format -Wformat=2
 
-noinst_bin_PROGRAMS = example01 tut_ex01 tut_ex02 tut_ex02_1 tut_ex03 tut_ex04 tut_ex05 tut_ex06 tut_ex07 tut_ex08 \
-tut_ex09 tut_ex10 tut_ex11 tut_ex12 tut_ex13_1 tut_ex13_2 tut_ex14 tut_ex20
+FILES = example01 tut_ex01 tut_ex02 tut_ex02_1 tut_ex03 tut_ex04 tut_ex05 tut_ex06 tut_ex07 tut_ex08 \
+        tut_ex09 tut_ex10 tut_ex11 tut_ex12 tut_ex13_1 tut_ex13_2 tut_ex14 tut_ex15 tut_ex15_1 tut_ex20
 
+EXTRA_DIST = tests verify.sh
+
+noinst_bin_PROGRAMS = $(FILES)
 noinst_bindir = $(pwd)
+CLEANFILES =*~ $(FILES)
 
 example01_LDADD = ../src/libhpdftbl.la
 example01_DEPENDENCIES= ../src/libhpdftbl.la
@@ -57,8 +61,18 @@ tut_ex13_2_DEPENDENCIES= ../src/libhpdftbl.la
 tut_ex14_LDADD = ../src/libhpdftbl.la
 tut_ex14_DEPENDENCIES= ../src/libhpdftbl.la
 
+tut_ex15_LDADD = ../src/libhpdftbl.la
+tut_ex15_DEPENDENCIES= ../src/libhpdftbl.la
+
+tut_ex15_1_LDADD = ../src/libhpdftbl.la
+tut_ex15_1_DEPENDENCIES= ../src/libhpdftbl.la
+
 tut_ex20_LDADD = ../src/libhpdftbl.la
 tut_ex20_DEPENDENCIES= ../src/libhpdftbl.la
 
-CLEANFILES=*~ example01 tut_ex01 tut_ex02 tut_ex02_1 tut_ex03 tut_ex04 tut_ex05 tut_ex06 tut_ex07 tut_ex08 \
-tut_ex09 tut_ex10 tut_ex11 tut_ex12 tut_ex13_1 tut_ex13_2 tut_ex14 tut_ex20
+check-local:
+	./verify.sh
+
+clean-local:
+	rm -rf out
+

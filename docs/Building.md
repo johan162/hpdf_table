@@ -1,10 +1,10 @@
 # Building the library
 
-## The short version
+## The short version; TL; DR
 
 ### Compiling the tar ball
 
-If you downloaded the tar-ball then it should be trivial to build and install if you have the necessary pre-requisites. Just download the tar-ball and do the standard spell:
+The tar-ball should be trivial to build and install if the necessary @ref pre-req "pre-requisites" are fulfilled.
 
 ```c
 $ tar xzf libhpdftbl-1.0.0.tar.gz
@@ -13,17 +13,19 @@ $ ./configure && make
 $ make install
 ```
 
-If you miss any library the `configure` process will discover this and tell you what you need to install.
-This would otherwise compile and install the library in `/usr/local` subtree. It wil build and install both a static and dynamic library.
+If any libraries are missing the `configure` process will discover this and tell what needs to be installed.
+If successfully, the above commands will compile and install the library in `/usr/local` subtree. 
+It wil build and install both a static and dynamic library
 
 @note By calling `./configure -h` a list of possible options on how the library should be compiled and installed
 will be shown.
 
-Depending on your system this might also be available as a pre-built package for you to install directly via perhaps `apt`on Linux or `brew` on OSX. 
+Depending on the system there might also be pre-built binary packages available for install directly 
+via `apt`on Linux or `brew` on OSX. 
 
 
 
-## Pre-requisites
+## Pre-requisites {#pre-req}
 
 @note OSX Package manager: We recommend using `brew` as the package manager for OSX.
 
@@ -94,21 +96,36 @@ together with the standard C/C++ libraries to be installed.
 
 The library source with suitable build-environment is distributed as a tar-ball
 
-1. libhpdf-src-x.y.z.tar.gz
+1. libhpdftbl-x.y.z.tar.gz
 
 This tar-ball include a build environment constructed with the GNU autotools. 
 This means that after downloading the tar-ball you can rebuild the library as so:
 
 ```shell
-$> ./configure && make
+$ tar xzf libhpdftbl-1.0.0.tar.gz
+$ cd libhpdf-1.0.0
+$ ./configure && make
 ... (output from the configuration and build omitted) ...
 ```
 
-and then (optionally) install the library
+and then (optionally) install the library with
 
 ```shell
 $ make install
 ```
+
+By default the library will install under the `/usr/local` but that can be adjusted by using the `--prefix` 
+parameter to `configure`. For example
+
+```shell
+$ tar xzf libhpdftbl-1.0.0.tar.gz
+$ cd libhpdf-1.0.0
+$ ./configure --prefix=/usr && make
+... (output from the configuration and build omitted) ...
+```
+
+Please refer to `configure -h` for other possible configurations.
+
 
 ### Rebuilding from a cloned repo
 
@@ -124,7 +141,7 @@ needs to be setup in order to fully rebuild from a cloned repo.
 Since it is completely out of the scope to describe the intricacies
 of the GNU autotools we will only show what to do assuming this tool chain have already been installed.
 
-To simplify the potentially painful bootstrap of creating a full autotools environment from the cloned
+To simplify the potentially painful (?) bootstrap of creating a full autotools environment from the cloned
 repo a utility script that does this is  provided in the form of `scripts/bootstrap.sh`. After cloning the 
 repo run (from the `libhpdftbl` directory)
 
@@ -147,22 +164,26 @@ configure:   - Installing to /usr/local
 configure: --------------------------------------------------------------------------------
 ```
 
-The final step you need to do is compile the library 
+and then to compile the library 
 
 ```shell
 $> make
 ```
 
-The simplest way to verify that everything works is to execute one of the example programs (in the `examples/` directory) as so:
+The simplest way to verify that everything works is to run the built in unit/integration tests 
 
 ```shell
-$> ./examples/example01
-Stroking 5 examples.
-Sending to file "/tmp/example01.pdf" ...
-Done.
+$> make check
+Info: PASS: tut_ex01
+Info: PASS: tut_ex02
+<omitted ...>
+Info: PASS: tut_ex20
+Info: =================================
+Info: PASS!
+Info: =================================
 ```
 
-If you would like to install the library make the `install` target
+To then install the library 
 
 ```shell
 $> make install
@@ -179,10 +200,12 @@ load the, not yet installed, library it also means this "executable" shell scrip
 for example `gdb`. 
 
 The solution for this is to configure the library to only build static libraries which are directly linked
-with the example binaries and as such can be debugged as usual. This configuration is done with:
+with the example binaries and as such can be debugged as usual. It is also a good idea to disable
+optimization during debugging to make the source better follow the execution while 
+stepping through the code. This configuration is done with:
 
 ```shell
-$> ./configure --enable-debug --disable-shared
+$> ./configure --disable-shared CFLAGS="-O0 -ggdb"
 ```
 
 After this all the examples will be statically linked and can be debugged as usual
@@ -212,6 +235,8 @@ and to rebuild the *PDF* version build the target
 ```shell
 $> make pdf
 ```
+
+The resulting documentations are stored under `docs/out/html` and `docs/out/latex/refman.pdf`
 
 @warning There is a shell script scripts/docupload.sh.in that the author (i.e. me!) uses to upload the
 HTML and PDF documentation to the Github pages of the author. For obvious reason this script will 

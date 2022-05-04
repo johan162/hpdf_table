@@ -1,5 +1,6 @@
 # Config file for Doxygen generated documentation for libhpdftbl
 # Note: This file is used by config.status to create the real Doxyfile
+# @configure_input@
 
 # -----------------------------
 # Core config
@@ -11,7 +12,7 @@ OUTPUT_DIRECTORY       = out
 
 # We need to specify all input files manually in order to get them in the right order.
 INPUT                  = ../src \
-						 Intro.md \
+                         Intro.md \
                          Building.md \
                          GettingStarted.md \
                          CellAndRowSpanning.md \
@@ -59,7 +60,7 @@ AUTOLINK_SUPPORT       = YES
 NUM_PROC_THREADS       = 4
 HIDE_UNDOC_MEMBERS     = NO
 HIDE_UNDOC_CLASSES     = NO
-CASE_SENSE_NAMES       = TES
+CASE_SENSE_NAMES       = YES
 HIDE_SCOPE_NAMES       = YES
 SHOW_INCLUDE_FILES     = YES
 SORT_BRIEF_DOCS        = NO

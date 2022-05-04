@@ -18,11 +18,11 @@
 ## See LICENSE file. (C) 2022 Johan Persson <johan162@gmail.com>
 
 ## The original directory from where this script is run
-declare -s ORIG_DIR="${PWD}"
+declare -r ORIG_DIR="${PWD}"
 
 # Don't make modifications beyond this point
 
-quiet_flag=0
+declare -i quiet_flag=0
 # User information
 # Arg 1: Info text to display
 infolog() {

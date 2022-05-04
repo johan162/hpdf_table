@@ -34,6 +34,8 @@ examples/.libs
 examples/example??
 examples/tut_ex??
 examples/tut_ex??_?
+examples/verify.sh
+examples/out
 doxyconf
 *.swp
 Doxyfile

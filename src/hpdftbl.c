@@ -432,7 +432,7 @@ HPDF_RoundedCornerRectangle(HPDF_Page page, HPDF_REAL xpos, HPDF_REAL ypos, HPDF
  * @param f Bottom margin factor
  */
 void
-hpdftbl_set_bottom_vmargin_bottom(hpdftbl_t t, HPDF_REAL f) {
+hpdftbl_set_bottom_vmargin_factor(hpdftbl_t t, HPDF_REAL f) {
     t->bottom_vmargin_factor = f;
 }
 
@@ -517,8 +517,6 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
             return NULL;
         }
     }
-
-    t->bottom_vmargin_factor = DEFAULT_AUTO_VBOTTOM_MARGIN_FACTOR;
 
     hpdftbl_theme_t *theme = hpdftbl_get_default_theme();
     hpdftbl_apply_theme(t, theme);
@@ -675,6 +673,39 @@ hpdftbl_set_inner_tgrid_style(hpdftbl_t t, HPDF_REAL width, HPDF_RGBColor color,
 }
 
 /**
+ *
+ * @param t     Table handle
+ * @param use   TRUE=Use Zebra, FALSE=Don't use zebra
+ * @param phase 0=Start with color 1, 1=Start with color 1
+ * @return 0 on successes -1 on failure
+ */
+int
+hpdftbl_set_zebra(hpdftbl_t t, _Bool use, int phase) {
+    t->use_zebra = use;
+    t->zebra_phase = phase;
+    return 0;
+}
+
+/**
+ * @brief Specify first and second color for a zebra grid table.
+ *
+ * By default the colors start with `z1` color. To have the top row
+ * (below any potential header row) instead start with z2 specify
+ * `phase=1` in the hpdftbl_set_zebra() function.
+ * @param t   Table handle
+ * @param z1  Color 1
+ * @param z2  Color 2
+ * @return 0 on successes -1 on failure
+ */
+int
+hpdftbl_set_zebra_color(hpdftbl_t t, HPDF_RGBColor z1,  HPDF_RGBColor z2) {
+    t->zebra_color1 = z1;
+    t->zebra_color2 = z2;
+    return 0;
+}
+
+
+/**
  * @brief Specify style for table header row
  *
  * Set the font properties and background for the header row which is the top
@@ -746,7 +777,7 @@ hpdftbl_use_header(hpdftbl_t t, _Bool use) {
 }
 
 /**
- * @bref Enable/Disable the use of cell labels.
+ * @brief Enable/Disable the use of cell labels.
  *
  * By default a newly created
  * table will not use cell labels. Enabling labels will also by default
@@ -1101,7 +1132,7 @@ hpdftbl_set_cell_label_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_callb
  * @param cb Callback function
  * @return -1 on failure, 0 otherwise
  * @see hpdftbl_canvas_callback_t
- * @see hpdftbl_set_canvas_callback
+ * @see hpdftbl_set_canvas_cb()
  */
 int
 hpdftbl_set_cell_canvas_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_canvas_callback_t cb) {
@@ -1155,8 +1186,8 @@ hpdftbl_set_label_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
  * The callback function will receive the Table tag, the row and column,
  * the x, y position of the lower left corner of the table and the width
  * and height of the cell.
- * To set the canvas callback only for a sepcific cell use the
- * hpdftbl_set_cell_canvas_callback() function
+ * To set the canvas callback only for a specific cell use the
+ * hpdftbl_set_cell_canvas_cb() function
  * @param t Table handle
  * @param cb Callback function
  * @return -1 on failure, 0 otherwise
@@ -1836,14 +1867,6 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
         xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) / 2.0f;
     }
 
-    //HPDF_REAL ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.15f;
-    //if (t->use_cell_labels) {
-    //    ypos = t->posy + cell->delta_y + cell->height - t->content_style.fsize * 1.4f;
-    //}
-
-    //_draw_cross( t, t->posx + cell->delta_x + left_right_padding, t->posy + cell->delta_y + t->content_style.fsize * 0.5f, 5);
-    //_draw_cross( t, xpos, ypos, 5)
-
     HPDF_REAL ypos = t->posy + cell->delta_y + t->content_style.fsize * t->bottom_vmargin_factor; //AUTO_VBOTTOM_MARGIN_FACTOR;
 
     if (t->use_header_row && r == 0) {
@@ -1858,14 +1881,6 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
                    left_right_padding;
     }
 
-    //else {
-    //    if (t->use_cell_labels)
-    //        ypos -= (t->label_style.fsize * 1.15f);
-    //}
-//
-    //xpos = t->posx + cell->delta_x + left_right_padding;
-    //ypos = t->posy + cell->delta_y + t->content_style.fsize * 0.5f;
-//
     if (content) {
         HPDF_Page_BeginText(t->pdf_page);
         hpdftbl_encoding_text_out(t->pdf_page, xpos, ypos, content);
@@ -1978,6 +1993,23 @@ hpdftbl_stroke(HPDF_Doc pdf,
                     // If cell has its own style set this will override and we have to stroke the background here
                     HPDF_Page_SetRGBFill(page, cell->content_style.background.r, cell->content_style.background.g,
                                          cell->content_style.background.b);
+                    HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
+                    HPDF_Page_Fill(page);
+                }
+
+                // If we are to use zebra coloring of rows
+                if( t->use_zebra ) {
+                    if ( r % 2 == 0 ) {
+                        if ( 0 == t->zebra_phase )
+                            HPDF_Page_SetRGBFill(page, t->zebra_color1.r, t->zebra_color1.g, t->zebra_color1.b);
+                        else
+                            HPDF_Page_SetRGBFill(page, t->zebra_color2.r, t->zebra_color2.g, t->zebra_color2.b);
+                    } else {
+                        if ( 0 == t->zebra_phase )
+                            HPDF_Page_SetRGBFill(page, t->zebra_color2.r, t->zebra_color2.g, t->zebra_color2.b);
+                        else
+                            HPDF_Page_SetRGBFill(page, t->zebra_color1.r, t->zebra_color1.g, t->zebra_color1.b);
+                    }
                     HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
                     HPDF_Page_Fill(page);
                 }
@@ -2123,9 +2155,15 @@ hpdftbl_stroke(HPDF_Doc pdf,
  * @example tut_ex14.c
  * Defining a table with widgets.
  *
+ * @example tut_ex15.c
+ * Defining a table with zebra lines.
+ *
+ * @example tut_ex15_1.c
+ * Defining a table with zebra lines and different phase.
+ *
  * @example tut_ex20.c
  * Defining a table and adjusting the gridlines.
  *
-
  */
+
 /* EOF */

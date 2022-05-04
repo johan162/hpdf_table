@@ -6,9 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alloca.h>
 #if !(defined _WIN32 || defined __WIN32__)
 #include <unistd.h>
+#include <libgen.h>
+#include <sys/stat.h>
 #endif
 #include <hpdf.h>
 #include <math.h>
@@ -16,21 +17,16 @@
 #include <time.h>
 #if !(defined _WIN32 || defined __WIN32__)
 #include <sys/utsname.h>
+#include <libgen.h>
+#include <sys/stat.h>
+
 #endif
 
 // This include should always be used
 #include "../src/hpdftbl.h"
 
-// The output after running the program will be written to this file
-#ifdef _WIN32
-#define OUTPUT_FILE "tut_ex09.pdf"
-#else
-#define OUTPUT_FILE "/tmp/tut_ex09.pdf"
-#endif
-#define TRUE 1
-#define FALSE 0
-
-
+// For the case when we use this example as a unit/integration test
+_Bool static_date = FALSE;
 
 // For simulated exception handling
 jmp_buf env;
@@ -170,11 +166,27 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    // For the case when we use this example as a unit/integration test we need to
+    // look down a static date since we cannot compare otherwise since the date
+    // strings will be different.
+    static_date = 2==argc ;
+
     setup_hpdf(&pdf_doc, &pdf_page, FALSE);
 
     create_table_ex09(pdf_doc, pdf_page);
-    
-    stroke_pdfdoc(pdf_doc, OUTPUT_FILE);
+
+    if ( 2==argc ) {
+        struct stat sb;
+        if (stat(dirname(argv[1]), &sb) == 0 && S_ISDIR(sb.st_mode)) {
+            stroke_pdfdoc(pdf_doc, argv[1]);
+            return EXIT_SUCCESS;
+        }
+    }
+
+    char fname[255];
+    snprintf(fname, sizeof fname, "out/%s.pdf", basename(argv[0]));
+    stroke_pdfdoc(pdf_doc, fname);
+
     return EXIT_SUCCESS;
 }
 
