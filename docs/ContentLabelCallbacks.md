@@ -58,12 +58,12 @@ The API to specify these callbacks are:
 7. `hpdftbl_set_canvas_cb()`: 
     This is an advanced callback to allow for low level painting directly on the canvas that is the cell area. The arguments to the callback is different as it includes the bounding-box for th cell area. We will not further discuss this.
 
-@note **Returned content string**. When a content string is added in the table it is added as a copy of the string pointed to by the returned string pointer from the callback function. It is therefore perfectly possible to have a static allocated buffer in the callback function that is used to construct the content. When the table is destroyd using `hpdftbl_destroy()` all used memory will be freed.
+@note **Returned content string**. When a content string is added in the table it is added as a copy of the string pointed to by the returned string pointer from the callback function. It is therefore perfectly possible to have a static allocated buffer in the callback function that is used to construct the content. When the table is destroyed using `hpdftbl_destroy()` all used memory will be freed.
 
 
 ## A content callback example
 
-Let's now construct a simple example example where the content and the labels are specified with callbacks. 
+Let's now construct a simple example where the content and the labels are specified with callbacks. 
 
 We will create callbacks that will add a date string to the top left cell and just som dummy content in the rest of the cells. We could do this in two ways. 
 
@@ -109,7 +109,7 @@ create_table_ex06(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     const size_t num_rows = 2;
     const size_t num_cols = 2;
 
-    char *table_title = "tut_ex06: 2x2 table with calbacks";
+    char *table_title = "tut_ex06: 2x2 table with callbacks";
     hpdftbl_t tbl = hpdftbl_create_title(num_rows, num_cols, table_title);
     hpdftbl_use_labels(tbl, TRUE);
     hpdftbl_use_labelgrid(tbl, TRUE);

@@ -4,7 +4,7 @@ In this section we will introduce the basic usage of the
 `hpdftbl` library. We will start simple and work us all the way to
 complex tables and explain what is happening as we go along.
 
-We will not assume any knowledge of the table library but **we will assume
+We will not assume any knowledge of the table library, but **we will assume
 that you are familiar with the plain Haru PDF library**.
 
 &nbsp;
@@ -46,7 +46,7 @@ will use the two parameters `pdf_doc` and `pdf_page` to refer to the document an
 construct the table.
 
 @note In order to make the examples robust and compatible with both Windows and Linux/OSX systems 
-some conditional compile instructions are also used but we will not display them while discussing 
+some conditional compilation instructions are also used, but we will not display them while discussing 
 the basic usage to keep the focus on what matters. 
 
 The full source for all example are available in the `examples/` directory as well as in the 
@@ -70,7 +70,7 @@ hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
 
 Here we note that:
 - The size of the table has to be determined before the table handle is created
-- Most other table function will refer to this handle and we will always use the variable name `tbl` for this handle
+- All table function will refer to this handle, and we will always use the variable name `tbl` for this handle
 - We use `size_t` instead of `int` since the table dimension is a size and as such can never be negative. In C it is 
   always good practice to use `size_t` for positive numeric entities.
 
@@ -90,15 +90,15 @@ Here we note that:
 
 - Cells are referred to starting from the top left cell that is cell (0x0)
 
-Now its time to size and position the table on the page. As a minimum you must specify the `x` and `y` position as well as the width of the table. The library is smart enough to automatically figure out the height (but it is also possible to force a larger height than strictly necessary)
+Now It's time to size and position the table on the page. As a minimum you must specify the `x` and `y` position as well as the width of the table. The library is smart enough to automatically figure out the height (but it is also possible to force a larger height than strictly necessary)
 
-The native coordiante system for PDF pages are given as the printing unit of DPI or *dots per inch*. By default, the resolution of a PDF is 72 DPI. 
+The native coordinate system for PDF pages are given as the printing unit of DPI or *dots per inch*. By default, the resolution of a PDF is 72 DPI. 
 
 To make it easier to directly set the size and position in centimeters a convenience function `hpdftbl_cm2dpi()` can be used. 
 
 @note For precision positioning it is more accurate to give the position and sizes in dots directly. 
 
-In this example we set the size and position in centimeters. We positionin the top left of the table *1cm* below and *1cm* to the right of the top left corner of the paper and make the table *5cm* wide as follows:
+In this example we set the size and position in centimeters. We position the top left of the table *1cm* below and *1cm* to the right of the top left corner of the paper and make the table *5cm* wide as follows:
 
 ```C
 HPDF_REAL xpos = hpdftbl_cm2dpi(1);
@@ -151,7 +151,7 @@ The generated table is shown in **Figure 1.** (@ref tut_ex01.c "tut_ex01.c")
 ![Figure 1 - tut_ex01.png](screenshots/tut_ex01.png)  
 ***Figure 1:*** *Your first table.*
 
-As we explained above the coordinate system is in postscript dots. For precision positioning it might be useful to visualize this grid on the page. By using the `hpdftbl_stroke_grid()` function such a grid can be displayed on a page to help with positioning. If we add the grid to the page and show the uppper left area of the paper with the grid we can view its positioning in the grid as shown in **Figure 2.**
+As we explained above the coordinate system is in postscript dots. For precision positioning it might be useful to visualize this grid on the page. By using the `hpdftbl_stroke_grid()` function such a grid can be displayed on a page to help with positioning. If we add the grid to the page and show the upper left area of the paper with the grid we can view its positioning in the grid as shown in **Figure 2.**
 
 ![Figure 2 - tut_ex01grid.png](screenshots/tut_ex01grid.png)  
 ***Figure 2:*** *Your first table in the page coordinate system showing the upper left part of the paper.*
@@ -161,7 +161,7 @@ Since this is an A4 page it will have a height of roughly 841 points or 29.7cm
 ## Your second table - disconnecting program structure from data
 
 One drawback of the program in the first example above is that if we want to have a different
-table size we need to actually change the code since we need one function call to store the data to be displayed in each cell. Wouldn't it be better if we could just suppply an array with the data we want to display?
+table size we need to actually change the code since we need one function call to store the data to be displayed in each cell. Wouldn't it be better if we could just supply an array with the data we want to display?
 
 The function to do just that is
 
@@ -226,7 +226,7 @@ But now it is time to explain the `NULL` value in the first example when we spec
 
 ## Adding a header row
 
-While it is possible (as discussed in section @ref ch_styleandfontsetting "Style and font setting" and @ref sec_specifyingfontsandcolors "Fonts and Colors"  ) to manually adjust the font, size, style, background etc. on each cell individually there is a convinient shortcut to create a basic table with a header using the `hpdftbl_use_header()` function. By modifying the code above and add this line we get the following code and resulting table
+While it is possible (as discussed in section @ref ch_styleandfontsetting "Style and font setting" and @ref sec_specifyingfontsandcolors "Fonts and Colors"  ) to manually adjust the font, size, style, background etc. on each cell individually there is a convenient shortcut to create a basic table with a header using the `hpdftbl_use_header()` function. By modifying the code above and add this line we get the following code and resulting table
 
 ```c
 void
@@ -258,7 +258,8 @@ The resulting table can be seen in **Figure 4**. We also modified the dummy data
 
 ## Using labels in the table cells
 
-A variant of a table is to present data with a short label describing what kind of data is displayed. This is often used when a table is used to present a dataform. An example of this is shown in **Figure 4.** below.
+A variant of a table is to present data with a short label describing what kind of data is displayed. 
+This is often used when a table is used to present a data form. An example of this is shown in **Figure 4.** below.
 
 ![Figure 4 - tut_ex03.png](screenshots/tut_ex03.png)  
 ***Figure 4:*** *Specifying labels for each cell. (@ref tut_ex03.c "tut_ex03.c")*
@@ -276,7 +277,9 @@ Adding labels requires three things:
      ```  
     or it can be done using the analog of specifying the labels in an array using the function `hpdftbl_set_labels()`.
 
-3. In addition there is one more key setting and that is whether the left cell border should be the whole cell or just the lable height as was shown in **Figure 4.** above. This option is specified with ` hpdftbl_use_labelgrid()`. By defaullt the left border is from top to bottom. The differenceies between the two variants is shown in **Figure 5.** below.  
+3. In addition, there is one more key setting and that is whether the left cell border should be the whole cell 
+or just the table height as was shown in **Figure 4.** above. This option is specified with ` hpdftbl_use_labelgrid()`. 
+4. By default, the left border is from top to bottom. The differences between the two variants is shown in **Figure 5.** below.  
 ![Figure 5 - tut_ex03.png](screenshots/labelGrid_TF_small.png)  
 ***Figure 5:*** *The two variants of left cell border with labels.*
 
@@ -361,27 +364,28 @@ char *table_title = "tut_ex05: 2x2 table";
 hpdftbl_t tbl = hpdftbl_create_title(num_rows, num_cols, table_title);
 ```
 
-A table title occupies the top of the table in it's own row which isn't part of the counting if the normal columns.
+A table title occupies the top of the table in its own row which isn't part of the counting if the normal columns.
 
 ![Figure 6 - tut_ex04.png](screenshots/tut_ex05.png)  
 ***Figure 6:*** *Adding a title for the table. (@ref tut_ex05.c "tut_ex05.c")*
 
-It is possible to adjust the colors, font-properties, and aignments of the title with two additional functions `hpdftbl_set_title_style()` and `hpdftbl_set_title_halign()`
+It is possible to adjust the colors, font-properties, and alignments of the title with two additional functions `hpdftbl_set_title_style()` and `hpdftbl_set_title_halign()`
 
 
 ## Adjusting fonts and colors
 
-The one thing we have skipped over so far and just used the defaults is the look&feel of the table 
-as far as colors and fonts go. It is possible to adjust these setting at several different granularities. 
-It is possible to
+The one thing we have skipped over so far and just used the defaults is the look & feel of the table 
+as far as colors and fonts go. It is possible to adjust these setting at several levels of granularity. 
+It is possible to:
 
 1. Adjust the entire table in one go using `hpdftbl_set_content_style()`
 2. Adjust one entire column using `hpdftbl_set_col_content_style()`
 2. Adjust one entire row in using `hpdftbl_set_row_content_style()`
 2. Adjust individual cells using `hpdftbl_set_content_style()`
 
-It is also possible to adjust the color and thickness of the borders but we will not discuss this more here and instead refer the reader to the API documentation.
+It is also possible to adjust the color and thickness of the borders, 
+but we will not discuss this more here and instead refer the reader to the API documentation.
 
-@note We should also mention that there is a concept of a look&feel theme for the table which can be used to adjust all the parameters at once. This is discussed in "Using themes".
-
+@note We should also mention that there is a concept of a look & feel theme for the table which can be 
+used to adjust all the parameters at once. This is discussed in @ref sec-themes "Using themes".
 

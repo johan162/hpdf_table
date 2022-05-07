@@ -6,7 +6,7 @@ The format of each cell can be adjusted with respect to:
 2. Font- and background-color
 3. Border thickness and color
 
-In this section we will focus on how to adjust the font and background color. The styld can be adjusted both forthe entire table at once and alse for individual cells. The individual cell style will always override the table cell style. 
+In this section we will focus on how to adjust the font and background color. The style can be adjusted both for the entire table at once and also for individual cells. The individual cell style will always override the table cell style. 
 
 The primary API to adjust the table style are:
 
@@ -25,7 +25,7 @@ int hpdftbl_set_content_style(hpdftbl_t t,
                               char *font, HPDF_REAL fsize, 
                               HPDF_RGBColor color, HPDF_RGBColor background);
 
-// Set conten style for specified cell
+// Set content style for specified cell
 int hpdftbl_set_cell_content_style(hpdftbl_t t, 
                                    size_t r, size_t c, 
                                    char *font, HPDF_REAL fsize, 
@@ -58,7 +58,7 @@ Fonts are specified as a string with the type font family name as recognized by 
 
 So to use the "Helvetic" font family the constant "`HPDF_FF_HELVETICA`" is used and so on.
 
-Colors are specified in the standard Haru way, i.e as an instance of the structure "`HPDF_RGBColor`". As another convenience the following colors are predefined
+Colors are specified in the standard Haru way, i.e. as an instance of the structure "`HPDF_RGBColor`". As another convenience the following colors are predefined
 
 ```c
 #define HPDF_COLOR_DARK_RED      (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
@@ -83,7 +83,7 @@ hpdftbl_set_content_style(tbl, HPDF_FF_TIMES, 12, HPDF_COLOR_BLACK, HPDF_COLOR_W
 ...
 ```
 
-Since RGB for colors are specified as a flotaing point number in range [0.0, 1.0] and most color table give colors as a integer triple there is exists a macro to make this conversion easier
+Since RGB for colors are specified as a floating point number in range [0.0, 1.0] and most color table give colors as an integer triple there is exists a macro to make this conversion easier
 
 ```c
 #define HPDF_COLOR_FROMRGB(r,g,b) (HPDF_RGBColor){r/255.0,g/255.0,b/255.0} 
@@ -113,21 +113,21 @@ If the callback returns `FALSE` the settings will **not** be applied.
 The parameters are used as follows:
 - The `tag` parameter has the same meaning as for content and label callbacks; an optional unique identifier for the table.** The `tag` parameter should always be checked for possible `NULL` value since it is not required for a table to have a tag.
 - The `r` and `c` arguments are the row and column of the cell the callback is made for
-- The `content` is the cell content string. The rationale for including this in the style callback is to allow for highligthning in the table of specific data. It could for example be something as simple as wanting to mark all values above a certain threshold with another background color in the table to draw attention.
-- Finally the actual style is encompassed by the `hpdf_text_style_t` and is defined as the following structure   
+- The `content` is the cell content string. The rationale for including this in the style callback is to allow for highlighting in the table of specific data. It could for example be something as simple as wanting to mark all values above a certain threshold with another background color in the table to draw attention.
+- Finally, the actual style is encompassed by the `hpdf_text_style_t` and is defined as the following structure   
     ```c
     typedef struct text_style {
         char *font;                     /**< Font face name */
         HPDF_REAL fsize;                /**< Font size */
         HPDF_RGBColor color;            /**< Font color */
-        HPDF_RGBColor background;       /**< Font background colot */
+        HPDF_RGBColor background;       /**< Font background color */
         hpdftbl_text_align_t halign;    /**< Text horizontal alignment */
     } hpdf_text_style_t;
     ```
 
 
 
-The style callbacks can exactly as the content callback be specified for either the entire table or for a specific cell. A cell callback will always override a table callback. The two functions to setup style callbacks are
+The style callbacks can exactly as the content callback be specified for either the entire table or for a specific cell. A cell callback will always override a table callback. The two functions to set up style callbacks are
 
 ```c
 int
@@ -140,7 +140,7 @@ hpdftbl_set_content_style_cb(hpdftbl_t tbl,
                              hpdftbl_content_style_callback_t cb);
 ```
 
-@note Due to som technicalities **the style callbacks are called twice** per cell. The first call is necessary to setup the background canvas and at that stage the content is not necessarily known since it could be later specified with a content callback. The first time the callback is made the `content` parameter is always guaranteed to be `NULL`
+@note Due to som technicalities **the style callbacks are called twice** per cell. The first call is necessary to set up the background canvas and at that stage the content is not necessarily known since it could be later specified with a content callback. The first time the callback is made the `content` parameter is always guaranteed to be `NULL`
 
 ### Style callback example
 
@@ -201,13 +201,13 @@ The resulting table is shown in **Figure 10.** below.
 ***Figure 10:*** *Using a style callback to highlight header rows & columns.* *@ref tut_ex09.c "tut_ex09.c"*
 
  
-## Using style themes {#sec_themes}
+## Using style themes {#sec-themes}
 
 A theme (or style theme) is a definition of the "look & feel" of a table. It doesn't affect the structure of the table
 such as the size of the table or how many columns or rows a cell spans. It is practical shortcut
-when many different tables should be displayed in the same style. It allows the compact specification
+when many tables should be displayed in the same style. It allows the compact specification
 of the table by applying a theme to the table instead of having to call multiple functions to
-chieve the same thing. In addition if the design should be changed there is only one place to
+achieve the same thing. In addition, if the design should be changed there is only one place to
 update instead of for each table.
 
 @note There is not yet any support to read and write themes from a file. A theme is therefor
@@ -218,7 +218,7 @@ A theme controls the following aspects of a table
 - The content and label text style
 - The header and title text style
 - The inner and outer border style
-- The usage (or not) of labels and whether or not the shorter label grind lines should be used
+- The usage (or not) of labels and whether the shorter label grind lines should be used
 - If a header row should be used or not
 - If a title should be used or not
 
@@ -310,7 +310,7 @@ hpdftbl_set_inner_grid_style(hpdftbl_t t,
                              HPDF_REAL width, HPDF_RGBColor color, hpdftbl_line_dashstyle_t dashstyle);
 ```
 
-Each type of gridline can be adjusted with line width, color and style. 
+Each type of gridlines can be adjusted with line width, color and style. 
 The last function in the list, hpdftbl_set_inner_grid_style(), is a convenience function that sets both
 the vertical and horizontal inner lines in one call.
 

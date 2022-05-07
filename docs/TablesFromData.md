@@ -1,10 +1,10 @@
 # Tables layout from data
 
-So far we have constructed the layout of table by issuing API calls per table to setup, for example,  the column widths and what cells should merge with what other cells and so on. Previously we saw that data to be put in the table could be specified by either directly issuing API calls per cell, using a 2D array that we populate with data and then finally use callbacks to generate the data in the cells.
+So far we have constructed the layout of table by issuing API calls per table to set up, for example,  the column widths and what cells should merge with what other cells and so on. Previously we saw that data to be put in the table could be specified by either directly issuing API calls per cell, using a 2D array that we populate with data and then finally use callbacks to generate the data in the cells.
 
 The final and most powerful way of constructing a table is to define the table structure as data. This *structural data* together with a style theme can completely define a table.
 
-This will allow the dynamic construction of tables with only one API call insted of the multiple call required to construct a table the usual way. It can initially seem more complex but for advanced table this is indeed a much simpler and easy to maintain. In fact, this will allow a table to bed defined entirely in a database and makes it possible to adjust tha table as the data changes without ever updating the code (or recompile).
+This will allow the dynamic construction of tables with only one API call instead of the multiple call required to construct a table the usual way. It can initially seem more complex but for advanced table this is indeed a much simpler and easy to maintain. In fact, this will allow a table to bed defined entirely in a database and makes it possible to adjust tha table as the data changes without ever updating the code (or recompile).
 
 ## Defining a table in data
 
@@ -100,7 +100,7 @@ hpdftbl_spec_t tbl_spec = {
         // Row and columns
         .rows=4, .cols=3,
 
-        // xpos and ypos
+        // Position of the table, xpos and ypos
         .xpos=hpdftbl_cm2dpi(1), .ypos=hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM-2),
 
         // width and height
@@ -119,7 +119,7 @@ hpdftbl_spec_t tbl_spec = {
 
 @note In the table definition we use the C99 feature of specifying the field name when defining data in a structure.
 
-Then the actual API call is trivial to what we seen before and consists of only one line of code
+Then the actual API call is trivial to what we have seen before and consists of only one line of code
 
 ```c
 void
@@ -141,7 +141,7 @@ therefore create a slightly more complex example where we create a form which ea
 records from a DB.
 
 The nice thing about separating layout and table structure from the data population in the callbacks is that this
-can almost be seen as a poor mans model-view-controller where the table structure is completely separate from the
+can almost be seen as a poor man's model-view-controller where the table structure is completely separate from the
 
 A good way to start designing a table is to make a sketch on how it should look. Our goal is to crete the table structure as shown in the empty table in **Figure 14** below
 
@@ -154,15 +154,17 @@ To get this layout we use a basic table with :
 2. No header and no title
 3. We use labels and label grids
 
-To make it easier to see how to construct the table we can overlay the sketch with a grid shown in blue in **Figure 15**. As can be seen this is a basic 5x4 table where a number or cells span multiple columns.
+To make it easier to see how to construct the table we can overlay the sketch with a grid shown in blue in **Figure 15**. 
+As can be seen this is a basic 5x4 table where a number of cells span multiple columns.
 
 
 ![Rough Table design 2](screenshots/table_design_2.png)  
-***Figure 15:*** *Sketch of table to be designed with 5x4 table overlayed*
+***Figure 15:*** *Sketch of table to be designed with 5x4 table overlaid*
 
-To start we setup the table specification as in the previous example with necessary changes. We will also need to specify cell specifications this time and we assume those are available in an array of cell structures called `cell_specs`.
+To start we set up the table specification as in the previous example with necessary changes. 
+We will also need to specify cell specifications this time, and we assume those are available in an array of cell structures called `cell_specs`.
 
-Before we specify the table structure we have one design decision to make. For the callbacks we can either use the table callback for all cells and check row and column to get the appropriate data or we can add individual callbacks for each cell. The first case has the advantage to only need one callback function (but lot of tests) and the second that each callback will be small and focused to get the data for that individual cell but we will need potentially one callback for each cell unless there are commonalities between the cells so one callback can serve multiple cells. Remember that we still get the row and column as arguments in the callback so we weill always know exactly for which cell the callback was made.
+Before we specify the table structure we have one design decision to make. For the callbacks we can either use the table callback for all cells and check row and column to get the appropriate data, or we can add individual callbacks for each cell. The first case has the advantage to only need one callback function (but a lot of tests) and the second that each callback will be small and focused to get the data for that individual cell, but we will need potentially one callback for each cell unless there are commonalities between the cells so one callback can serve multiple cells. Remember that we still get the row and column as arguments in the callback so we weill always know exactly for which cell the callback was made.
 
 To keep the size of this example we will use the table callback method for content and specify the label directly in the cell specification. With this decision made we get the following definition cell specifications
 
@@ -187,7 +189,7 @@ hpdftbl_cell_spec_t cell_specs[] = {
          .label="E-mail:",
          .content_cb=NULL, .label_cb=NULL, .style_cb=NULL, .canvas_cb=NULL},
         {.row=4, .col=0, .rowspan=1, .colspan=2,
-         .label="Workphone:",
+         .label="Work-phone:",
          .content_cb=NULL, .label_cb=NULL, .style_cb=NULL, .canvas_cb=NULL},
         {.row=4, .col=2, .rowspan=1, .colspan=2,
          .label="Mobile:",
@@ -196,7 +198,7 @@ hpdftbl_cell_spec_t cell_specs[] = {
 };
 ```
 
-As can be seen we need to have a end of cell specification sentinel since we could decide to provide details for one or more cells and there is no way for the library to know how many fields to read otherwise.  There is even a convenience constant in the library `PDFTBL_END_CELLSPECS` that can be used as the last record.
+As can be seen we need to have an end of cell specification sentinel since we could decide to provide details for one or more cells and there is no way for the library to know how many fields to read otherwise.  There is even a convenience constant in the library `PDFTBL_END_CELLSPECS` that can be used as the last record.
 
 The overall table specification is pretty much as before but with the added cell specifications.
 
@@ -235,7 +237,7 @@ When this is run (see @ref tut_ex13_2.c "tut_ex13_2.c") it generates the followi
 ![tut_13_2.c](screenshots/tut_ex13_2.png )  
 ***Figure 16:*** *Specifying a table as data with cell specifications.*
 
-What remains is to write the proper table content callback that will populate the table. In a real life scenario his data will most likely come from a database but adding that in our example would bring to far. Instead we will just use some fake static dummmy data to illustrate the principle.
+What remains is to write the proper table content callback that will populate the table. In a real life scenario his data will most likely come from a database but adding that in our example would bring too far. Instead, we will just use some fake static dummy data to illustrate the principle.
 
 Since we have one callback for all cells we need to test from which cell the call come from. Here is a very important point to make. **The row and column number will be the row and cell columns in the original table before any column or row spans was applied.** In this example it means that for example the "Date" field (upper right) will have `row=0` and `col=3` and **not** `(0,1)`!!.
 

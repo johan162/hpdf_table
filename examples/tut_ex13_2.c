@@ -100,7 +100,7 @@ hpdftbl_cell_spec_t cell_specs[] = {
                 .label="E-mail:",
                 .content_cb=NULL, .label_cb=NULL, .style_cb=NULL, .canvas_cb=NULL},
         {.row=4, .col=0, .rowspan=1, .colspan=2,
-                .label="Workphone:",
+                .label="Work-phone:",
                 .content_cb=NULL, .label_cb=NULL, .style_cb=NULL, .canvas_cb=NULL},
         {.row=4, .col=2, .rowspan=1, .colspan=2,
                 .label="Mobile:",

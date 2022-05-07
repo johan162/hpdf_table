@@ -12,23 +12,24 @@ of the table from the actual data in the table.
 
 ## Features
 - Supports both C/C++
-- Suports both OSX/Linux builds and theire different dynamic library variants
+- Supports both OSX/Linux builds and their different dynamic library variants
 - Fully supports UTF-8 with automatic conversion to PDF character encoding
-- Supports multple paradigms for creating and populating tables
+- Supports multiple paradigms for creating and populating tables
     - Directly store value in table cell
     - Create a data structure (2D-Array) with all data to be set at once
     - Use callback populating functions with identifying tags for each table cell
 - Options to use labels in table cell to create forms
 - Support for predefined widgets in table cell to illustrate values
 - Complete control of background color, fonts, and frame colors
-- Possible to use table themes that provides pre-defined look-and-feel for table
+- Possible to use table themes that provide pre-defined look-and-feel for table
 - Both dynamic and static library provided
-- Last but not least; extensive documentation and almost guaranteed to be bug free after beeing tested in production for over 7 years!
+- Last but not least; extensive documentation and almost guaranteed to be bug free after being tested in production for over 7 years!
 
 ## Some Examples
 
-@note All code examples can be found in the `examples/` directory (and in section [Examples](examples.html)) 
-and are thoroughly introduced over the following chapters.
+@note All code examples can be found in the `examples/` directory or in the 
+[Examples](examples.html) section of this manual.
+ALl examples will be explained in this manual.
 
 ### Example 1 - Plain table with cell labels  
 

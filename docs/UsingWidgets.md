@@ -50,7 +50,7 @@ typedef void (*hpdftbl_canvas_callback_t)(HPDF_Doc, HPDF_Page, void *, size_t, s
                                           HPDF_REAL);
 ```
 
-and a typical example of a canvas callback function and it's installation would be
+and a typical example of a canvas callback function, and it's installation would be
 
 ```c
 void 
@@ -154,7 +154,7 @@ Some comments:
  - In the callback we get the bounding box for the cell as arguments
  - We adjust the position and height/width so that the widget is centered in the cell
 
-The next callback is the signal strength widget and we construct that as follows
+The next callback is the signal strength widget, and we construct that as follows
 
 ```c
 void

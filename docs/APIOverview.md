@@ -30,11 +30,11 @@ These calls relate to the creation, destruction and stroking of the table on the
 
 
  - hpdftbl_set_anchor_top_left()
-   *Switch the anchor point of a table betwen top left and bottom left corner.*
+   *Switch the anchor point of a table between top left and bottom left corner.*
 
 
  - hpdftbl_get_anchor_top_left()
-   *Get the current achor point of table.*
+   *Get the current anchor point of table.*
 
 
 ## Table error handling
@@ -60,7 +60,7 @@ These calls relate to the creation, destruction and stroking of the table on the
 Themes is a technique to easier specify the look and feel to be re-used for multiple tables.
 
  - hpdftbl_apply_theme()
-   *Use the specified theme for look & feel of tabl.e*
+   *Use the specified theme for look & feel of table*
 
  - hpdftbl_get_default_theme()
    *Get the default theme. A good way to start and then modify.*
@@ -80,10 +80,10 @@ Adjusting the structure of the table (apart from number of rows and columns)
    *Specify the minimum row height in points*
 
  - hpdftbl_set_bottom_vmargin_factor()
-   *Specfy the bottom margin for content as a fraction of the specified fontsize*
+   *Specify the bottom margin for content as a fraction of the specified fontsize*
 
  - hpdftbl_set_cellspan()
-   *Define a cell to span multiple rows and columns."
+   *Define a cell to span multiple rows and columns.*
 
  - hpdftbl_clear_spanning()
    *Remove all previous set cell spanning.*
@@ -91,7 +91,7 @@ Adjusting the structure of the table (apart from number of rows and columns)
 
 ## Table style modifying functions
 
-These function are all about look an feel of the table.
+These functions are all about look and feel of the table.
 
  - hpdftbl_use_labels()
    *Use labels in each cell.*
@@ -139,7 +139,7 @@ These function are all about look an feel of the table.
    *Set the content style for the entire table.*
 
  - hpdftbl_set_cell_content_style()
-   *Set the stle for specified cell. This overrides andy style on the table level.*
+   *Set the style for specified cell. This overrides andy style on the table level.*
 
  - hpdftbl_set_title_style()
    *Set the style for the table title.*
@@ -209,7 +209,7 @@ if a cell has a callback that is used, otherwise the table callback is used.
 ## Misc utility function
 
  - HPDF_RoundedCornerRectangle()
-   *Draw a rectanle with rounded corners.*
+   *Draw a rectangle with rounded corners.*
 
  - hpdftbl_stroke_grid()
    *Stroke a grid on the PDF page (entire page). This is useful to position the table on a page. The grid is measured in points i.e. postscript natural units.

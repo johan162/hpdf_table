@@ -31,21 +31,21 @@ via `apt`on Linux or `brew` on OSX.
 
 There are two external libraries required to rebuild libhpdftbl and more importantly use the library with an actual application and these are:
 
-1. **libhpdf** - The Haru PDF library. On OSX this is most easly installed by using the `brew` OSX package manager. The library is available as `libharu` as of this writing the latest version is `libharu-2.3.0`  
+1. **libhpdf** - The Haru PDF library. On OSX this is most easily installed by using the `brew` OSX package manager. The library is available as `libharu` as of this writing the latest version is `libharu-2.3.0`  
 
 2. **iconv** - The character encoding conversion library. On OSX > 11.x this is included by default once you have `xcode` command line tools installed which is basically a pre-requisite required for all development on OSX.  
-*(On really old versions of OSX this was not the case.)*
+*(On ancient versions of OSX this was not the case.)*
 
 ### Different versions of iconv on OSX
 
-Unfortunately there are two main versions of `libiconv` readily available for OSX which are incompatible as one uses the prefix "`iconv_*`" and the other "`libiconv_*`" on its exported functions. Compiling `libhpdftbl` requires the first of these which is the prevelant version and the default on both OSX and Linux.
+Unfortunately there are two main versions of `libiconv` readily available for OSX which are incompatible as one uses the prefix "`iconv_*`" and the other "`libiconv_*`" on its exported functions. Compiling `libhpdftbl` requires the first of these which is the prevalent version and the default on both OSX and Linux.
 
-This is almost exclusivly an issue for those that actively develop on OSX and may have over time installed multiple versions of libraries and as such are aware of these challenges.
+This is almost exclusively an issue for those that actively develop on OSX and may have over time installed multiple versions of libraries and as such are aware of these challenges.
 
 ### OSX native libiconv
 After installing `xcode` command line tools on OSX you can assume that a library called `/usr/lib/iconv.dylib` is available. However, if you actually try to list this library in `/usr/lib` you will not find it! Still, if you link your code with `-liconv` it will work as expected. How come?   
 
-The reason is the way OSX handles different library versions for different OSX SDKs. Since `xcode` supports developing for different OSX versions the SDK would need to include a complete setup of all  `*.dylib` of the right version for each included version of the SDK. To reduce diskspace all dynamic librares are rolled-up in a dynamic link shared cache for each SDK version. The tool chain (e.g. `gcc`) have been augmented to be aware of this. Hence there is no need to have libraries in `/usr/lib`. Instead OSX from v11 and onwards uses the concept of *stub libraries* `*.tbd` (tbd stands for "text based description") which are much smaller text files with some meta information about the library used by the tool-chain.
+The reason is the way OSX handles different library versions for different OSX SDKs. Since `xcode` supports developing for different OSX versions the SDK would need to include a complete setup of all  `*.dylib` of the right version for each included version of the SDK. To reduce diskspace all dynamic libraries are rolled-up in a dynamic link shared cache for each SDK version. The tool chain (e.g. `gcc`) have been augmented to be aware of this. Hence, there is no need to have libraries in `/usr/lib`. Instead, OSX from v11 and onwards uses the concept of *stub libraries* `*.tbd` (tbd stands for "text based description") which are much smaller text files with some meta information about the library used by the tool-chain.
 
 For example for SDK 12.3 the stub for libiconv can be found at
 
@@ -114,7 +114,7 @@ and then (optionally) install the library with
 $ make install
 ```
 
-By default the library will install under the `/usr/local` but that can be adjusted by using the `--prefix` 
+By default, the library will install under the `/usr/local` but that can be adjusted by using the `--prefix` 
 parameter to `configure`. For example
 
 ```shell
@@ -170,7 +170,7 @@ and then to compile the library
 $> make
 ```
 
-The simplest way to verify that everything works is to run the built in unit/integration tests 
+The simplest way to verify that everything works is to run the built-in unit/integration tests 
 
 ```shell
 $> make check
@@ -238,21 +238,21 @@ $> make pdf
 
 The resulting documentations are stored under `docs/out/html` and `docs/out/latex/refman.pdf`
 
-@warning There is a shell script scripts/docupload.sh.in that the author (i.e. me!) uses to upload the
-HTML and PDF documentation to the Github pages of the author. For obvious reason this script will 
-not work for anyone else since it requires write access to the doc repo (through a SSL certificate).
+@warning There is a shell script `scripts/docupload.sh.in` that the author (i.e. me!) uses to upload the
+HTML and PDF documentation to the GitHub pages of the author. For obvious reason this script will 
+not work for anyone else since it requires write access to the doc repo (through an SSL certificate).
 
 
 ### Some notes on Windows build
 
 The source files are suitable augmented to also compile on MS Windows with selective defines. However, since 
 I have no longer access to a Windows system to verify the workings this is left as an exercise to the reader. 
-Hence this should be considered as a best effort
+Hence, this should be considered as the best effort.
 
 ### Some notes on using C or C++ to build
 
 The source files are also suitable augmented to compile on both a C and a C++ compiler. However, 
-the default build environment is setup for a pure C library build. To add a configuration switch for 
+the default build environment is set up for a pure C library build. To add a configuration switch for 
 this would be the sensible way to handle this. This is not done and again, is left as an exercise 
 for the reader.
 

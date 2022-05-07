@@ -47,6 +47,7 @@ reset_tests() {
   for f in *.c; do
     prog=${f%%.c}
     outfile="@srcdir@/tests/${f%%.c}.pdf"
+    infolog "Running. ${prog} ${outfile}"
     ./${prog} "$outfile" > /dev/null
     if [ $? -ne 0 ]; then
       errlog "${prog} failed to run"

@@ -1,6 +1,6 @@
 # Adjusting the layout of the table
 
-The table can be modified both by adjusting the width of columns as well as how many rows and columns a cell is spanning.
+The table can be modified both by adjusting the width of columns and how many rows and columns a cell is spanning.
 
 ## Cell and row spanning
 
@@ -15,7 +15,8 @@ hpdftbl_set_cellspan(const hpdftbl_t tbl,
 
 The specified `(r,c)` is the row and column of the upper left cell in merged cell that spans `rowspan` rows and `colspans` columns. This is also the row and col coordinates used to accessing the combined cell.
 
-To illustrate this we will create a table with seven rows and five columns. We will merge three cells using these cell-spannings:
+To illustrate this we will create a table with seven rows and five columns. 
+We will merge three cells using cell-spanning as follows:
 
 ```c
 hpdftbl_set_cellspan(tbl, 0, 0, 1, 3);
@@ -30,7 +31,7 @@ This will then give the result shown in **Figure 8.**
 
 ## Adjusting column width
 
-By default or column widths are divided equally regardless of the content. The width can be adjusted by explicitly set the relative width  of a column as a percentage of the total table width. This is done with the function
+By default, or column widths are divided equally regardless of the content. The width can be adjusted by explicitly set the relative width  of a column as a percentage of the total table width. This is done with the function
 
 ```c
 int
