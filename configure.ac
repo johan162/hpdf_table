@@ -3,7 +3,7 @@
 # Use scripts/bootstrap.sh to bootstrap the build environment
 # ===============================================================================
 AC_PREREQ([2.69])
-AC_INIT([libhpdftbl],[1.1.2],[johan162@gmail.com])
+AC_INIT([libhpdftbl],[1.2.0],[johan162@gmail.com])
 AC_COPYRIGHT([Part of configure script (C) 2022 Johan Persson <johan162@gmail.com>])
 AC_PREFIX_DEFAULT(/usr/local)
 AM_INIT_AUTOMAKE([dist-xz silent-rules])
