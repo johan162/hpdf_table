@@ -17,7 +17,7 @@ int
 hpdftbl_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdftbl_spec_t tbl_spec, hpdftbl_theme_t *theme);
 ```
 
-In order to populate the table with suitable data callback functions are used (as described in section ??)
+In order to populate the table with suitable data callback functions are used (as described in section )
 
 The overall table is first defined as an instance of
 
@@ -119,7 +119,8 @@ hpdftbl_spec_t tbl_spec = {
 
 @note In the table definition we use the C99 feature of specifying the field name when defining data in a structure.
 
-Then the actual API call is trivial to what we have seen before and consists of only one line of code
+Then the actual API call is trivial compared to the table creation code we have seen in the previous examples 
+and consists of only one line of code
 
 ```c
 void
@@ -142,6 +143,7 @@ records from a DB.
 
 The nice thing about separating layout and table structure from the data population in the callbacks is that this
 can almost be seen as a poor man's model-view-controller where the table structure is completely separate from the
+data (and how it is created).
 
 A good way to start designing a table is to make a sketch on how it should look. Our goal is to crete the table structure as shown in the empty table in **Figure 14** below
 

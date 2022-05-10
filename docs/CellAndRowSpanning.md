@@ -1,4 +1,4 @@
-# Adjusting the layout of the table
+# Cell and row spanning
 
 The table can be modified both by adjusting the width of columns and how many rows and columns a cell is spanning.
 
@@ -13,7 +13,8 @@ hpdftbl_set_cellspan(const hpdftbl_t tbl,
                      size_t rowspan, size_t colspan)
 ```
 
-The specified `(r,c)` is the row and column of the upper left cell in merged cell that spans `rowspan` rows and `colspans` columns. This is also the row and col coordinates used to accessing the combined cell.
+The specified `(r,c)` is the row and column of the upper left cell in merged cell that spans `rowspan` rows and `colspans` columns. 
+This is also the row and column coordinates used to accessing the combined cell.
 
 To illustrate this we will create a table with seven rows and five columns. 
 We will merge three cells using cell-spanning as follows:
@@ -45,5 +46,6 @@ The width is set as a percentage of the total width and is specified as a floati
 
 ![tut_ex08.png](screenshots/tut_ex08.png)     
 ***Figure 9:*** *Adjusting width of first columns. @ref tut_ex08.c "tut_ex08.c" *
+
 
 

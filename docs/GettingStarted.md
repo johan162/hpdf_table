@@ -7,39 +7,70 @@ complex tables and explain what is happening as we go along.
 We will not assume any knowledge of the table library, but **we will assume
 that you are familiar with the plain Haru PDF library**.
 
-&nbsp;
+## Creating an infrastructure for the examples
 
-## Creating a PDF page infrastructure
 Before we start creating a
 table we need to set up a plain PDF page with the core HPDF library. The HPDF library 
-has excellent documentation on how to do this, and we will use the same simple setup for 
-all our examples. We will create a document in A4 size that have one page. For this
+has excellent documentation on how to do this, and we will use the same basic setup for
+all our examples. We will create a document in A4 size that have one page that will
+be written to a file whose name is taken from the program arguments. For this
 we use a few utility functions and our `main()` will always have the following structure:
 
 ```c
 int
 main(int argc, char **argv) {
-
+    
     HPDF_Doc pdf_doc;
     HPDF_Page pdf_page;
 
     if (setjmp(env)) {
+        HPDF_Free(pdf_doc);
         return EXIT_FAILURE;
     }
 
-    setup_hpdf(&pdf_doc, &pdf_page, TRUE);
+    setup_hpdf(&pdf_doc, &pdf_page, FALSE);
+    create_table_<EXAMPLE NAME>(pdf_doc, pdf_page);
 
-    create_table_<NAME_OF_EXAMPLE>(pdf_doc, pdf_page);
-    
-    stroke_pdfdoc(pdf_doc, OUTPUT_FILE);
-    return EXIT_SUCCESS;
+    if( -1 == stroke_to_file(pdf_doc, argc, argv) )
+        return EXIT_FAILURE;
+   else
+        return EXIT_SUCCESS;
 }
 ```
 
-In the `examples` directory the full source code for the setup and stroke function can be found
+In order to make the example code consistent and focused on the table library and not on the general
+creating of PDF document we will include the supporting Haru set-up code in an include file and instead 
+of the `main()` function shown above we will replace it with a macro with one parameter; the table function
+to be called to set-up the table example (see TUTEX_MAIN()).
+
+All our example code will therefore be a fully standalone programs but structured in way not to obscure the
+actual table creation with a lot of boiler-plate PDF set-up code. All tutorial example programs `tut_ex<nn>` will 
+therefore have the following general structure: 
+
+```c
+#include "unit_test.inc.h"
+ 
+void
+create_table_XXXX(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
+    ...
+}
+
+TUTEX_MAIN(create_table_XXXX, FALSE)
+```
+
+The second argument to the TUTEX_MAIN() macro determines if the example should be generated with
+gridlines on the paper. This is useful for precisely position the table on a page.
+
+In the `examples` directory the full source code for the setup and stroke functions can be found
 in all the tutorial examples, for example @ref tut_ex01.c "tut_ex01.c".
 They are very basic and follows the standard hpdf library methodology. The `setup_hpdf()` 
-creates a new document and one A4 page and the `stroke_pdfdoc()` strokes the document to the given output file.
+creates a new document wth one A4 page and the `stroke_to_file()` strokes the document 
+to an output file which depends on the program argument.
+
+@note If any of the test programs are run without any arguments the output file will
+be stored in the `out` directory and have the same name as the basename of the 
+program with a "*.pdf" suffix. If exactly one filename is specified as an argument then
+this is the file the output will be written to.
 
 In the following we will focus only on the `create_table_<NAME_OF_EXAMPLE>()` function which 
 will use the two parameters `pdf_doc` and `pdf_page` to refer to the document and page to
@@ -58,15 +89,15 @@ The full source for all example are available in the `examples/` directory as we
 
 @ref tut_ex01.c "tut_ex01.c"
 
-The first example shows the absolute most basic usage. We create a 2x2 table in steps as follows
+The first example shows the absolute most basic usage. We create a 2x2 table in steps as follows.
+We will follow the framework oulined above. Our first example is tut_ex01.c
 
 First we construct a table handle for a 2x2 table
 
-```c
-const size_t num_rows = 2;
-const size_t num_cols = 2;
-hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
-```
+@dontinclude{} tut_ex01.c
+
+@skip create
+@until tbl
 
 Here we note that:
 - The size of the table has to be determined before the table handle is created
@@ -77,20 +108,15 @@ Here we note that:
 Once we have the table handle we can start to add content in these cells. For now lets just put a string that 
 indicates the cells position.
 
-```c
-hpdftbl_set_cell(tbl, 0, 0, NULL, "Cell 0x0");
-hpdftbl_set_cell(tbl, 0, 1, NULL, "Cell 0x1");
-hpdftbl_set_cell(tbl, 1, 0, NULL, "Cell 1x0");
-hpdftbl_set_cell(tbl, 1, 1, NULL, "Cell 1x1");
-```
-
-@note You can ignore the `NULL` argument for now (it will be explained shortly).
+@skip Cell 0x0
+@until Cell 1x1
 
 Here we note that: 
 
-- Cells are referred to starting from the top left cell that is cell (0x0)
+- Cells are referred to starting from the top left cell that is cell (0x0).
+- The `NULL` argument (4th argument) will be explained shortly.
 
-Now It's time to size and position the table on the page. As a minimum you must specify the `x` and `y` position as well as the width of the table. The library is smart enough to automatically figure out the height (but it is also possible to force a larger height than strictly necessary)
+Now It's time to size and position the table on the page. As a minimum you must specify the `x` and `y` position as well as the width of the table. The library is smart enough to automatically figure out the height (but it is also possible to force a larger height than strictly necessary either by specifying an overall table height or a minimum row height using hpdftbl_set_min_rowheight())
 
 The native coordinate system for PDF pages are given as the printing unit of DPI or *dots per inch*. By default, the resolution of a PDF is 72 DPI. 
 
@@ -98,14 +124,12 @@ To make it easier to directly set the size and position in centimeters a conveni
 
 @note For precision positioning it is more accurate to give the position and sizes in dots directly. 
 
-In this example we set the size and position in centimeters. We position the top left of the table *1cm* below and *1cm* to the right of the top left corner of the paper and make the table *5cm* wide as follows:
+In this example we set the size and position in centimeters. The paper coordinate system has its origin in the lower left corner of the paper.
+We position the top left of the table *1 cm* below and *1 cm* to the right of the top left corner of the paper. To make this easier we make use of the constant `A4PAGE_HEIGHT_CM` and make the table *5 cm* wide as follows:
 
-```C
-HPDF_REAL xpos = hpdftbl_cm2dpi(1);
-HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
-HPDF_REAL width = hpdftbl_cm2dpi(5);
-HPDF_REAL height = 0;  // Calculate height automatically
-```
+@skip xpos
+@until height
+
 
 Now, there are several important observations to be made here:
 
@@ -114,49 +138,35 @@ Now, there are several important observations to be made here:
 - We use a predefined constant `A4PAGE_HEIGHT_IN_CM` to position the table vertically 1 cm from the top of the paper
 - We let the library calculate the minimum table height automatically (based on the font height used in the table)
 
-Now the only thing remaining is to print or stroke the table to the page
+Now the only thing remaining is to print or stroke the table to the page and use the macro to 
+create a main function TUTEX_MAIN() as follows:
 
-```
-hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
-```
+@skip stroke
+@until TUTEX_MAIN
 
 and we are done!
 
 If we put it all together it will give us the following basic table creation code
 
+@include{lineno} tut_ex01.c
 
-```C
-void
-create_table_ex01(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
-    const size_t num_rows = 2;
-    const size_t num_cols = 2;
-    
-    hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
-
-    hpdftbl_set_cell(tbl, 0, 0, NULL, "Cell 0x0");
-    hpdftbl_set_cell(tbl, 0, 1, NULL, "Cell 0x1");
-    hpdftbl_set_cell(tbl, 1, 0, NULL, "Cell 1x0");
-    hpdftbl_set_cell(tbl, 1, 1, NULL, "Cell 1x1");
-
-    HPDF_REAL xpos = hpdftbl_cm2dpi(1);
-    HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
-    HPDF_REAL width = hpdftbl_cm2dpi(5);
-    HPDF_REAL height = 0;  // Calculate height automatically
-
-    hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
-}
-```
 The generated table is shown in **Figure 1.** (@ref tut_ex01.c "tut_ex01.c")
 
 ![Figure 1 - tut_ex01.png](screenshots/tut_ex01.png)  
 ***Figure 1:*** *Your first table.*
 
-As we explained above the coordinate system is in postscript dots. For precision positioning it might be useful to visualize this grid on the page. By using the `hpdftbl_stroke_grid()` function such a grid can be displayed on a page to help with positioning. If we add the grid to the page and show the upper left area of the paper with the grid we can view its positioning in the grid as shown in **Figure 2.**
+As we explained above the coordinate system is in postscript dots. For precision positioning it might be useful to visualize this grid on the page. By using the `hpdftbl_stroke_grid()` function such a grid can be displayed on a page to help with positioning. 
+
+In our infrastructure set-up this call is controlled by setting the secon macro parameter to `TRUE`, i.e. 
+`TUTEX_MAIN(create_table_ex01, FALSE)`
+
+If we add the grid to the page and show the upper left area of the paper with the grid we can view its positioning in the grid as shown in **Figure 2.**
 
 ![Figure 2 - tut_ex01grid.png](screenshots/tut_ex01grid.png)  
 ***Figure 2:*** *Your first table in the page coordinate system showing the upper left part of the paper.*
 
-Since this is an A4 page it will have a height of roughly 841 points or 29.7cm
+Since this is an A4 page it will have a height of roughly 841 points or 29.7cm. In our setup it is possible to generate thegrid by setting
+the third argument to setup_hpdf() to `TRUE`. This can be done by updating the TUTEX_MAIN() macro 
 
 ## Your second table - disconnecting program structure from data
 
@@ -171,46 +181,17 @@ hpdftbl_set_content(hpdftbl_t tbl, char **content)
 
 The content data is a 1-dimensional array of string pointers. Where each row is consecutive in the array. For example to create dummy data indicating what array position goes into what cell you could use the following setup:
 
-```C
-typedef char **content_t;
 
-void setup_dummy_data(content_t *content, size_t rows, size_t cols) {
-    char buff[255];
-    *content = calloc(rows*cols, sizeof(char*));
-    size_t cnt = 0;
-    for (size_t r = 0; r < rows; r++) {
-        for (size_t c = 0; c < cols; c++) {
-            snprintf(buff, sizeof(buff), "Content %zu", cnt);
-            (*content)[cnt] = strdup(buff);
-            cnt++;
-        }
-    }
-}
-```
+
 
 @note We allocate each string dynamically in the dummy-data and since the program is just an illustration and terminates after the page has been created we never bother to free this memory. In a real life scenario this would of course be crucial!
 
 We could then augment example 01 using this more efficient way to specify data as so:
 
-```C
-void
-create_table_ex02(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
-    const size_t num_rows = 2;
-    const size_t num_cols = 2;
-    hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
+@dontinclude tut_ex02.c
+@skip ex02
+@until }
 
-    content_t content;
-    setup_dummy_data(&content, num_rows, num_cols);
-    hpdftbl_set_content(tbl, content);
-
-    HPDF_REAL xpos = hpdftbl_cm2dpi(1);
-    HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
-    HPDF_REAL width = hpdftbl_cm2dpi(5);
-    HPDF_REAL height = 0;  // Calculate height automatically
-    
-    hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
-}
-```
 @ref tut_ex02.c "tut_ex02.c"
 
 Running the code above in our infrastructure will give
@@ -228,29 +209,14 @@ But now it is time to explain the `NULL` value in the first example when we spec
 
 While it is possible (as discussed in section @ref ch_styleandfontsetting "Style and font setting" and @ref sec_specifyingfontsandcolors "Fonts and Colors"  ) to manually adjust the font, size, style, background etc. on each cell individually there is a convenient shortcut to create a basic table with a header using the `hpdftbl_use_header()` function. By modifying the code above and add this line we get the following code and resulting table
 
-```c
-void
-create_table_ex11(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
-    const size_t num_rows = 4;
-    const size_t num_cols = 4;
+@dontinclude tut_ex02_1.c
+@skip ex02_1
+@until }
 
-    hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
-    hpdftbl_use_header(tbl, TRUE);
 
-    content_t content;
-    setup_dummy_data(&content, num_rows, num_cols);
-    hpdftbl_set_content(tbl, content);
-
-    HPDF_REAL xpos = hpdftbl_cm2dpi(1);
-    HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
-    HPDF_REAL width = hpdftbl_cm2dpi(A4PAGE_WIDTH_CM - 5);
-    HPDF_REAL height = 0;  // Calculate height automatically
-    
-    hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
-}
-```
-
-The resulting table can be seen in **Figure 4**. We also modified the dummy data to have the work "Header" in the first row (for details see @ref tut_ex02_1.c "tut_ex02_1.c" )
+The resulting table can be seen in **Figure 4**. 
+We also modified the dummy data to have the work "Header" text for `row==0` in the first row 
+(for details see @ref tut_ex02_1.c "tut_ex02_1.c" )
 
 ![Figure 4 - tut_ex02_1.png](screenshots/tut_ex02_1.png)  
 ***Figure 4:*** *Adding automatic header formatted row (@ref tut_ex02_1.c "tut_ex02_1.c")*
@@ -283,73 +249,35 @@ or just the table height as was shown in **Figure 4.** above. This option is spe
 ![Figure 5 - tut_ex03.png](screenshots/labelGrid_TF_small.png)  
 ***Figure 5:*** *The two variants of left cell border with labels.*
 
-Except for the simplest of tables both the table content and the labels should be specified in an array.
+@note Except for the simplest of tables both the table content and the labels should be specified in an array.
 
-We therefore start by amending our dummy data creation function to also create the data for the labels. It will now look like this:
+To create dummy date for both content and labels we use the function setup_dummy_content_label()
 
-```C
-typedef char **content_t;
+@dontinclude unit_test.inc.h
+@skip setup_dummy_content_label
+@until }
+@line }
+@line }
 
-void 
-setup_dummy_data(content_t *content, content_t *labels, 
-                 size_t rows, size_t cols) {
-    char buff[255];
-    *content = calloc(rows*cols, sizeof(char*));
-    *labels = calloc(rows*cols, sizeof(char*));
-    size_t cnt = 0;
-    for (size_t r = 0; r < rows; r++) {
-        for (size_t c = 0; c < cols; c++) {
-            snprintf(buff, sizeof(buff), "Content %zu", cnt);
-            (*content)[cnt] = strdup(buff);
-            snprintf(buff, sizeof(buff), "Label %zu", cnt);
-            (*labels)[cnt] = strdup(buff);
-            cnt++;
-        }
-    }
-}
-```
 
-In the same way as before we call the functions to specify both the content and the labels
+In the same way as before we call the functions to specify both the content and the labels (strictly speaking the call
+to  hpdftbl_use_labelgrid() is not necessary since by default the short gridlines will be enabled when labels are first 
+enabled.)
 
-```
-setup_dummy_data(&content, &labels, num_rows, num_cols);
-hpdftbl_set_content(tbl, content);
-hpdftbl_set_labels(tbl, labels);
-```
+@dontinclude tut_ex04.c
+@skip setup_dummy_content_label
+@until hpdftbl_set_labels
 
 and finally we also enable labels and the short variant of the left cell border
 
-```C
-hpdftbl_use_labels(tbl, TRUE);
-hpdftbl_use_labelgrid(tbl, TRUE);
-```
+@skipline hpdftbl_use_labels
+@line grid
 
 the remaining code we can leave untouched. With this we get the result shown in **Figure 4.** with the full code for the table shown below.
 
-```C
-void
-create_table_ex04(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
-    const size_t num_rows = 2;
-    const size_t num_cols = 2;
-    
-    hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
-    content_t content, labels;
-
-    setup_dummy_data(&content, &labels, num_rows, num_cols);
-    hpdftbl_set_content(tbl, content);
-    hpdftbl_set_labels(tbl, labels);
-    
-    hpdftbl_use_labels(tbl, TRUE);
-    hpdftbl_use_labelgrid(tbl, TRUE);
-
-    HPDF_REAL xpos = hpdftbl_cm2dpi(1);
-    HPDF_REAL ypos = hpdftbl_cm2dpi(A4PAGE_HEIGHT_CM - 1);
-    HPDF_REAL width = hpdftbl_cm2dpi(5);
-    HPDF_REAL height = 0;  // Calculate height automatically
-
-    hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
-}
-```
+@dontinclude tut_ex04.c
+@skip create_table_ex04
+@until }
 
 @ref tut_ex04.c "tut_ex04.c"
 
@@ -359,10 +287,9 @@ We have one last part of the table we haven't yet used and that is the table tit
 
 To create a table with a title 
 
-```C
-char *table_title = "tut_ex05: 2x2 table";
-hpdftbl_t tbl = hpdftbl_create_title(num_rows, num_cols, table_title);
-```
+@dontinclude tut_ex05.c
+@skipline table_title
+@line hpdftbl_create_title
 
 A table title occupies the top of the table in its own row which isn't part of the counting if the normal columns.
 
@@ -371,6 +298,12 @@ A table title occupies the top of the table in its own row which isn't part of t
 
 It is possible to adjust the colors, font-properties, and alignments of the title with two additional functions `hpdftbl_set_title_style()` and `hpdftbl_set_title_halign()`
 
+The complete code for this example is shown below
+
+@dontinclude tut_ex05.c
+@skip create_table_ex05
+@until }
+
 
 ## Adjusting fonts and colors
 
@@ -378,10 +311,10 @@ The one thing we have skipped over so far and just used the defaults is the look
 as far as colors and fonts go. It is possible to adjust these setting at several levels of granularity. 
 It is possible to:
 
-1. Adjust the entire table in one go using `hpdftbl_set_content_style()`
-2. Adjust one entire column using `hpdftbl_set_col_content_style()`
-2. Adjust one entire row in using `hpdftbl_set_row_content_style()`
-2. Adjust individual cells using `hpdftbl_set_content_style()`
+ 1. Adjust the entire table in one go using `hpdftbl_set_content_style()`
+ 2. Adjust one entire column using `hpdftbl_set_col_content_style()`
+ 3. Adjust one entire row in using `hpdftbl_set_row_content_style()`
+ 4. Adjust individual cells using `hpdftbl_set_content_style()`
 
 It is also possible to adjust the color and thickness of the borders, 
 but we will not discuss this more here and instead refer the reader to the API documentation.

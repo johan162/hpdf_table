@@ -3,18 +3,14 @@
 ## The short version; TL; DR
 *For the long version see* @ref building-from-source "Building from source"
 
-If the necessary @ref pre-req "pre-requisites" are fulfilled the distributed tar-ball  can be rebuilt
-with:
+If the necessary @ref pre-req "pre-requisites" are fulfilled the distributed tar-ball can be built with:
 
 ```shell
 $ tar xzf libhpdftbl-<version>.tar.gz
 $ cd libhpdftbl-<version>
 $ ./configure && make
-$ make install
 ```
-
-If any libraries are missing the `configure` process will discover this and tell what needs to be installed. If successfully, the above commands will compile and install the library in `/usr/local` subtree. 
-It will build and install both a static and dynamic version of the library.
+If any libraries are missing the `configure` process will discover this and tell what needs to be installed.
 
 @note By calling `./configure -h` a list of possible options on how the library should be compiled and installed
 will be shown.
@@ -24,18 +20,28 @@ To verify the build run
 ```shell
 $ make check
 ```
-
 If everything works you should see a *Success!* message.
+After checking that tha library passes the unit-tests it can be installed with
+
+```shell
+$ make install
+```
+
+If successfully this will install the library in the `/usr/local` subtree. 
+It will build and install both a static and dynamic version of the library.
+
 
 ## Pre-requisites {#pre-req}
 
 @note OSX Package manager: We recommend using `brew` as the package manager for OSX.
 
-There are two external libraries required to rebuild `libhpdftbl`  the library:
+There are two external libraries required to build the library:
 
-1. **libhpdf** - The Haru PDF library. On OSX this is most easily installed by using the `brew` OSX package manager. The library is available as `libharu` as of this writing the latest version is `libharu-2.3.0`  
+1. **libhpdf** - The Haru PDF library. On OSX this is most easily installed by using the `brew` OSX package manager. 
+The library is available as `libharu` as of this writing the latest version is `libharu-2.3.0`  
 
-2. **iconv** - The character encoding conversion library. On OSX > 11.x this is included by default once you have `xcode` command line tools installed which is basically a pre-requisite required for all development on OSX.  
+2. **iconv** - The character encoding conversion library. On OSX > 11.x this is included by default once you 
+have `xcode` command line tools installed which is basically a pre-requisite required for all development on OSX.  
 *(On ancient versions of OSX this was not the case.)*
 
 ### Different versions of iconv on OSX
@@ -110,14 +116,14 @@ principle no generated files are stored in the repo.
 
 ### Rebuilding using av existing build environment
 
-Rebuilding the library using a pre-configured build environment requires `gcc/clang` and `make`
-together with the standard C/C++ libraries to be installed.
+Rebuilding the library using a pre-configured build environment requires `gcc` ( or `clang`) and `make`
+together with the standard C/C++ libraries to build the library.
 
 The library source with suitable build-environment is distributed as a tar-ball
 
-1. libhpdftbl-x.y.z.tar.gz
+1. `libhpdftbl-x.y.z.tar.gz`
 
-This tar-ball include a build environment constructed with the GNU autotools. 
+This tar-ball includes a build environment constructed with the GNU autotools. 
 This means that after downloading the tar-ball you can rebuild the library as so:
 
 ```shell
@@ -145,7 +151,7 @@ $ ./configure --prefix=/usr && make
 
 Please refer to `configure -h` for other possible configurations. As a shortcut two
 utility scripts are included that give some extra `CFLAGS` flags to either compile the
-library for production use `./scripts/stdbld.sh` or for debugging `./scripts/dbgbld.sh
+library for production use `./scripts/stdbld.sh` or for debugging `./scripts/dbgbld.sh`
 (See @ref lib-debug "Some notes on Debugging")
 
 
@@ -158,8 +164,8 @@ This means that the following build tools
 needs to be installed in order to fully rebuild from a cloned repo.
 
 1. A complete set of GNU compiler chain (or on OSX clang)
-2. the [GNU autotools](https://www.wikiwand.com/en/GNU_Autotools) (autoconf, automake, libtool)
-3. [Doxygen](https://www.doxygen.nl/manual/index.html) in order to rebuild the documentation
+2. [GNU autotools](https://www.wikiwand.com/en/GNU_Autotools) (autoconf, automake, libtool)
+3. [Doxygen](https://www.doxygen.nl/manual/index.html) in order to rebuild the documentation. 
 
 Since it is completely out of the scope to describe the intricacies
 of the GNU autotools we will only show what to do assuming this tool chain have already been installed.
@@ -241,7 +247,10 @@ is to launch the debugger with:
 $> libtool --mode=execute gdb <example program>
 ```
 
-As a convenience a script is provided to handle the debug build configuration scripts/dbgbld.sh
+This will run the `gdb` debugger from command line. For debugging from within a IDE
+(like Netbeans, Clion, etc.) use the static library method.
+
+As a convenience a script is provided to handle the debug build configuration `scripts/dbgbld.sh`
 
 
 ### Some notes on updating the documentation
@@ -253,7 +262,7 @@ development. To rebuild the *html* documentation build the target
 $> make html
 ```
 
-and to rebuild the *PDF* version build the target
+and to rebuild the *PDF* version build (assuming you have LaTeX installed)
 
 ```shell
 $> make pdf
@@ -268,9 +277,9 @@ not work for anyone else since it requires write access to the doc repo (through
 
 ### Some notes on Windows build
 
-The source files are suitable augmented to also compile on MS Windows with selective defines. However, since 
-I have no longer access to a Windows system to verify the workings this is left as an exercise to the reader. 
-Hence, this should be considered as the best effort.
+The source files are suitable augmented to also compile on MS Windows with selective defines. However, 
+this is on a best effort basis since I have no longer access to a Windows system to verify the workings. 
+
 
 ### Some notes on using C or C++ to build
 

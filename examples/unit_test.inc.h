@@ -1,0 +1,229 @@
+/**
+ * @file
+ * @brief Common functions for all unit-test/examples.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#if !(defined _WIN32 || defined __WIN32__)
+#include <unistd.h>
+#include <libgen.h>
+#include <sys/stat.h>
+#include <sys/utsname.h>
+#endif
+#include <hpdf.h>
+#include <math.h>
+#include <setjmp.h>
+#include <time.h>
+#include "../src/hpdftbl.h"
+
+/**
+ * @brief For the case when we use this example as a unit/integration test we do not want data
+ * such as dates, times, and system-information to be updated since the checks compare the result
+ * to a stored copy of the PDF file.
+ *
+ * When this is true it is used as a flag in, for example, the call-back functions to suppress the
+ * printing of dates and times so the result may be compared to the styored versions of the document
+ * and not be dependent on a specific time and date.
+ */
+_Bool run_as_unit_test = FALSE;
+
+// For simulated exception handling
+jmp_buf env;
+
+#ifndef _MSC_VER
+// Silent gcc about unused "arg" in the callback and error functions
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+/**
+ * @brief A standard hpdf error handler which also translates the hpdf error code to a human-readable string.
+ * @param error_no The HPDF error number
+ * @param detail_no  The error variant
+ * @param user_data  Optional user supplied data when the error was thrown
+ */
+static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no,
+                          void *user_data) {
+    fprintf(stderr, "*** PDF ERROR: \"%s\", [0x%04X : %d]\n",
+            hpdftbl_hpdf_get_errstr(error_no), (unsigned int)error_no, (int)detail_no);
+    longjmp(env, 1);
+}
+
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+
+// Setup a new PDF document with one page
+/**
+ * @brief Create a new PDF document with one page in A4 format.
+ *
+ * This initializes a basic PDF document object and a page object that can then
+ * be used. A typical calling sequence would be:
+ *
+ * @code
+ * HPDF_Doc pdf_doc;
+ * HPDF_Page pdf_page;
+ * setup_hpdf(&pdf_doc, &pdf_page, FALSE);
+ * @endcode
+ *
+ * The pdf_doc and pdf_page can subsequently be used in the other PDF functions.
+ *
+ * By setting the `addgrid` to TRUE the paper
+ * background will be gridlines with coordinate system units in points. This is very useful
+ * to precisely position text and graphics on a page.
+ *
+ * @param[out] pdf_doc   A pointer The document handle
+ * @param[out] pdf_page  A pointer to a page handle
+ * @param[in] addgrid Set to TRUE to add coordinate grid lines to the paper (in points)
+ */
+void
+setup_hpdf(HPDF_Doc* pdf_doc, HPDF_Page* pdf_page, _Bool addgrid) {
+    *pdf_doc = HPDF_New(error_handler, NULL);
+    *pdf_page = HPDF_AddPage(*pdf_doc);
+    HPDF_SetCompressionMode(*pdf_doc, HPDF_COMP_ALL);
+    HPDF_Page_SetSize(*pdf_page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
+    if (addgrid) {
+        hpdftbl_stroke_grid(*pdf_doc, *pdf_page);
+    }
+}
+
+/**
+ * @brief Return a pointer to a static buffer that holds the filename to be used for the
+ * PDF page.
+ *
+ * The filename is create from the program arguments. If there are no arguments the file
+ * name will have the same basename as the program (but with an added "*.pdf"
+ * suffix and path "out/".
+ *
+ * If there are exactly on argument this will in its entirety (incl path) be taken as the
+ * full name for the file.
+ *
+ * @warning It is the calling functions responsibility to check for a NULL return value.
+ *
+ * More than one program argument will generate an error (return NULL)
+ *
+ * @param argc The main() functions argc argument
+ * @param argv The main() functions argv argument
+ * @return NULL on error, otherwise a pointer to a static string that holds the filename.
+ */
+char *
+setup_filename(int argc, char **argv) {
+    static char file[1024];
+    if ( 2==argc ) {
+        strncpy(file, argv[1], sizeof file);
+        file[sizeof(file)-1] = 0;
+    } else if ( 1==argc ) {
+        char fbuff[255];
+        strncpy(fbuff, argv[0], sizeof fbuff);
+        fbuff[sizeof(fbuff) - 1] = 0;
+        char *bname = basename(fbuff);
+        snprintf(file, sizeof file, "out/%s.pdf", bname);
+    } else {
+        return NULL;
+    }
+    return file;
+}
+
+/**
+ * @brief Stroke the created PDF page to a file.
+ *
+ * The filename to be used is determined by the setup_filename() function
+ *
+ * @param pdf_doc The PDF document to be written
+ * @param argc The main() functions argc argument
+ * @param argv The main() functions argv argument
+ * @return 0 on success, -1 on failure
+ * @see setup_filename(), hpdftbl_stroke_pdfdoc()
+ */
+int
+stroke_to_file(HPDF_Doc pdf_doc, int argc, char **argv) {
+    char *file;
+    if( NULL == (file=setup_filename(argc, argv)) ) {
+        fprintf(stderr,"ERROR: Unknown arguments!\n");
+        return -1;
+    }
+
+    printf("Sending to file \"%s\" ...\n", file);
+    if ( -1 == hpdftbl_stroke_pdfdoc(pdf_doc, file) ) {
+        fprintf(stderr,"ERROR: Cannot save to file. Does the full directory path exist?\n");
+        return -1;
+    }
+    printf("Done.\n");
+    return 0;
+}
+
+
+/**
+ * @brief An array of char pointers
+ */
+typedef char **content_t;
+
+/**
+ * @brief Create an array of char pointers to simulate real table data.
+ * @param[out] content A pointer to an array of char pointers
+ * @param[in] rows Number of rows in table
+ * @param[in] cols Number of columns in table
+ */
+void setup_dummy_content(content_t *content, size_t rows, size_t cols) {
+    char buff[255];
+    *content = calloc(rows*cols, sizeof(char*));
+    size_t cnt = 0;
+    for (size_t r = 0; r < rows; r++) {
+        for (size_t c = 0; c < cols; c++) {
+            snprintf(buff, sizeof(buff), "Content %zu", cnt);
+            (*content)[cnt] = strdup(buff);
+            cnt++;
+        }
+    }
+}
+
+/**
+ * @brief  Create both array of char pointers to simulate real table content as well as an array of simulated labels.
+ * @param[out] content A pointer to an array of char pointers to represent content in a table
+ * @param[out] labels A pointer to an array of char pointers to represent labels in a table
+ * @param[in] rows Number of rows in table
+ * @param[in] cols Number of columns in table
+ */
+void setup_dummy_content_label(content_t *content, content_t *labels, size_t rows, size_t cols) {
+    char buff[255];
+    *content = calloc(rows*cols, sizeof(char*));
+    *labels = calloc(rows*cols, sizeof(char*));
+    size_t cnt = 0;
+    for (size_t r = 0; r < rows; r++) {
+        for (size_t c = 0; c < cols; c++) {
+            snprintf(buff, sizeof(buff), "Content %zu", cnt);
+            (*content)[cnt] = strdup(buff);
+            snprintf(buff, sizeof(buff), "Label %zu", cnt);
+            (*labels)[cnt] = strdup(buff);
+            cnt++;
+        }
+    }
+}
+
+/**
+ * @brief Macro to create a main() function to call the table creation
+ * function for each example. The name to the table function is given as
+ * the first and only argument to the macro.
+ * @param _tbl_ The name of the main table creation function to be called.
+ * @param _showgrid_ Set to TRUE to display a dot-grid on the paper, FALSE otherwise.
+ */
+#define TUTEX_MAIN(_tbl_, _showgrid_) int \
+main(int argc, char **argv) { \
+    HPDF_Doc pdf_doc; \
+    HPDF_Page pdf_page;   \
+    run_as_unit_test = 2==argc ; \
+    if (setjmp(env)) { \
+        HPDF_Free(pdf_doc); \
+        return EXIT_FAILURE; \
+    } \
+    setup_hpdf(&pdf_doc, &pdf_page, _showgrid_); \
+    _tbl_(pdf_doc, pdf_page); \
+    if( -1 == stroke_to_file(pdf_doc, argc, argv) ) \
+        return EXIT_FAILURE; \
+    else \
+        return EXIT_SUCCESS; \
+}
+

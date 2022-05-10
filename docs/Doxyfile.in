@@ -12,6 +12,7 @@ OUTPUT_DIRECTORY       = out
 
 # We need to specify all input files manually in order to get them in the right order.
 INPUT                  = ../src \
+						 ../examples/unit_test.inc.h \
                          Intro.md \
                          Building.md \
                          GettingStarted.md \

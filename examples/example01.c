@@ -35,12 +35,10 @@
 #define OUTPUT_FILE "/tmp/example01.pdf"
 #endif
 
-
-// For the case when we use this example as a unit/integration test
-_Bool static_date = FALSE;
-
 // For simulated exception handling
 jmp_buf env;
+
+#include "unit_test.inc.h"
 
 // Global handlers to the HPDF document and page
 HPDF_Doc pdf_doc;
@@ -70,7 +68,7 @@ setup_dummy_data(void) {
 #else
             snprintf(buff, sizeof(buff), "Label %zu:", cnt);
             labels[cnt] = strdup(buff);
-            snprintf(buff, sizeof(buff), "Contentg %zu", cnt);
+            snprintf(buff, sizeof(buff), "Content %zu", cnt);
             content[cnt] = strdup(buff);
 #endif
             cnt++;
@@ -83,16 +81,6 @@ setup_dummy_data(void) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
-
-// A standard hpdf error handler which also translates the hpdf error code to a
-// human-readable string
-static void
-error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no,
-              void *user_data) {
-    fprintf(stderr, "*** PDF ERROR: \"%s\", [0x%04X : %d]\n",
-            hpdftbl_hpdf_get_errstr(error_no), (unsigned int) error_no, (int) detail_no);
-    longjmp(env, 1);
-}
 
 #if !(defined _WIN32 || defined __WIN32__)
 // We don't use the page header on Windooze systems
@@ -109,7 +97,7 @@ static char *
 cb_name(void *tag, size_t r, size_t c) {
     static char buf[256];
     struct utsname sysinfo;
-    if (static_date || -1 == uname(&sysinfo)) {
+    if (run_as_unit_test || -1 == uname(&sysinfo)) {
         return "???";
     } else {
         snprintf(buf, sizeof(buf), "Name: %s, Kernel: %s %s", sysinfo.nodename,
@@ -128,7 +116,7 @@ cb_name(void *tag, size_t r, size_t c) {
 static char *
 cb_date(void *tag, size_t r, size_t c) {
     static char buf[64];
-    if ( ! static_date ) {
+    if ( ! run_as_unit_test ) {
         time_t t = time(NULL);
         ctime_r(&t, buf);
         return buf;
@@ -315,17 +303,6 @@ static void
 add_a4page(void) {
     pdf_page = HPDF_AddPage(pdf_doc);
     HPDF_Page_SetSize(pdf_page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
-}
-
-
-void
-stroke_pdfdoc(char *file) {
-    printf("Sending to file \"%s\" ...\n", file);
-    if (HPDF_OK != HPDF_SaveToFile(pdf_doc, file)) {
-        fprintf(stderr, "ERROR: Cannot save to file!");
-    }
-    HPDF_Free(pdf_doc);
-    printf("Done.\n");
 }
 
 
@@ -599,30 +576,6 @@ ex_tbl5(void) {
 // Type for the pointer to example stroking functions "void fnc(void)"
 typedef void (*t_func_tbl_stroke)(void);
 
-// Silent gcc about unused arguments in the main functions
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
-char *
-setup_filename(int argc, char **argv) {
-    static char file[1024];
-    if ( 2==argc ) {
-        strncpy(file, argv[1], sizeof file);
-        file[sizeof(file)-1] = 0;
-    } else if ( 1==argc ) {
-        char fbuff[255];
-        strncpy(fbuff, argv[0], sizeof fbuff);
-        fbuff[sizeof(fbuff) - 1] = 0;
-        char *bname = basename(fbuff);
-        snprintf(file, sizeof file, "out/%s.pdf", bname);
-    } else {
-        return NULL;
-    }
-    return file;
-}
-
 int
 main(int argc, char **argv) {
     t_func_tbl_stroke examples[] = {ex_tbl1, ex_tbl2, ex_tbl3, ex_tbl4,
@@ -640,7 +593,7 @@ main(int argc, char **argv) {
     // For the case when we use this example as a unit/integration test we need to
     // look down a static date since we cannot compare otherwise since the date
     // strings will be different.
-    static_date = 2==argc ;
+    run_as_unit_test = 2 == argc ;
 
     // Get some dummy data to fill the table§
     setup_dummy_data();
@@ -651,23 +604,19 @@ main(int argc, char **argv) {
 
     for (size_t i = 0; i < num_examples; i++) {
         add_a4page();
+
 #if !(defined _WIN32 || defined __WIN32__)
         example_page_header();
 #endif
+
         (*examples[i])();
+
     }
 
-    char *file;
-    if( NULL == (file=setup_filename(argc, argv)) ) {
-        fprintf(stderr,"ERROR: Unknown arguments!\n");
+    if( -1 == stroke_to_file(pdf_doc, argc, argv) )
         return EXIT_FAILURE;
-    }
+    else
+        return EXIT_SUCCESS;
 
-    stroke_pdfdoc(file);
-
-    return (EXIT_SUCCESS);
 }
 
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif

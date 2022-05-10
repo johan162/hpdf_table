@@ -92,7 +92,7 @@ extern int hpdftbl_err_col ;
 /**
  * @brief Utility macro to create a HPDF color constant from integer RGB values
  */
-#define _TO_HPDF_RGB(r, g, b) \
+#define HPDF_RGB_CONVERT(r, g, b) \
     (HPDF_RGBColor) { r / 255.0f, g / 255.0f, b / 255.0f }
 #endif
 
@@ -134,8 +134,8 @@ extern int hpdftbl_err_col ;
 
 #endif
 
-#define HPDF_COLOR_ORANGE              _TO_HPDF_RGB(0xF5, 0xD0, 0x98);
-#define HPDF_COLOR_ALMOST_BLACK        _TO_HPDF_RGB(0x14, 0x14, 0x14);
+#define HPDF_COLOR_ORANGE              HPDF_RGB_CONVERT(0xF5, 0xD0, 0x98);
+#define HPDF_COLOR_ALMOST_BLACK        HPDF_RGB_CONVERT(0x14, 0x14, 0x14);
 
 /**
  * @brief The margin from the bottom of the cell to the baseline of the text is calculated
@@ -309,16 +309,18 @@ typedef _Bool (*hpdftbl_content_style_callback_t)(void *, size_t, size_t, char *
  * two full cycles which should give a good visual indication of the different patterns.
  */
 typedef enum hpdftbl_dashstyle {
-    LINE_SOLID = 0,              /**< Solid line */
-    LINE_DOT1 = 1,               /**< Dotted line variant 1 "x_x_x_" */
-    LINE_DOT2 = 2,               /**< Dotted line variant 2 "x__x__x__" */
-    LINE_DOT3 = 3,               /**< Dotted line variant 3 "x___x___x___" */
-    LINE_DASH1 = 4,              /**< Dashed line variant 1 "xx__xx__xx__" */
-    LINE_DASH2 = 5,              /**< Dashed line variant 2 "xx___xx___xx___" */
-    LINE_DASH3 = 6,              /**< Dashed line variant 3 "xxxx__xxxx__xxxx__" */
-    LINE_DASH4 = 7,              /**< Dashed line variant 4 "xxxx____xxxx____xxxx____" */
-    LINE_DASHDOT1 = 8,           /**< Dashed-dot line variant 1 "xxxxx__xx__xxxxx__xx__xxxxx__xx__" */
-    LINE_DASHDOT2 = 9            /**< Dashed-dot line variant 1 "xxxxxxx___xxx___xxxxxxx___xxx___xxxxxxx___xxx___" */
+    LINE_SOLID ,              /**< Solid line */
+    LINE_DOT1 ,               /**< Dotted line variant 1 "x_x_x_" */
+    LINE_DOT2 ,               /**< Dotted line variant 2 "x__x__x__" */
+    LINE_DOT3 ,               /**< Dotted line variant 3 "x___x___x___" */
+    LINE_DOT4 ,               /**< Dotted line variant 3 "x_____x_____x_____" */
+    LINE_DASH1 ,              /**< Dashed line variant 1 "xx__xx__xx__" */
+    LINE_DASH2 ,              /**< Dashed line variant 2 "xx___xx___xx___" */
+    LINE_DASH3 ,              /**< Dashed line variant 3 "xxxx__xxxx__xxxx__" */
+    LINE_DASH4 ,              /**< Dashed line variant 4 "xxxx____xxxx____xxxx____" */
+    LINE_DASH5 ,              /**< Dashed line variant 4 "xxxxxx___xxxxxx___xxxxxx___" */
+    LINE_DASHDOT1 ,           /**< Dashed-dot line variant 1 "xxxxx__xx__xxxxx__xx__xxxxx__xx__" */
+    LINE_DASHDOT2             /**< Dashed-dot line variant 1 "xxxxxxx___xxx___xxxxxxx___xxx___xxxxxxx___xxx___" */
 } hpdftbl_line_dashstyle_t;
 
 /**

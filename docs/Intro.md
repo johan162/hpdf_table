@@ -1,4 +1,4 @@
-# Introduction to hpdftbl
+# Overview
 
 ## What is this?
 The Haru PDF library is a great way to programmatically produce PDFs from programs. However, in many instances the best way to present data produced is as a grid (or table). To manually create and setup such tables

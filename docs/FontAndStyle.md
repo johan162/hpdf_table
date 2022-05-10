@@ -1,4 +1,4 @@
-# Style and font setting {#ch_styleandfontsetting}
+# Font and style setting {#ch_styleandfontsetting}
 
 The format of each cell can be adjusted with respect to:
 
@@ -56,21 +56,24 @@ Fonts are specified as a string with the type font family name as recognized by 
 
 ***Table 1:*** *Predefined font family and variants*
 
-So to use the "Helvetic" font family the constant "`HPDF_FF_HELVETICA`" is used and so on.
+So to use the "Helvetic" font family the constant `HPDF_FF_HELVETICA` is used and so on.
 
-Colors are specified in the standard Haru way, i.e. as an instance of the structure "`HPDF_RGBColor`". As another convenience the following colors are predefined
+Colors are specified in the standard Haru way, i.e. as an instance of the structure `HPDF_RGBColor`. As another convenience the following colors are predefined
 
 ```c
 #define HPDF_COLOR_DARK_RED      (HPDF_RGBColor) { 0.6f, 0.0f, 0.0f }
 #define HPDF_COLOR_RED           (HPDF_RGBColor) { 1.0f, 0.0f, 0.0f }
 #define HPDF_COLOR_LIGHT_GREEN   (HPDF_RGBColor) { 0.9f, 1.0f, 0.9f }
 #define HPDF_COLOR_GREEN         (HPDF_RGBColor) { 0.4f, 0.9f, 0.4f }
+#define HPDF_COLOR_DARK_GREEN    (HPDF_RGBColor) { 0.05f, 0.37f, 0.02f }
 #define HPDF_COLOR_DARK_GRAY     (HPDF_RGBColor) { 0.2f, 0.2f, 0.2f }
 #define HPDF_COLOR_LIGHT_GRAY    (HPDF_RGBColor) { 0.9f, 0.9f, 0.9f }
+#define HPDF_COLOR_XLIGHT_GRAY   (HPDF_RGBColor) { 0.95f, 0.95f, 0.95f }
 #define HPDF_COLOR_GRAY          (HPDF_RGBColor) { 0.5f, 0.5f, 0.5f }
 #define HPDF_COLOR_SILVER        (HPDF_RGBColor) { 0.75f, 0.75f, 0.75f }
 #define HPDF_COLOR_LIGHT_BLUE    (HPDF_RGBColor) { 1.0f, 1.0f, 0.9f }
 #define HPDF_COLOR_BLUE          (HPDF_RGBColor) { 0.0f, 0.0f, 1.0f }
+#define HPDF_COLOR_DARK_BLUE     (HPDF_RGBColor) { 0.0f, 0.0f, 0.6f }
 #define HPDF_COLOR_WHITE         (HPDF_RGBColor) { 1.0f, 1.0f, 1.0f }
 #define HPDF_COLOR_BLACK         (HPDF_RGBColor) { 0.0f, 0.0f, 0.0f }
 ```
@@ -83,16 +86,18 @@ hpdftbl_set_content_style(tbl, HPDF_FF_TIMES, 12, HPDF_COLOR_BLACK, HPDF_COLOR_W
 ...
 ```
 
-Since RGB for colors are specified as a floating point number in range [0.0, 1.0] and most color table give colors as an integer triple there is exists a macro to make this conversion easier
+Since RGB for colors are specified as a floating point number in range [0.0, 1.0] and most color tables give colors as 
+an integer triple there is exists a macro to make this conversion easier
 
 ```c
-#define HPDF_COLOR_FROMRGB(r,g,b) (HPDF_RGBColor){r/255.0,g/255.0,b/255.0} 
+#define HPDF_RGB_CONVERT(r,g,b) (HPDF_RGBColor){r/255.0,g/255.0,b/255.0} 
 ```
 
 which will allow the easier specification of color such as 
 
 ```c
-HPDF_RGBColor color_saddle_brown = HPDF_COLOR_FROMRGB(139,69,19);
+#define HPDF_COLOR_ORANGE              HPDF_RGB_CONVERT(0xF5, 0xD0, 0x98);
+#define HPDF_COLOR_ALMOST_BLACK        HPDF_RGB_CONVERT(0x14, 0x14, 0x14);
 ```
 
 ## Using style callbacks
@@ -124,8 +129,6 @@ The parameters are used as follows:
         hpdftbl_text_align_t halign;    /**< Text horizontal alignment */
     } hpdf_text_style_t;
     ```
-
-
 
 The style callbacks can exactly as the content callback be specified for either the entire table or for a specific cell. A cell callback will always override a table callback. The two functions to set up style callbacks are
 
@@ -197,7 +200,7 @@ create_table_ex09(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
 
 The resulting table is shown in **Figure 10.** below.
 
-![tut_ex09.png](screenshots/tut_ex09.png)
+![tut_ex09.png](screenshots/tut_ex09.png)  
 ***Figure 10:*** *Using a style callback to highlight header rows & columns.* *@ref tut_ex09.c "tut_ex09.c"*
 
  
@@ -232,21 +235,14 @@ This structure can be set up manually and then applied to a table. However, the 
 use the "theme getter" function to get the default theme and then modify this default theme as needed since
 it allows you to only have to update the parts affected by a change.
 
-The functions to work with a theme are as follows:
+The functions to work with a theme are :
 
-```c
-// Apply the given theme to a table
-int
-hpdftbl_apply_theme(hpdftbl_t t, hpdftbl_theme_t *theme);
+| API                                                                    | Description                                          |
+|------------------------------------------------------------------------|------------------------------------------------------|
+| `int` <br/> `hpdftbl_apply_theme(hpdftbl_t t, hpdftbl_theme_t *theme)` | Apply the given theme to a table                     |
+| `hpdftbl_theme_t *` <br/> `hpdftbl_get_default_theme(void)`            | Get the default theme into a new allocated structure |
+| `int` <br/> `hpdftbl_destroy_theme(hpdftbl_theme_t *theme)`            | Free the memory used by a theme                      |
 
-// Get the default theme into a new allocated structure
-hpdftbl_theme_t *
-hpdftbl_get_default_theme(void);
-
-// Destroy the memory used by a theme
-int
-hpdftbl_destroy_theme(hpdftbl_theme_t *theme);
-```
 
 @note It is the responsibility of the user of the library to destroy the theme structure by ensuring that `hpdftbl_destroy_theme()` is called when a theme goes out of scope.
 
@@ -321,18 +317,20 @@ and grid style functions
 @ref hpdftbl_set_inner_vgrid_style() and
 @ref hpdftbl_set_inner_hgrid_style()
 
-| Dash Style    | Illustration                                       |
-|---------------|----------------------------------------------------|
-| LINE_SOLID    | `xxx`                                              |
-| LINE_DOT1     | `"x_x_x_"`                                         |
-| LINE_DOT2     | `x__x__x__`                                        |
-| LINE_DOT3     | `"x___x___x___`                                    |
-| LINE_DASH1    | `xx__xx__xx__`                                     |
-| LINE_DASH2    | `xx___xx___xx___`                                  |
-| LINE_DASH3    | `xxxx__xxxx__xxxx__`                               |
-| LINE_DASH4    | `xxxx____xxxx____xxxx____`                         |
-| LINE_DASHDOT1 | `xxxxx__xx__xxxxx__xx__xxxxx__xx__`                |
-| LINE_DASHDOT2 | `xxxxxxx___xxx___xxxxxxx___xxx___xxxxxxx___xxx___` |
+| Dash Style    | Illustration                              |
+|---------------|-------------------------------------------|
+| LINE_SOLID    | @image html screenshots/line_solid.png    |
+| LINE_DOT1     | @image html screenshots/line_dot1.png     |
+| LINE_DOT2     | @image html screenshots/line_dot2.png     |
+| LINE_DOT3     | @image html screenshots/line_dot3.png     |
+| LINE_DOT4     | @image html screenshots/line_dot4.png     |
+| LINE_DASH1    | @image html screenshots/line_dash1.png    |
+| LINE_DASH2    | @image html screenshots/line_dash2.png    |
+| LINE_DASH3    | @image html screenshots/line_dash3.png    |
+| LINE_DASH4    | @image html screenshots/line_dash4.png    |
+| LINE_DASH5    | @image html screenshots/line_dash5.png    |
+| LINE_DASHDOT1 | @image html screenshots/line_dashdot1.png |
+| LINE_DASHDOT2 | @image html screenshots/line_dashdot2.png |
 
 
 The following example (@ref tut_ex20.c "tut_ex20.c" ) makes use of these settings as shown below
@@ -346,7 +344,7 @@ create_table_ex20(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
     content_t content;
 
-    setup_dummy_data(&content, num_rows, num_cols);
+    setup_dummy_content(&content, num_rows, num_cols);
     hpdftbl_set_content(tbl, content);
 
     hpdftbl_set_inner_vgrid_style(tbl, 0.7, HPDF_COLOR_DARK_GRAY, LINE_SOLID);
@@ -401,7 +399,7 @@ create_table_ex15(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
 
     content_t content;
-    setup_dummy_data(&content, num_rows, num_cols);
+    setup_dummy_content(&content, num_rows, num_cols);
     hpdftbl_set_content(tbl, content);
 
     hpdftbl_set_zebra(tbl, TRUE, 1);
@@ -437,7 +435,7 @@ create_table_ex15(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
 
     content_t content;
-    setup_dummy_data(&content, num_rows, num_cols);
+    setup_dummy_content(&content, num_rows, num_cols);
     hpdftbl_set_content(tbl, content);
     //hpdftbl_use_header(tbl, TRUE);
 
@@ -465,4 +463,6 @@ Running this gives the following result:
 
 @image html screenshots/tut_ex15_1.png
 @image latex screenshots/tut_ex15_1.png width=15cm
+
+@note Another way to hide a gridline is to set its width to 0
 

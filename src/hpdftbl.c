@@ -128,10 +128,12 @@ static line_dash_style_t dash_styles[] = {
         {{1, 1, 0, 0, 0, 0, 0, 0}, 2},  /**< Dotted line variant 1 */
         {{1, 2, 0, 0, 0, 0, 0, 0}, 2},  /**< Dotted line variant 2 */
         {{1, 3, 0, 0, 0, 0, 0, 0}, 2},  /**< Dotted line variant 3 */
+        {{1, 5, 0, 0, 0, 0, 0, 0}, 2},  /**< Dotted line variant 4 */
         {{2, 2, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 1 */
         {{2, 4, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 2 */
         {{4, 2, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 3 */
         {{4, 4, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 4 */
+        {{6, 3, 0, 0, 0, 0, 0, 0}, 2},  /**< Dashed line variant 5 */
         {{5, 2, 2, 2, 0, 0, 0, 0}, 4},  /**< Dashed-dot line variant 1 */
         {{7, 3, 3, 3, 0, 0, 0, 0}, 4},  /**< Dashed-dot line variant 2 */
 };
@@ -1828,11 +1830,11 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
     if (cell->content_cb) {
         char *_content = cell->content_cb(t->tag, r, c);
         if (_content)
-            content = strdup(_content);
+            content = _content;
     } else if (t->content_cb) {
         char *_content = t->content_cb(t->tag, r, c);
         if (_content)
-            content = strdup(_content);
+            content = _content;
     }
 
     hpdftbl_text_align_t halign = t->content_style.halign;
@@ -1885,7 +1887,7 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
                    left_right_padding;
     }
 
-    if (content) {
+    if (content && *content) {
         HPDF_Page_BeginText(t->pdf_page);
         hpdftbl_encoding_text_out(t->pdf_page, xpos, ypos, content);
         HPDF_Page_EndText(t->pdf_page);
