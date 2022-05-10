@@ -41,6 +41,8 @@
 #include <string.h>
 #include <iconv.h>
 #include <hpdf.h>
+#include <libgen.h>
+#include <sys/stat.h>
 
 #include "hpdftbl.h"
 
@@ -76,6 +78,8 @@ int hpdftbl_err_row = -1;
 
 /** @brief The column where the last error was generated.  */
 int hpdftbl_err_col = -1;
+
+hpdftbl_error_handler_t hpdftbl_err_handler = NULL;
 
 /**
  * @brief Human readable error strings corresponding to error code
@@ -2099,6 +2103,36 @@ hpdftbl_stroke(HPDF_Doc pdf,
 
     return 0;
 }
+
+
+/**
+ * @brief Stroke PDF document to file with check that the directory in path exists.
+ *
+ * Note: It is a checked error if the full path is longer than 1014 characters
+ *
+ * @param pdf_doc Haru PDF document handle
+ * @param file Full pathname of file to write to
+ * @return 0 on success, -1 on failure
+ */
+int
+hpdftbl_stroke_pdfdoc(HPDF_Doc pdf_doc, char *file) {
+    if( strnlen(file, 1024) >= 1024 )
+        return -1;
+    struct stat sb;
+    char dbuff[1024];
+    strncpy(dbuff, file, sizeof dbuff);
+    dbuff[sizeof(dbuff)-1] = 0;
+    char *dir = dirname(dbuff);
+    if (stat(dir, &sb) == 0 && S_ISDIR(sb.st_mode)) {
+        if (HPDF_OK != HPDF_SaveToFile(pdf_doc, file)) {
+            return -1;
+        }
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
 
 //  Some Doxygen magic to get all the examples forced to be included in the documentation
 /**

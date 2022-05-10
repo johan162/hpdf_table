@@ -605,7 +605,7 @@ typedef struct hpdftbl_theme {
  */
 typedef void (*hpdftbl_error_handler_t)(hpdftbl_t, int, int, int);
 
-static hpdftbl_error_handler_t hpdftbl_err_handler = NULL;
+extern hpdftbl_error_handler_t hpdftbl_err_handler ;
 
 /*
  * Table creation and destruction function
@@ -844,6 +844,9 @@ void
 hpdftbl_widget_strength_meter(HPDF_Doc doc, HPDF_Page page,
                               HPDF_REAL xpos, HPDF_REAL ypos, HPDF_REAL width, HPDF_REAL height,
                               size_t num_segments, HPDF_RGBColor on_color, size_t num_on_segments);
+
+int
+hpdftbl_stroke_pdfdoc(HPDF_Doc pdf_doc, char *file);
 
 #ifdef    __cplusplus
 }

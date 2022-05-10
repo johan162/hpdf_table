@@ -109,7 +109,7 @@ static char *
 cb_name(void *tag, size_t r, size_t c) {
     static char buf[256];
     struct utsname sysinfo;
-    if (-1 == uname(&sysinfo)) {
+    if (static_date || -1 == uname(&sysinfo)) {
         return "???";
     } else {
         snprintf(buf, sizeof(buf), "Name: %s, Kernel: %s %s", sysinfo.nodename,
@@ -310,7 +310,7 @@ example_page_header(void) {
 
 #endif
 
-// Setup a PDF document with one page
+// Add another page in the document
 static void
 add_a4page(void) {
     pdf_page = HPDF_AddPage(pdf_doc);
@@ -605,6 +605,24 @@ typedef void (*t_func_tbl_stroke)(void);
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
+char *
+setup_filename(int argc, char **argv) {
+    static char file[1024];
+    if ( 2==argc ) {
+        strncpy(file, argv[1], sizeof file);
+        file[sizeof(file)-1] = 0;
+    } else if ( 1==argc ) {
+        char fbuff[255];
+        strncpy(fbuff, argv[0], sizeof fbuff);
+        fbuff[sizeof(fbuff) - 1] = 0;
+        char *bname = basename(fbuff);
+        snprintf(file, sizeof file, "out/%s.pdf", bname);
+    } else {
+        return NULL;
+    }
+    return file;
+}
+
 int
 main(int argc, char **argv) {
     t_func_tbl_stroke examples[] = {ex_tbl1, ex_tbl2, ex_tbl3, ex_tbl4,
@@ -639,15 +657,14 @@ main(int argc, char **argv) {
         (*examples[i])();
     }
 
-    if ( 2==argc ) {
-        struct stat sb;
-        if (stat(dirname(argv[1]), &sb) == 0 && S_ISDIR(sb.st_mode)) {
-            stroke_pdfdoc(argv[1]);
-            return EXIT_SUCCESS;
-        }
+    char *file;
+    if( NULL == (file=setup_filename(argc, argv)) ) {
+        fprintf(stderr,"ERROR: Unknown arguments!\n");
+        return EXIT_FAILURE;
     }
 
-    stroke_pdfdoc( OUTPUT_FILE);
+    stroke_pdfdoc(file);
+
     return (EXIT_SUCCESS);
 }
 

@@ -75,7 +75,7 @@ create_table_ex01(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_stroke(pdf_doc, pdf_page, tbl, xpos, ypos, width, height);
 }
 
-// Setup a new PDF document with one age
+// Setup a new PDF document with one page
 void
 setup_hpdf(HPDF_Doc* pdf_doc, HPDF_Page* pdf_page, _Bool addgrid) {
     // Setup the basic PDF document
@@ -88,15 +88,22 @@ setup_hpdf(HPDF_Doc* pdf_doc, HPDF_Page* pdf_page, _Bool addgrid) {
     }
 }
 
-
-void
-stroke_pdfdoc(HPDF_Doc pdf_doc, char *file) {
-    printf("Sending to file \"%s\" ...\n", file);
-    if (HPDF_OK != HPDF_SaveToFile(pdf_doc, file)) {
-        fprintf(stderr, "ERROR: Cannot save to file!");
+char *
+setup_filename(int argc, char **argv) {
+    static char file[1024];
+    if ( 2==argc ) {
+        strncpy(file, argv[1], sizeof file);
+        file[sizeof(file)-1] = 0;
+    } else if ( 1==argc ) {
+        char fbuff[255];
+        strncpy(fbuff, argv[0], sizeof fbuff);
+        fbuff[sizeof(fbuff) - 1] = 0;
+        char *bname = basename(fbuff);
+        snprintf(file, sizeof file, "out/%s.pdf", bname);
+    } else {
+        return NULL;
     }
-    HPDF_Free(pdf_doc);
-    printf("Done.\n");
+    return file;
 }
 
 #ifndef _MSC_VER
@@ -116,24 +123,21 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-
-
     setup_hpdf(&pdf_doc, &pdf_page, FALSE);
-
     create_table_ex01(pdf_doc, pdf_page);
 
-    if ( 2==argc ) {
-        struct stat sb;
-        if (stat(dirname(argv[1]), &sb) == 0 && S_ISDIR(sb.st_mode)) {
-            stroke_pdfdoc(pdf_doc, argv[1]);
-            return EXIT_SUCCESS;
-        }
+    char *file;
+    if( NULL == (file=setup_filename(argc, argv)) ) {
+        fprintf(stderr,"ERROR: Unknown arguments!\n");
+        return EXIT_FAILURE;
     }
 
-    char fname[255];
-    snprintf(fname, sizeof fname, "out/%s.pdf", basename(argv[0]));
-    stroke_pdfdoc(pdf_doc, fname);
-
+    printf("Sending to file \"%s\" ...\n", file);
+    if ( -1 == hpdftbl_stroke_pdfdoc(pdf_doc, file) ) {
+        fprintf(stderr,"ERROR: Cannot save to file. Does the full directory path exist?\n");
+        return EXIT_FAILURE;
+    }
+    printf("Done.\n");
     return EXIT_SUCCESS;
 }
 

@@ -1,35 +1,37 @@
 # Building the library
 
 ## The short version; TL; DR
+*For the long version see* @ref building-from-source "Building from source"
 
-### Compiling the tar ball
+If the necessary @ref pre-req "pre-requisites" are fulfilled the distributed tar-ball  can be rebuilt
+with:
 
-The tar-ball should be trivial to build and install if the necessary @ref pre-req "pre-requisites" are fulfilled.
-
-```c
-$ tar xzf libhpdftbl-1.0.0.tar.gz
-$ cd libhpdf-1.0.0
+```shell
+$ tar xzf libhpdftbl-<version>.tar.gz
+$ cd libhpdftbl-<version>
 $ ./configure && make
 $ make install
 ```
 
-If any libraries are missing the `configure` process will discover this and tell what needs to be installed.
-If successfully, the above commands will compile and install the library in `/usr/local` subtree. 
-It wil build and install both a static and dynamic library
+If any libraries are missing the `configure` process will discover this and tell what needs to be installed. If successfully, the above commands will compile and install the library in `/usr/local` subtree. 
+It will build and install both a static and dynamic version of the library.
 
 @note By calling `./configure -h` a list of possible options on how the library should be compiled and installed
 will be shown.
 
-Depending on the system there might also be pre-built binary packages available for install directly 
-via `apt`on Linux or `brew` on OSX. 
+To verify the build run
 
+```shell
+$ make check
+```
 
+If everything works you should see a *Success!* message.
 
 ## Pre-requisites {#pre-req}
 
 @note OSX Package manager: We recommend using `brew` as the package manager for OSX.
 
-There are two external libraries required to rebuild libhpdftbl and more importantly use the library with an actual application and these are:
+There are two external libraries required to rebuild `libhpdftbl`  the library:
 
 1. **libhpdf** - The Haru PDF library. On OSX this is most easily installed by using the `brew` OSX package manager. The library is available as `libharu` as of this writing the latest version is `libharu-2.3.0`  
 
@@ -38,14 +40,25 @@ There are two external libraries required to rebuild libhpdftbl and more importa
 
 ### Different versions of iconv on OSX
 
-Unfortunately there are two main versions of `libiconv` readily available for OSX which are incompatible as one uses the prefix "`iconv_*`" and the other "`libiconv_*`" on its exported functions. Compiling `libhpdftbl` requires the first of these which is the prevalent version and the default on both OSX and Linux.
+Unfortunately there are two different (and incompatible) versions of `libiconv` readily available for OSX. One library 
+that uses the prefix "`iconv_*`" and the other "`libiconv_*`" on its exported functions. Compiling `libhpdftbl` 
+requires the first of these which is the prevalent version and the default on both OSX and Linux.
 
-This is almost exclusively an issue for those that actively develop on OSX and may have over time installed multiple versions of libraries and as such are aware of these challenges.
+This is almost exclusively an issue for those that actively develop on OSX and may have over time installed 
+multiple versions of libraries and as such are aware of these challenges.
 
 ### OSX native libiconv
-After installing `xcode` command line tools on OSX you can assume that a library called `/usr/lib/iconv.dylib` is available. However, if you actually try to list this library in `/usr/lib` you will not find it! Still, if you link your code with `-liconv` it will work as expected. How come?   
 
-The reason is the way OSX handles different library versions for different OSX SDKs. Since `xcode` supports developing for different OSX versions the SDK would need to include a complete setup of all  `*.dylib` of the right version for each included version of the SDK. To reduce diskspace all dynamic libraries are rolled-up in a dynamic link shared cache for each SDK version. The tool chain (e.g. `gcc`) have been augmented to be aware of this. Hence, there is no need to have libraries in `/usr/lib`. Instead, OSX from v11 and onwards uses the concept of *stub libraries* `*.tbd` (tbd stands for "text based description") which are much smaller text files with some meta information about the library used by the tool-chain.
+After installing `xcode` command line tools on OSXit is safe to assume that a library called `/usr/lib/iconv.dylib` 
+is available. 
+
+However, if one tries to list this library in `/usr/lib` there will not be a `libiconv.dylib`. 
+Still, if the code is linked with `-liconv` it will work as expected. How come?   
+
+The reason is the way OSX handles different library versions for different OSX SDKs. 
+Since `xcode` supports developing for different OSX versions the SDK would need to include a complete setup of all  `*.dylib` of the right version for each included version of the SDK. To reduce diskspace all dynamic libraries are rolled-up in a dynamic link shared cache for each SDK version. The tool chain (e.g. `clang`) have been augmented to be aware of this. Hence, there is no need to have libraries in `/usr/lib`. 
+Instead, OSX from v11 and onwards uses the concept of *stub libraries* with suffix `*.tbd` for each supported SDK version (tbd stands for "text based description"). 
+They are small text files with meta information about the library used by the tool-chain.
 
 For example for SDK 12.3 the stub for libiconv can be found at
 
@@ -53,23 +66,28 @@ For example for SDK 12.3 the stub for libiconv can be found at
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/lib/libiconv.tbd
 ```
 
-and the corresponding include header at
+and the corresponding include header is located at
 
 ```
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/iconv.h
 ```
 
-
 ### OSX GNU port of libiconv
-If you have happened to install `libiconv` via the MacPorts you are out of luck and need to change. MacPorts uses the GNU version which uses the prefix "`libiconv_*`" for its exported function and is not compatible since the table library assumes the naming convention of the standard OSX version (after v11)
+
+If you have happened to install `libiconv` via the MacPorts you are out of luck and need to change. 
+MacPorts uses the GNU version which uses the prefix "`libiconv_*`" for its exported function and is not 
+compatible since the table library assumes the naming convention of the standard OSX version (after v11)
 
 ### Troubleshooting OSX `libiconv`
 
-1. Find out all installed versions of `libiconv` on your installation  
+If the build complains about `libiconv` the following steps could be take to try to track down the 
+problem:
+
+1. Find out all installed versions of `libiconv` on your machine  
 
        $> find / -iregex '.*/libiconv.*' 2> /dev/null
    
-   The "`2> /dev/null`" makes sure you don't get a lot of noise "permission denied"
+   The "`2> /dev/null`" makes sure you don't get a lot of noise with "permission denied"
 
 2. Find out the SDK path that is actively used  
 
@@ -81,17 +99,18 @@ If you have happened to install `libiconv` via the MacPorts you are out of luck 
 
 
 
-## Building the library from source
+## Building the library from source {#building-from-source}
 
-There are two levels of rebuilding the library
+There are two levels of rebuilding the library that we will discuss
 
-1. Using a build environment to rebuild the library
+1. Using a build environment to rebuild the library (i.e. building from the supplied tar-ball)
 
-2. Rebuilding from a cloned repo and rebuild the build environment
+2. Rebuilding from a cloned repo and rebuild the build environment from scratch. As a 
+principle no generated files are stored in the repo.
 
 ### Rebuilding using av existing build environment
 
-Rebuilding the library using a pre-configured build environment only requires `gcc` and `make`
+Rebuilding the library using a pre-configured build environment requires `gcc/clang` and `make`
 together with the standard C/C++ libraries to be installed.
 
 The library source with suitable build-environment is distributed as a tar-ball
@@ -102,8 +121,8 @@ This tar-ball include a build environment constructed with the GNU autotools.
 This means that after downloading the tar-ball you can rebuild the library as so:
 
 ```shell
-$ tar xzf libhpdftbl-1.0.0.tar.gz
-$ cd libhpdf-1.0.0
+$ tar xzf libhpdftbl-x.y.z.tar.gz
+$ cd libhpdf-x.y.z
 $ ./configure && make
 ... (output from the configuration and build omitted) ...
 ```
@@ -124,15 +143,19 @@ $ ./configure --prefix=/usr && make
 ... (output from the configuration and build omitted) ...
 ```
 
-Please refer to `configure -h` for other possible configurations.
+Please refer to `configure -h` for other possible configurations. As a shortcut two
+utility scripts are included that give some extra `CFLAGS` flags to either compile the
+library for production use `./scripts/stdbld.sh` or for debugging `./scripts/dbgbld.sh
+(See @ref lib-debug "Some notes on Debugging")
 
 
 ### Rebuilding from a cloned repo
 
 @note This is for experienced developers!
 
-The repo does not include any of the generated files as the tar-ball does. This means that the following build tools
-needs to be setup in order to fully rebuild from a cloned repo.
+The repo does not include any of the generated files as the tar-ball does. 
+This means that the following build tools
+needs to be installed in order to fully rebuild from a cloned repo.
 
 1. A complete set of GNU compiler chain (or on OSX clang)
 2. the [GNU autotools](https://www.wikiwand.com/en/GNU_Autotools) (autoconf, automake, libtool)
@@ -141,18 +164,18 @@ needs to be setup in order to fully rebuild from a cloned repo.
 Since it is completely out of the scope to describe the intricacies
 of the GNU autotools we will only show what to do assuming this tool chain have already been installed.
 
-To simplify the potentially painful (?) bootstrap of creating a full autotools environment from the cloned
-repo a utility script that does this is  provided in the form of `scripts/bootstrap.sh`. After cloning the 
-repo run (from the `libhpdftbl` directory)
+To simplify the bootstrapping necessary to create a full autotools environment from the cloned
+repo a utility script that does this is  provided in the form of `./scripts/bootstrap.sh`. After cloning the 
+repo run (from the `libhpdftbl` top directory)
 
-```
-./scripts/bootstrap.sh
+```shell
+$ ./scripts/bootstrap.sh
 ```
 
 This script will now run `autoreconf`, `automake`, `glibtoolize` as needed in order to create a full build environment. 
 It will also run `configure` and if everything works as expected the last lines you will see (on OSX) will be
 
-```shell
+```
 ...
 config.status: executing libtool commands
 configure: --------------------------------------------------------------------------------
@@ -164,26 +187,26 @@ configure:   - Installing to /usr/local
 configure: --------------------------------------------------------------------------------
 ```
 
-and then to compile the library 
+and then to compile the library with
 
 ```shell
-$> make
+$ make
 ```
 
 The simplest way to verify that everything works is to run the built-in unit/integration tests 
 
 ```shell
-$> make check
+$ make check
 Info: PASS: tut_ex01
 Info: PASS: tut_ex02
 <omitted ...>
 Info: PASS: tut_ex20
 Info: =================================
-Info: PASS!
+Info: SUCCESS! 20/20 tests passed.
 Info: =================================
 ```
 
-To then install the library 
+To install the library use
 
 ```shell
 $> make install
@@ -193,7 +216,7 @@ This will install headers and library under "`/usr/local`" (unless the prefix wa
 
 ## Miscellaneous 
 
-### Some notes on Compiling for debugging
+### Some notes on Compiling for debugging {#lib-debug}
 
 Since the library builds with `libtool` and this tool will generate a wrapper shell script for each example to
 load the, not yet installed, library it also means this "executable" shell script cannot directly be used to debug with
