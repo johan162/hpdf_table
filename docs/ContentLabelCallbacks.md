@@ -1,4 +1,4 @@
-# Content and label callbacks
+# Using callbacks {#sec_callbacks}
 
 In the "[Getting started](GettingStarted.md)" chapter we discussed the preferred way to specify data and labels 
 in table using data arrays. This is a very good way to populate a table in the cases the data is fairly static. 

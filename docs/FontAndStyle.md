@@ -204,7 +204,7 @@ The resulting table is shown in **Figure 10.** below.
 ***Figure 10:*** *Using a style callback to highlight header rows & columns.* *@ref tut_ex09.c "tut_ex09.c"*
 
  
-## Using style themes {#sec-themes}
+## Using style themes {#sec_themes}
 
 A theme (or style theme) is a definition of the "look & feel" of a table. It doesn't affect the structure of the table
 such as the size of the table or how many columns or rows a cell spans. It is practical shortcut
@@ -464,5 +464,5 @@ Running this gives the following result:
 @image html screenshots/tut_ex15_1.png
 @image latex screenshots/tut_ex15_1.png width=15cm
 
-@note Another way to hide a gridline is to set its width to 0
+@note Another way to hide a gridline is to set its width to 0.
 

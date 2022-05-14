@@ -4,11 +4,11 @@ So far we have constructed the layout of table by issuing API calls per table to
 
 The final and most powerful way of constructing a table is to define the table structure as data. This *structural data* together with a style theme can completely define a table.
 
-This will allow the dynamic construction of tables with only one API call instead of the multiple call required to construct a table the usual way. It can initially seem more complex but for advanced table this is indeed a much simpler and easy to maintain. In fact, this will allow a table to bed defined entirely in a database and makes it possible to adjust tha table as the data changes without ever updating the code (or recompile).
+This will allow the dynamic construction of tables with only one API call instead of the multiple call required to construct a table the usual way. It can initially seem more complex but for advanced table this is indeed a much simpler and easy to maintain. In fact, this will allow a table to be (almost, we'll get back to the limitations) defined entirely in a database and makes it possible to adjust tha table as the data changes without ever updating the code (or recompile).
 
 ## Defining a table in data
 
-There are two data structure that are used when defining a table. First there is a data structure for the overall table specifics and then in that structure a structure to specify the layout of each cell. In addition, a theme needs to be defined (see section on @ref sec_themes "Themes"). It is possible to omit the theme by specifying `NULL` in which case the default theme will be used.
+There are two data structure that are used when defining a table. First there is a data structure for the overall table specifics and then in that structure a structure to specify the layout of each cell. In addition, a theme needs to be defined (see section @ref sec_themes "Themes"). It is possible to omit the theme by specifying `NULL` in which case the default theme will be used.
 
 To stroke a table from data the following API call is used
 
@@ -17,7 +17,7 @@ int
 hpdftbl_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdftbl_spec_t tbl_spec, hpdftbl_theme_t *theme);
 ```
 
-In order to populate the table with suitable data callback functions are used (as described in section )
+In order to populate the table with suitable data callback functions are used (see section @ref sec_callbacks "Using callbacks")
 
 The overall table is first defined as an instance of
 
@@ -128,7 +128,7 @@ create_table_ex13_1(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
    hpdftbl_stroke_from_data(pdf_doc, pdf_page, &tbl_spec, NULL);
 }
 ```
-
+ 
 The result is as expected and shown in **Figure 13** but with much less code!
 
 ![Defining a table as data](screenshots/tut_ex13_1.png "tut_ex13_1")  
@@ -149,7 +149,7 @@ A good way to start designing a table is to make a sketch on how it should look.
 
 ![Rough Table design](screenshots/table_design_1.png)  
 ***Figure 14:*** *Sketch of table to be designed*
-
+ 
 To get this layout we use a basic table with :
 
 1. Five rows and four columns
@@ -234,7 +234,7 @@ hpdftbl_spec_t tbl_spec = {
 };
 ```
 
-When this is run (see @ref tut_ex13_2.c "tut_ex13_2.c") it generates the following image, **Figure 13.2**
+When this is run (see @ref tut_ex13_2.c "tut_ex13_2.c") it generates the following image, **Figure 16**
 
 ![tut_13_2.c](screenshots/tut_ex13_2.png )  
 ***Figure 16:*** *Specifying a table as data with cell specifications.*
