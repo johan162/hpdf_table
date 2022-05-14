@@ -43,7 +43,7 @@
 #include <hpdf.h>
 #include <libgen.h>
 #include <sys/stat.h>
-
+#include <setjmp.h>
 #include "hpdftbl.h"
 
 
@@ -79,6 +79,17 @@ int hpdftbl_err_row = -1;
 /** @brief The column where the last error was generated.  */
 int hpdftbl_err_col = -1;
 
+/** @brief Hold the line number of the last error occurred */
+int hpdftbl_err_lineno = 0;
+
+/** @brief Hold the file name where the last error occurred */
+char *hpdftbl_err_file = NULL;
+
+/** @brief Extra info that may be specified at the point of error */
+char hpdftbl_err_extrainfo[1024] = {0};
+
+
+/** @brief This stores a pointer to the function acting as the error handler callback */
 hpdftbl_error_handler_t hpdftbl_err_handler = NULL;
 
 /**
@@ -98,7 +109,8 @@ static char *error_descriptions[] = {
         "No auto height available",                     /* 10  */
         "Internal error. Unknown error code",           /* 11  */
         "Total column width exceeds 100%",              /* 12  */
-        "Calculated width of columns too small"         /* 13  */
+        "Calculated width of columns too small",        /* 13  */
+        "Dynamic callback not located"                  /* 14  */
 };
 
 /**
@@ -239,6 +251,7 @@ hpdftbl_default_table_error_handler(hpdftbl_t t, int r, int c, int err) {
     exit(1);
 }
 
+
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
 #endif
@@ -277,6 +290,20 @@ hpdftbl_get_last_errcode(const char **errstr, int *row, int *col) {
     hpdftbl_err_row = -1;
     hpdftbl_err_col = -1;
     return old_err_code;
+}
+
+/**
+ * @brief Get the filename and line number where the last error occurred.
+ *
+ * @param lineno Set to the line number where the error occurred
+ * @param file Set to the file where the error occurred
+ * @param extrainfo Extra info string that may be set at the point of error
+ */
+void
+hpdftbl_get_last_err_file(int *lineno, char **file, char **extrainfo) {
+    *lineno = hpdftbl_err_lineno;
+    *file = hpdftbl_err_file;
+    *extrainfo = hpdftbl_err_extrainfo;
 }
 
 /**
@@ -895,7 +922,7 @@ hpdftbl_destroy(hpdftbl_t t) {
  * @param c Column
  * @return TRUE if within bounds, FALSE otherwise
  */
-static _Bool
+_Bool
 chktbl(hpdftbl_t t, size_t r, size_t c) {
     if (r < t->rows && c < t->cols)
         return TRUE;
@@ -1031,182 +1058,6 @@ set_fontc(hpdftbl_t t, char *fontname, HPDF_REAL fsize, HPDF_RGBColor color) {
     HPDF_Page_SetRGBFill(t->pdf_page, color.r, color.g, color.b);
     HPDF_Page_SetTextRenderingMode(t->pdf_page, HPDF_FILL);
 }
-
-/**
- * @brief Set table content callback
- *
- * This callback gets called for each cell in the
- * table and the returned string will be used as the content. The string
- * will be duplicated so it is safe for a client to reuse the string space.
- * If NULL is returned from the callback then the content will be set to the
- * content specified with the direct content setting.
- * The callback function will receive the Table tag and the row and column for the
- * cell the callback is made for.
- * @param t Table handle
- * @param cb Callback function
- * @return -1 for error , 0 otherwise
- *
- * @see hpdftbl_set_cell_content_cb()
- */
-int
-hpdftbl_set_content_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
-    _HPDFTBL_CHK_TABLE(t);
-    t->content_cb = cb;
-    return 0;
-}
-
-/**
- * @brief Set cell content callback.
- *
- * Set a content callback for an individual cell. This will override the table content
- * callback. The callback function will receive the Table tag and the row and column for the
- * cell the callback is made for.
- * @param t Table handle
- * @param cb Callback function
- * @param r Cell row
- * @param c Cell column
- * @return -1 on failure, 0 otherwise
- *
- * @see hpdftbl_set_content_cb()
- */
-int
-hpdftbl_set_cell_content_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_callback_t cb) {
-    _HPDFTBL_CHK_TABLE(t);
-    if (!chktbl(t, r, c))
-        return -1;
-
-    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
-
-    // If this cell is part of another cells spanning then
-    // indicate this as an error
-    if (cell->parent_cell) {
-        _HPDFTBL_SET_ERR(t, -1, r, c);
-        return -1;
-    }
-
-    cell->content_cb = cb;
-    return 0;
-}
-
-/**
- * @brief Set cell label callback
- *
- * Set a label callback for an individual cell. This will override the table label
- * callback. The callback function will receive the Table tag and the row and column for the
- * cell the callback is made for.
- * @param t Table handle
- * @param cb Callback function
- * @param r Cell row
- * @param c Cell column
- * @return -1 on failure, 0 otherwise
- *
- * @see hpdftbl_set_label_cb()
- */
-int
-hpdftbl_set_cell_label_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_callback_t cb) {
-    _HPDFTBL_CHK_TABLE(t);
-    if (!chktbl(t, r, c))
-        return -1;
-
-    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
-
-    // If this cell is part of another cells spanning then
-    // indicate this as an error
-    if (cell->parent_cell) {
-        _HPDFTBL_SET_ERR(t, -1, r, c);
-        return -1;
-    }
-
-    cell->label_cb = cb;
-    return 0;
-}
-
-/**
- * @brief Set cell canvas callback
- *
- * Set a canvas callback for an individual cell. This will override the table canvas
- * callback. The canvas callback is called with arguments that give the bounding box for the
- * cell. In that way a callback function may draw arbitrary graphic in the cell.
- * The callback is made before the cell border and content is drawn making
- * it possible to for example add a background color to individual cells.
- * The callback function will receive the Table tag, the row and column,
- * the x, y position of the lower left corner of the table and the width
- * and height of the cell.
- * @param t Table handle
- * @param r Cell row
- * @param c Cell column
- * @param cb Callback function
- * @return -1 on failure, 0 otherwise
- * @see hpdftbl_canvas_callback_t
- * @see hpdftbl_set_canvas_cb()
- */
-int
-hpdftbl_set_cell_canvas_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_canvas_callback_t cb) {
-    _HPDFTBL_CHK_TABLE(t);
-    if (!chktbl(t, r, c))
-        return -1;
-
-    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
-
-    // If this cell is part of another cells spanning then
-    // indicate this as an error
-    if (cell->parent_cell) {
-        _HPDFTBL_SET_ERR(t, -1, r, c);
-        return -1;
-    }
-
-    cell->canvas_cb = cb;
-    return 0;
-}
-
-/**
- * @brief Set table label callback
- *
- * Set label callback. This callback gets called for each cell in the
- * table and the returned string will be used as the label. The string
- * will be duplicated so it is safe for a client to reuse the string space.
- * If NULL is returned from the callback then the label will be set to the
- * content specified with the direct label setting.
- * The callback function will receive the Table tag and the row and column
- * @param t Table handle
- * @param cb Callback function
- * @return -1 on failure, 0 otherwise
- * @see hpdftbl_content_callback_t
- * @see hpdftbl_set_cell_label_cb()
- */
-int
-hpdftbl_set_label_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
-    _HPDFTBL_CHK_TABLE(t);
-    t->label_cb = cb;
-    return 0;
-}
-
-/**
- * @brief Set cell canvas callback
- *
- * Set cell canvas callback. This callback gets called for each cell in the
- * table. The purpose is to allow the client to add dynamic content to the
- * specified cell.
- * The callback is made before the cell border and content is drawn making
- * it possible to for example add a background color to individual cells.
- * The callback function will receive the Table tag, the row and column,
- * the x, y position of the lower left corner of the table and the width
- * and height of the cell.
- * To set the canvas callback only for a specific cell use the
- * hpdftbl_set_cell_canvas_cb() function
- * @param t Table handle
- * @param cb Callback function
- * @return -1 on failure, 0 otherwise
- *
- * @see hpdftbl_set_cell_canvas_cb()
- */
-int
-hpdftbl_set_canvas_cb(hpdftbl_t t, hpdftbl_canvas_callback_t cb) {
-    _HPDFTBL_CHK_TABLE(t);
-    t->canvas_cb = cb;
-    return 0;
-}
-
 
 /*static void
 _stroke_haligned_text(hpdftbl_t t, char *txt, hpdftbl_text_align_t align, HPDF_REAL x, HPDF_REAL y, HPDF_REAL width) {
@@ -1461,50 +1312,6 @@ hpdftbl_set_cell_content_style(hpdftbl_t t, size_t r, size_t c, char *font, HPDF
     return 0;
 }
 
-/**
- * @brief Set cell specific callback to specify cell content style.
- *
- * Set callback to format the style for the specified cell
- * @param t Table handle
- * @param r Cell row
- * @param c Cell column
- * @param cb Callback function
- * @return 0 on success, -1 on failure
- *
- * @see hpdftbl_set_ontent_style_cb()
- */
-int
-hpdftbl_set_cell_content_style_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_style_callback_t cb) {
-    _HPDFTBL_CHK_TABLE(t);
-    chktbl(t, r, c);
-    // If this cell is part of another cells spanning then
-    // indicate this as an error
-    hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
-    if (cell->parent_cell) {
-        _HPDFTBL_SET_ERR(t, -1, r, c);
-        return -1;
-    }
-    cell->style_cb = cb;
-    return 0;
-}
-
-/**
- * @brief Set callback to specify cell content style
- *
- * Set callback to format the style for cells in the table. If a cell has its own content style
- * callback that callback will override the generic table callback.
- * @param t Table handle
- * @param cb Callback function
- * @return 0 on success, -1 on failure
- *
- * @see hpdftbl_set_cell_content_style_cb()
- */
-int
-hpdftbl_set_content_style_cb(hpdftbl_t t, hpdftbl_content_style_callback_t cb) {
-    _HPDFTBL_CHK_TABLE(t);
-    t->content_style_cb = cb;
-    return 0;
-}
 
 /**
  * @brief Set the table title style
@@ -2199,6 +2006,9 @@ hpdftbl_stroke_pdfdoc(HPDF_Doc pdf_doc, char *file) {
  *
  * @example tut_ex20.c
  * Defining a table and adjusting the gridlines.
+ *
+ * @example tut_ex30.c
+ * Defining a table using dynamic callbacks
  *
  */
 

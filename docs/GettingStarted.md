@@ -23,7 +23,7 @@ main(int argc, char **argv) {
     HPDF_Doc pdf_doc;
     HPDF_Page pdf_page;
 
-    if (setjmp(env)) {
+    if (setjmp(_hpdftbl_jmp_env)) {
         HPDF_Free(pdf_doc);
         return EXIT_FAILURE;
     }
@@ -320,5 +320,5 @@ It is also possible to adjust the color and thickness of the borders,
 but we will not discuss this more here and instead refer the reader to the API documentation.
 
 @note We should also mention that there is a concept of a look & feel theme for the table which can be 
-used to adjust all the parameters at once. This is discussed in @ref sec-themes "Using themes".
+used to adjust all the parameters at once. This is discussed in @ref sec_themes "Using themes".
 

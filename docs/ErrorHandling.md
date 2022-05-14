@@ -43,7 +43,7 @@ my_table_error_handler(hpdftbl_t t, int r, int c, int err) {
     } else {
         fprintf(stderr, "*** Table Error: [%d] \"%s\" \n", err, hpdftbl_get_errstr(err));
     }
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 ```
 
@@ -58,9 +58,84 @@ hpdftbl_set_errhandler(hpdftbl_default_table_error_handler);
 
 More advanced error handler must be written for the particular application they are to be used in. 
 
+## Using emulated exception handling
+
+As can be ssen above the default error handler terminates the running process with a call to `exit(EXIT_FAILURE)`. 
+Terminating te process might not always be approriate (especially for a daemon process). An alternative way to
+handle a fault state is to use `setjmp()/longjmp()` to simulate an exception handling.
+
+In the program setup code a jump point is established and then if an error is detected the error handler 
+will jump to the set jump point.
+
+For example, all tutorial examples share the same `main()` function as shown below
+
+```c
+main(int argc, char **argv) { 
+    HPDF_Doc pdf_doc; 
+    HPDF_Page pdf_page;  
+    run_as_unit_test = 2==argc ; 
+    if (setjmp(_hpdftbl_jmp_env)) {
+        return EXIT_FAILURE; 
+    }  
+    hpdftbl_set_errhandler(table_error_handler); 
+    setup_hpdf(&pdf_doc, &pdf_page, _showgrid_); 
+    _tbl_(pdf_doc, pdf_page); 
+    if( -1 == stroke_to_file(pdf_doc, argc, argv) ) 
+        return EXIT_FAILURE; 
+    else 
+        return EXIT_SUCCESS; 
+}
+```
+
+The relevant part here is the `setjmp(_hpdftbl_jmp_env)` code which establish a jump destination. An basic error handler that uses
+this could now look like this:
+
+```c
+static void
+table_error_handler(hpdftbl_t t, int r, int c, int err) {
+    if (r > -1 && c > -1) {
+        fprintf(stderr, "*** Table Error: [%d] \"%s\" at cell (%d, %d)\n", err, hpdftbl_get_errstr(err), r, c);
+    } else {
+        fprintf(stderr, "*** Table Error: [%d] \"%s\" \n", err, hpdftbl_get_errstr(err));
+    }
+    longjmp(_hpdftbl_jmp_env, 1);
+}
+```
+
+If an error occur the `longjmp()` will come to the `setjmp()` point and since it returns the value of `1` it will enter the if-statement
+free the doc structure and then terminate the process by exiting the `main()` function.
+
+In a more complex program it might be useful to instead of exiting the process give the user an error message, do
+any cleanup (such as freeing the PDF document) and try again if this perhaps was a recoverable error.
+
+The actual error handler used in the tutorial examples is slightly longer as it prints all available information
+from the error handling "subsystem" such as which file and line number (in the library) where the error was 
+triggered and any optional extra information was given in regard to the error mode. 
+In addition, a stacktrace is also generated to `stderr`
+
+The real (production grade) error handler therefore looks as shown below
+
+@dontinclude unit_test.inc.h
+@skip table_error_handler
+@until longjmp
+@line }
+
+&nbsp;
+
 @note A common way to extend the error handling is to log the errors to syslog. When the library is used on OSX from 11.0 and onwards it should be remembered that OSX is broken by design as far as syslog logging is concerned. Apple in its wisdom introduced "Unified logging" which breaks the `syslog()` function and no logging is ever produced in the filesystem directly (i.e. to `/var/log/system.log`).   
 Instead, the only way to view the logs is by using the utility `log`. So in order to view the log from a particular application the following command has to be given  
 `log stream --info --debug --predicate 'sender == "APPLICATION_NAME" --style syslog`
+
+## Additional information
+
+When an error is triggered the file name and line number in the library where the error was triggered is saved as well 
+as an optional information string that some error states might set. 
+
+All this extra information can be retrieved  by the library function hpdftbl_get_last_err_file()
+
+@note The file name and line number displayed is always the point in the library that discovered the error
+state. It does not indicate the file name and line number of the client code that triggered the error as the
+error is discovered in the library routines.
 
 ## Translating HPDF error codes
 

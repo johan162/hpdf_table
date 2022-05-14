@@ -1,4 +1,4 @@
-# HPDFTBL API Overview
+# API Overview
 
 
 ## Table creation related functions
@@ -196,6 +196,40 @@ if a cell has a callback that is used, otherwise the table callback is used.
 
  - hpdftbl_set_cell_canvas_cb()
    *Set the cell canvas callback.*
+
+## Dynamic (late binding) callback handling
+
+These are callbacks which set a function at runtime to be used as callback. This is useful when
+specifying the table for example as a structure stored in a database or in a file. The callback
+function is then specified as a string (the name of the callback function which is then resolved 
+at runtime.
+
+ - hpdftbl_set_dlhandle()  
+   *Set the dynamic library load handle as returned by dlopen() or one of the predefined handles. By default, the handle is set to the predefined handle `RTLD_DEFAULT`. See `man dlsym`. This handle will control how the search for the name of the function will 
+    be conducted. The default will find any functions defined in any images linked
+    and any libraries linked at compile time. It will **not** find functions defined
+    in libraries that are dynamically loaded. In that case you shoult specify the handle
+    returned by `dlopen()`.
+
+ - hpdftbl_set_content_dyncb()
+   *Set the name for the table content callback.*
+
+ - hpdftbl_set_cell_content_dyncb()
+   *Set the name for the cell content callback.*
+
+ - hpdftbl_set_label_dyncb()
+
+ - hpdftbl_set_cell_label_dyncb()
+   *Set the name for the cell label content callback.*
+
+ - hpdftbl_set_content_style_dyncb()
+   *Set the name for the table content style callback.*
+
+ - hpdftbl_set_cell_content_style_dyncb()
+   *Set the name for the cell content style callback.*
+
+ - hpdftbl_set_cell_canvas_dyncb()
+   *Set the name for the cell canvas callback.*
 
 ## Text encoding
 

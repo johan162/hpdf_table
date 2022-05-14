@@ -9,14 +9,22 @@ but the table library have one better way to do this and that is to set up label
 
 ## Introducing content callback functions
 **Content callbacks** are functions that are called by the library for each cell and returns a 
-string which is used as the data to be displayed. The signature for a cell callback is defined by 
+string which is used as the data to be displayed. The signature for a cell content callback is defined by 
 the type `hpdftbl_content_callback_t` which is a pointer to a function defined as:
 
 ```C
- typedef char * (*hpdftbl_content_callback_t)(void *, size_t, size_t);
+ typedef 
+ char * (*hpdftbl_content_callback_t)(void *, size_t, size_t);
+```
+This signature is also used for label callbacks. For style setting callback the
+signature is instead defined as
+
+```c
+typedef 
+_Bool (*hpdftbl_content_style_callback_t)(void *, size_t, size_t, char *content, hpdf_text_style_t *);
 ```
 
-To understand this lets start defining a callback function that follows this signature.
+To understand this lets start defining a callback function to specify content (or a label) that follows this signature.
 
 ```c
 char *
@@ -130,9 +138,7 @@ following table creation code:
 @skip ex06
 @until }
 
-([tut_ex06.c](../examples/tut_ex06.c))
-
-Running this example gives the result shown in **Figure 7.**  below
+Running this example gives the result shown in **Figure 7.**  below, the full source code can be found in @ref tut_ex06.c
 
 ![tut_ex06.c](screenshots/tut_ex06.png)   
 
@@ -140,4 +146,75 @@ Running this example gives the result shown in **Figure 7.**  below
 
 
 
+## Dynamic (late binding) callbacks
+
+@warning This is an advanced concept and while simple in theory it does
+have some hidden "gotchas".
+
+All callback functions discussed above must exist att compile time so that the
+address of the functions can be determined by the compiler. As we will discuss 
+later it is possible to define a table as a data structure to avoid having to
+write several lines of code in defining a table.
+
+Such a data structure could in theory be stored in a database or as a text file.
+In that case it will not be possible to specify a callback function since the
+address of function is determined at link time.
+
+Fortunately it is possible to specify a function name (as a string) and have
+the standard C-library locate where that function is stored and return a 
+pointer to it. This pointer is then the same as if the callback had been
+bound at compile time.
+
+There is a analog set of functions that takes a string name of the function
+and looks up the actual function pointer and set that as the callback.
+
+Those analogue functions are
+
+| API                                    | Description                      |
+|----------------------------------------|----------------------------------|
+| hpdftbl_set_dlhandle()                 | Option to set dynamic lib handle |
+| hpdftbl_set_content_dyncb()            | Table content late binding       |
+| hpdftbl_set_label_dyncb()              | Table label late binding         |
+| hpdftbl_set_cell_label_dyncb()         | Table cell label latex binding   |
+| hpdftbl_set_content_style_dyncb()      | Table style late binding         |      
+| hpdftbl_set_cell_content_style_dyncb() | Table cell content late binding  |
+| hpdftbl_set_cell_canvas_dyncb()        | Cell canvas callback             |
+
+They are identical to hhe already described "ordinary" setting callback functions
+with the difference these functions take a string as argument rather than a 
+function pointer.
+
+
+### Using late binding
+
+Using late binding is very similar to what we did in the previous examples, 
+We start by defining the callback functions we need
+
+@dontinclude tut_ex30.c
+
+@skip char
+@until cb_labels
+@until return
+@until }
+
+
+It is however one crucial detail that cannot be overlooked. **None of the callbacks functions can be static!** If they are static they won't be found
+
+Then it is really simple. We create the table with the function that should now be familiar and
+then add the callbacks with the names of the callback functions as so
+
+@skip hpdftbl_set_content_dyncb
+@until hpdftbl_set_cell_content_dyncb
+
+In this way it is possible to specify the entire table structure as a  text structure
+that could be stored in a database or as a text file with just the name of the callback
+functions. However, care must be taken that they are named exactly as they are specified.
+
+The complete table function is shown below and the full example be found in @ref tut_ex30.c 
+
+@dontinclude tut_ex30.c
+
+@skip Table 30
+@skip void
+@until }
 

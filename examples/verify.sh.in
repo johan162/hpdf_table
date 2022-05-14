@@ -66,7 +66,6 @@ cmp_outputs() {
   declare -i passcnt=0
 
   for f in @srcdir@/*.c; do
-    cnt=$((cnt+1))
     ff=${f##*/}
     prog=${ff%%.c}
     outfile="out/${prog}.pdf"
@@ -76,16 +75,22 @@ cmp_outputs() {
       success=0
     else
       tstfile="@srcdir@/tests/${prog}.pdf"
-      diff "$outfile" "$tstfile" > /dev/null
-      if [ $? -eq 0 ]; then
-        infolog "PASS: ${prog}"
-        passcnt=$((passcnt+1))
-      else
-        errlog "FAIL: ${prog}"
-        success=0
+
+      # Skip this file if there are no test case
+      if [ -f ${tstfile} ]; then
+        cnt=$((cnt+1))
+        diff "$outfile" "$tstfile" > /dev/null
+        if [ $? -eq 0 ]; then
+          infolog "PASS: ${prog}"
+          passcnt=$((passcnt+1))
+        else
+          errlog "FAIL: ${prog}"
+          success=0
+        fi
       fi
     fi
   done
+
   infolog "================================="
   if [ $success -eq 1 ]; then
     infolog "SUCCESS! $passcnt/$cnt tests passed."

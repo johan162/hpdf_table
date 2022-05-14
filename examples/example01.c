@@ -36,7 +36,7 @@
 #endif
 
 // For simulated exception handling
-jmp_buf env;
+jmp_buf _hpdftbl_jmp_env;
 
 #include "unit_test.inc.h"
 
@@ -585,7 +585,7 @@ main(int argc, char **argv) {
     printf("Stroking %ld examples.\n", num_examples);
 
     // Setup fake exception handling
-    if (setjmp(env)) {
+    if (setjmp(_hpdftbl_jmp_env)) {
         HPDF_Free(pdf_doc);
         return EXIT_FAILURE;
     }

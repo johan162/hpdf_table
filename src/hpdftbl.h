@@ -53,18 +53,29 @@ extern "C" {
 #endif
 
 #ifndef max
+
+/**
+ * @brief Return the maximum value of numeric variables.
+ */
 #define max(a,b) (((a)>(b)) ? (a):(b))
+
+/**
+ * @brief Return the minimum value of numeric variables.
+ */
 #define min(a,b) (((a)<(b)) ? (a):(b))
 #endif
 
-/** @brief Stores the last generated error code. */
 extern int hpdftbl_err_code ;
 
-/** @brief The row where the last error was generated.  */
 extern int hpdftbl_err_row ;
 
-/** @brief The column where the last error was generated.  */
 extern int hpdftbl_err_col ;
+
+extern int hpdftbl_err_lineno;
+
+extern char *hpdftbl_err_file;
+
+extern char hpdftbl_err_extrainfo[];
 
 
 #define HPDF_FF_TIMES "Times-Roman"
@@ -229,7 +240,15 @@ extern int hpdftbl_err_col ;
  * @param r Row where error occured
  * @param c Column where error occured
  */
-#define _HPDFTBL_SET_ERR(t, err, r, c) do {hpdftbl_err_code=err;hpdftbl_err_row=r;hpdftbl_err_col=c; if(hpdftbl_err_handler){hpdftbl_err_handler(t,r,c,err);}} while(0)
+#define _HPDFTBL_SET_ERR(t, err, r, c) do {hpdftbl_err_code=err;hpdftbl_err_row=r;hpdftbl_err_col=c;hpdftbl_err_lineno=__LINE__;hpdftbl_err_file=__FILE__; if(hpdftbl_err_handler){hpdftbl_err_handler(t,r,c,err);}} while(0)
+
+/**
+ * @brief Set optional extra info at error state. (Currently only used by the late binding setting
+ * callback functions)
+ * @param info Extra info that can be set by a function at a state of error
+ * @see hpdftbl_set_label_dyncb(),hpdftbl_set_content_dyncb()
+ */
+#define _HPDFTBL_SET_ERR_EXTRA(info) do {strncpy(hpdftbl_err_extrainfo,info,1023);hpdftbl_err_extrainfo[1023]=0;} while(0)
 
 /**
  * @brief NPE check before using a table handler
@@ -655,6 +674,9 @@ int
 hpdftbl_get_last_errcode(const char **errstr, int *row, int *col);
 
 void
+hpdftbl_get_last_err_file(int *lineno, char **file, char **extrainfo);
+
+void
 hpdftbl_default_table_error_handler(hpdftbl_t t, int r, int c, int err);
 
 /*
@@ -782,12 +804,6 @@ int
 hpdftbl_set_cell_content_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_callback_t cb);
 
 int
-hpdftbl_set_cell_content_style_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_style_callback_t cb);
-
-int
-hpdftbl_set_content_style_cb(hpdftbl_t t, hpdftbl_content_style_callback_t cb);
-
-int
 hpdftbl_set_label_cb(hpdftbl_t t, hpdftbl_content_callback_t cb);
 
 int
@@ -798,6 +814,39 @@ hpdftbl_set_canvas_cb(hpdftbl_t t, hpdftbl_canvas_callback_t cb);
 
 int
 hpdftbl_set_cell_canvas_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_canvas_callback_t cb);
+
+int
+hpdftbl_set_content_style_cb(hpdftbl_t t, hpdftbl_content_style_callback_t cb);
+
+int
+hpdftbl_set_cell_content_style_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_style_callback_t cb);
+
+/*
+ * Table dynamic callback functions
+ */
+void
+hpdftbl_set_dlhandle(void *);
+
+int
+hpdftbl_set_content_dyncb(hpdftbl_t, char *);
+
+int
+hpdftbl_set_cell_content_dyncb(hpdftbl_t, size_t, size_t, char *);
+
+int
+hpdftbl_set_label_dyncb(hpdftbl_t, char *);
+
+int
+hpdftbl_set_cell_label_dyncb(hpdftbl_t, size_t, size_t, char *);
+
+int
+hpdftbl_set_content_style_dyncb(hpdftbl_t, char *);
+
+int
+hpdftbl_set_cell_content_style_dyncb(hpdftbl_t, size_t, size_t, char *);
+
+int
+hpdftbl_set_cell_canvas_dyncb(hpdftbl_t, size_t, size_t, char *);
 
 /*
  * Text encoding
@@ -849,6 +898,12 @@ hpdftbl_widget_strength_meter(HPDF_Doc doc, HPDF_Page page,
 
 int
 hpdftbl_stroke_pdfdoc(HPDF_Doc pdf_doc, char *file);
+
+/*
+ * Internal functions
+ */
+_Bool
+chktbl(hpdftbl_t, size_t, size_t);
 
 #ifdef    __cplusplus
 }

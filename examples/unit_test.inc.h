@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <execinfo.h>
 
 #if !(defined _WIN32 || defined __WIN32__)
 #include <unistd.h>
@@ -31,12 +32,13 @@
 _Bool run_as_unit_test = FALSE;
 
 // For simulated exception handling
-jmp_buf env;
+jmp_buf _hpdftbl_jmp_env;
 
 #ifndef _MSC_VER
 // Silent gcc about unused "arg" in the callback and error functions
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 /**
@@ -45,12 +47,66 @@ jmp_buf env;
  * @param detail_no  The error variant
  * @param user_data  Optional user supplied data when the error was thrown
  */
-static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no,
+static void
+error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no,
                           void *user_data) {
     fprintf(stderr, "*** PDF ERROR: \"%s\", [0x%04X : %d]\n",
             hpdftbl_hpdf_get_errstr(error_no), (unsigned int)error_no, (int)detail_no);
-    longjmp(env, 1);
+    longjmp(_hpdftbl_jmp_env, 1);
 }
+
+/**
+ * @brief The table error handler for the  tutorial examples.
+ *
+ * This shows all the information that can be retrieved by an error handler.
+ * It assumes that the set-up code have specified an setjmp() point since
+ * the handler will jump to that point as the last step.
+ *
+ * @param t Table handle for the table where the error occurred
+ * @param r Cell row of error (if applicable)
+ * @param c Cell column of error (if applicable)
+ * @param err The error code passed by the library
+ */
+static void
+table_error_handler(hpdftbl_t t, int r, int c, int err) {
+
+    int lineno;
+    char *filename;
+    char *extrainfo;
+
+    hpdftbl_get_last_err_file(&lineno, &filename, &extrainfo);
+    if (r > -1 && c > -1) {
+        fprintf(stderr, "*** Table Error: [%d] \"%s\" at cell (%d, %d)", err,
+                hpdftbl_get_errstr(err), r, c);
+    } else {
+        fprintf(stderr, "*** Table Error: [%d] \"%s\"", err,
+                hpdftbl_get_errstr(err));
+    }
+    if( filename != NULL ) {
+        fprintf(stderr," in %s:%d",filename, lineno);
+    }
+    if( extrainfo != NULL ) {
+        fprintf(stderr,". Info: \"%s\"\n",extrainfo);
+    }
+    else {
+        fprintf(stderr,"\n");
+    }
+
+    // Also print the available stacktrace
+    void* callstack[128];
+    int i, frames = backtrace(callstack, 128);
+    char** callstack_sym = backtrace_symbols(callstack, frames);
+    if( callstack_sym != NULL ) {
+        fprintf(stderr, "Stacktrace:\n");
+        for (i = 0; i < frames; ++i) {
+            fprintf(stderr, "%s\n", callstack_sym[i]);
+        }
+        free(callstack_sym);
+    }
+
+    longjmp(_hpdftbl_jmp_env, 1);
+}
+
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
@@ -215,10 +271,10 @@ main(int argc, char **argv) { \
     HPDF_Doc pdf_doc; \
     HPDF_Page pdf_page;   \
     run_as_unit_test = 2==argc ; \
-    if (setjmp(env)) { \
-        HPDF_Free(pdf_doc); \
+    if (setjmp(_hpdftbl_jmp_env)) { \
         return EXIT_FAILURE; \
-    } \
+    }  \
+    hpdftbl_set_errhandler(table_error_handler); \
     setup_hpdf(&pdf_doc, &pdf_page, _showgrid_); \
     _tbl_(pdf_doc, pdf_page); \
     if( -1 == stroke_to_file(pdf_doc, argc, argv) ) \

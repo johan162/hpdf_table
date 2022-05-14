@@ -15,6 +15,8 @@ SRC_FILES = ../src/hpdftbl.c \
             ../src/hpdftbl_grid.c \
             ../src/hpdftbl_widget.c \
             ../src/hpdftbl_errstr.c \
+            ../src/hpdftbl_callback.c \
+            ../src/hpdftbl_theme.c \
             ../scripts/bootstrap.sh \
             ../scripts/stdbld.sh \
             ../scripts/dbgbld.sh \
