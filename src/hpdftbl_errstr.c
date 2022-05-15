@@ -34,7 +34,9 @@
  *
  */
 
+#include <stdio.h>
 #include <hpdf.h>
+#include "hpdftbl.h"
 
 /**
  * @brief An entry in the error string table
@@ -45,7 +47,59 @@ struct hpdftbl_errcode_entry {
 };
 
 /**
- * @brief A table with all the error strings corresponding to error codes
+ * @brief Human readable error strings corresponding to error code of table routines
+ */
+static char *error_descriptions[] = {
+        "No error",                                     /* 0 */
+        "Cell is part of another spanning cell",        /* 1 */
+        "Cell row and column exceeds table dimension",  /* 2 */
+        "Table handle is NULL",                         /* 3 */
+        "Text encoding error",                          /* 4 */
+        "Out of memory",                                /* 5 */
+        "Invalid table handle",                         /* 6 */
+        "Cell spanning will exceed table dimension",    /* 7 */
+        "Use of undefined line style",                  /* 8 */
+        "Invalid theme handler",                        /* 9 */
+        "No auto height available",                     /* 10  */
+        "Internal error. Unknown error code",           /* 11  */
+        "Total column width exceeds 100%",              /* 12  */
+        "Calculated width of columns too small",        /* 13  */
+        "Dynamic callback not located"                  /* 14  */
+};
+
+
+/**
+ * @brief Number of error messages
+ */
+static const size_t NUM_ERR_MSG = sizeof(error_descriptions) / sizeof(char *);
+
+/** @brief Error code for unknown error */
+#define ERR_UNKNOWN 11
+
+
+/** @brief Stores the last generated error code. */
+int hpdftbl_err_code = 0;
+
+/** @brief The row where the last error was generated.  */
+int hpdftbl_err_row = -1;
+
+/** @brief The column where the last error was generated.  */
+int hpdftbl_err_col = -1;
+
+/** @brief Hold the line number of the last error occurred */
+int hpdftbl_err_lineno = 0;
+
+/** @brief Hold the file name where the last error occurred */
+char *hpdftbl_err_file = NULL;
+
+/** @brief Extra info that may be specified at the point of error */
+char hpdftbl_err_extrainfo[1024] = {0};
+
+
+
+/**
+ * @brief A table with all the error strings from the
+ * hpdf core library corresponding to error codes
  *
  */
 static struct hpdftbl_errcode_entry err_code_entries[] = {
@@ -183,4 +237,129 @@ hpdftbl_hpdf_get_errstr(const HPDF_STATUS err_code) {
     }
 
     return NULL;
+}
+
+
+/**
+ * @brief Translate a table error code to a human readable string.
+ *
+ * The function returns a pointer to a static string that cannot be modified.
+ * It will translate both internal table error messages as well as generic
+ * HPDF library error codes.
+ *
+ * @param err The error code to be translated
+ * @return Static pointer to string for valid error code, NULL otherwise
+ *
+ * @see hpdftbl_hpdf_get_errstr()
+ */
+const char *
+hpdftbl_get_errstr(int err) {
+    if (err < 0) {
+        if (((size_t) (-hpdftbl_err_code) < NUM_ERR_MSG))
+            return error_descriptions[-err];
+        else
+            return NULL;
+    } else {
+        // Must be a core HPDF error if > 0
+        return hpdftbl_hpdf_get_errstr(err);
+    }
+}
+
+#ifndef _MSC_VER
+// Silent gcc about unused "arg" in the callback and error functions
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+/**
+ * @brief A basic default table error handler.
+ *
+ * This error handler is used as a callback that outputs the error to stderr
+ * in human readable format and quits the process.
+ *
+ * @param t Table where the error happened (can be NULL)
+ * @param r Cell row
+ * @param c Cell column
+ * @param err The error code
+ * @see hpdftbl_set_errhandler()
+ */
+void
+hpdftbl_default_table_error_handler(hpdftbl_t t, int r, int c, int err) {
+    if (r > -1 && c > -1) {
+        fprintf(stderr, "*** Table Error: [%d] \"%s\" at cell (%d, %d)\n", err, hpdftbl_get_errstr(err), r, c);
+    } else {
+        fprintf(stderr, "*** Table Error: [%d] \"%s\" \n", err, hpdftbl_get_errstr(err));
+    }
+    exit(1);
+}
+
+
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+
+/**
+ * @brief Return last error code.
+ *
+ * Return last error code. if errstr is not NULL a human
+ * readable string describing the error will be copied to
+ * the string.
+ * The error code will be reset after call.
+ *
+ * @param errstr A string buffer where the error string
+ * is written to
+ * @param row The row where the error was found
+ * @param col The col where the error was found
+ * @return The last error code
+ */
+int
+hpdftbl_get_last_errcode(const char **errstr, int *row, int *col) {
+    int old_err_code;
+    if (errstr) {
+        *errstr = hpdftbl_get_errstr(hpdftbl_err_code);
+        if (*errstr == NULL) {
+            *errstr = error_descriptions[ERR_UNKNOWN];
+            old_err_code = hpdftbl_err_code;
+            hpdftbl_err_row = -1;
+            hpdftbl_err_col = -1;
+            return ERR_UNKNOWN;
+        }
+    }
+    *row = hpdftbl_err_row;
+    *col = hpdftbl_err_col;
+    old_err_code = hpdftbl_err_code;
+    hpdftbl_err_code = 0;
+    hpdftbl_err_row = -1;
+    hpdftbl_err_col = -1;
+    return old_err_code;
+}
+
+/**
+ * @brief Get the filename and line number where the last error occurred.
+ *
+ * @param lineno Set to the line number where the error occurred
+ * @param file Set to the file where the error occurred
+ * @param extrainfo Extra info string that may be set at the point of error
+ */
+void
+hpdftbl_get_last_err_file(int *lineno, char **file, char **extrainfo) {
+    *lineno = hpdftbl_err_lineno;
+    *file = hpdftbl_err_file;
+    *extrainfo = hpdftbl_err_extrainfo;
+}
+
+/**
+ * @brief Specify errhandler for the table routines
+ *
+ * Note: The library provides a basic default error handler that can be used,
+ *
+ * @param err_handler
+ * @return The old error handler or NULL if non exists
+ * @see hpdftbl_default_table_error_handler()
+ */
+hpdftbl_error_handler_t
+hpdftbl_set_errhandler(hpdftbl_error_handler_t err_handler) {
+    hpdftbl_error_handler_t old_err_handler = hpdftbl_err_handler;
+    hpdftbl_err_handler = err_handler;
+    return old_err_handler;
 }
