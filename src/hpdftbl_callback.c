@@ -208,6 +208,25 @@ hpdftbl_set_label_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
 }
 
 /**
+ * @brief Set table post processing callback
+ *
+ * This is an optional post processing callback for anything in general to do
+ * after the table has been constructed.
+ *
+ * @param t Table handle
+ * @param cb Callback function
+ * @return -1 on failure, 0 otherwise
+ * @see hpdftbl_callback_t
+ */
+int
+hpdftbl_set_post_cb(hpdftbl_t t, hpdftbl_callback_t cb) {
+    _HPDFTBL_CHK_TABLE(t);
+    t->post_cb = cb;
+    return 0;
+}
+
+
+/**
  * @brief Set cell canvas callback
  *
  * Set cell canvas callback. This callback gets called for each cell in the
@@ -460,6 +479,31 @@ hpdftbl_set_cell_canvas_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
     hpdftbl_set_cell_canvas_cb(t, r, c, dyn_canvas_cb);
     return 0;
 }
+
+/**
+ * @brief Set table post processing callback
+ *
+ * This is an optional post processing callback for anything in general to do
+ * after the table has been constructed. The callback only gets the table
+ * as its first and only argument.
+ *
+ * @param t Table handle
+ * @param cb_name Callback function name
+ * @return -1 on failure, 0 otherwise
+ * @see hpdftbl_callback_t, hpdftbl_set_post_cb()
+ */
+int
+hpdftbl_set_post_dyncb(hpdftbl_t t, char *cb_name) {
+    hpdftbl_callback_t dyn_post_cb = (hpdftbl_callback_t)dlsym(dl_handle, cb_name);
+    if( NULL == dyn_post_cb ) {
+        _HPDFTBL_SET_ERR_EXTRA(cb_name);
+        _HPDFTBL_SET_ERR(t, -14, -1, -1);
+        return -1;
+    }
+    hpdftbl_set_post_cb(t, dyn_post_cb);
+    return 0;
+}
+
 
 /**
  * @brief Set cell specific callback to specify cell content style.

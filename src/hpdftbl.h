@@ -286,6 +286,17 @@ typedef struct text_style {
     hpdftbl_text_align_t halign; /**< Text horizontal alignment */
 } hpdf_text_style_t;
 
+
+/**
+ * @brief Table handle is a pointer to the hpdftbl structure
+ *
+ * This is the basic table handle used in almost all API calls. A table reference is returned
+ * when a table is created.
+ *
+ * @see hpdftbl_create()
+ */
+typedef struct hpdftbl *hpdftbl_t;
+
 /**
  * @brief Type specification for the table content callback
  *
@@ -318,6 +329,18 @@ typedef void (*hpdftbl_canvas_callback_t)(HPDF_Doc, HPDF_Page, void *, size_t, s
  *
  */
 typedef _Bool (*hpdftbl_content_style_callback_t)(void *, size_t, size_t, char *content, hpdf_text_style_t *);
+
+
+/**
+ * @brief Callback type for optional post processing when constructing table from a data array
+ *
+ * Type for generic table callback used when constructing a table from data. This can be used
+ * to perform any potential table manipulation. The callback happens after the table has been
+ * fully constructed and just before it is stroked.
+ *
+ * @see hpdftbl_stroke_from_data()
+ */
+typedef void (*hpdftbl_callback_t)(hpdftbl_t);
 
 /**
  * @brief Possible line dash styles for grid lines.
@@ -457,6 +480,11 @@ struct hpdftbl {
     hpdftbl_content_style_callback_t content_style_cb;
     /** Table canvas callback. Will be called for each cell unless the cell has its own canvas callback  */
     hpdftbl_canvas_callback_t canvas_cb;
+    /** Post table creation callback. This is an opportunity for a client to do any special
+     * table manipulation before the table is stroked to the page. A reference to the table
+     * will be passed on in the callback.
+     */
+    hpdftbl_callback_t post_cb;
     /** Reference to all an array of cells in the table*/
     hpdftbl_cell_t *cells;
     /** Table outer border settings */
@@ -482,27 +510,6 @@ struct hpdftbl {
     /** User specified column width array as fraction of the table width. Defaults to equ-width */
     float *col_width_percent;
 };
-
-/**
- * @brief Table handle is a pointer to the hpdftbl structure
- *
- * This is the basic table handle used in almost all API calls. A table reference is returned
- * when a table is created.
- *
- * @see hpdftbl_create()
- */
-typedef struct hpdftbl *hpdftbl_t;
-
-/**
- * @brief Callback type for optional post processing when constructing table from a data array
- *
- * Type for generic table callback used when constructing a table from data. This can be used
- * to perform any potential table manipulation. The callback happens after the table has been
- * fully constructed and just before it is stroked.
- *
- * @see hpdftbl_stroke_from_data()
- */
-typedef void (*hpdftbl_callback_t)(hpdftbl_t);
 
 /**
  * @brief Used in data driven table creation
@@ -821,6 +828,9 @@ hpdftbl_set_content_style_cb(hpdftbl_t t, hpdftbl_content_style_callback_t cb);
 int
 hpdftbl_set_cell_content_style_cb(hpdftbl_t t, size_t r, size_t c, hpdftbl_content_style_callback_t cb);
 
+int
+hpdftbl_set_post_cb(hpdftbl_t t, hpdftbl_callback_t cb);
+
 /*
  * Table dynamic callback functions
  */
@@ -847,6 +857,9 @@ hpdftbl_set_cell_content_style_dyncb(hpdftbl_t, size_t, size_t, char *);
 
 int
 hpdftbl_set_cell_canvas_dyncb(hpdftbl_t, size_t, size_t, char *);
+
+int
+hpdftbl_set_post_dyncb(hpdftbl_t t, char *cb_name);
 
 /*
  * Text encoding
