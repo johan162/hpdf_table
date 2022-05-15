@@ -1952,63 +1952,83 @@ hpdftbl_stroke_pdfdoc(HPDF_Doc pdf_doc, char *file) {
  *
  * @example tut_ex01.c
  * The very most basic table with API call to set content in each cell.
+ * @image html screenshots/tut_ex01.png
  *
  * @example tut_ex02.c
  * Basic table with content data specified as an array.
+ * @image html screenshots/tut_ex02.png
  *
  * @example tut_ex02_1.c
  * Basic table with content data specified as an array.
+ * @image html screenshots/tut_ex02_1.png
  *
  * @example tut_ex03.c
  * First example with API call to set content in each cell with added labels and shortened grid.
+ * @image html screenshots/tut_ex03.png
  *
  * @example tut_ex04.c
  * Specifying labels as data array.
+ * @image html screenshots/tut_ex04.png
  *
  * @example tut_ex05.c
  * Set content data specified as an array with added labels and shortened grid.
+ * @image html screenshots/tut_ex05.png
  *
  * @example tut_ex06.c
  * Use content to set content and labels.
+ * @image html screenshots/tut_ex06.png
  *
  * @example tut_ex07.c
  * Expand cells over multiple columns and rows.
+ * @image html screenshots/tut_ex07.png
  *
  * @example tut_ex08.c
  * Adjust column width and expand cells over multiple columns and rows.
+ * @image html screenshots/tut_ex08.png
  *
  * @example tut_ex09.c
  * Adjusting font style with a callback.
+ * @image html screenshots/tut_ex09.png
  *
  * @example tut_ex10.c
  * Adjust column widths and add error handler.
+ * @image html screenshots/tut_ex09.png
  *
  * @example tut_ex11.c
  * Table with header row and error handler.
+ * @image html screenshots/tut_ex11.png
  *
  * @example tut_ex12.c
  * Table with header row and error handler.
+ * @image html screenshots/tut_ex12.png
  *
  * @example tut_ex13_1.c
  * Defining a table with a data structure for the table.
+ * @image html screenshots/tut_ex13_1.png
  *
  * @example tut_ex13_2.c
  * Defining a table with a data structure for table and cells.
+ * @image html screenshots/tut_ex13_2.png
  *
  * @example tut_ex14.c
  * Defining a table with widgets.
+ * @image html screenshots/tut_ex14.png
  *
  * @example tut_ex15.c
  * Defining a table with zebra lines.
+ * @image html screenshots/tut_ex15.png
  *
  * @example tut_ex15_1.c
  * Defining a table with zebra lines and different phase.
+ * @image html screenshots/tut_ex15_1.png
  *
  * @example tut_ex20.c
  * Defining a table and adjusting the gridlines.
+ * @image html screenshots/tut_ex20.png
  *
  * @example tut_ex30.c
  * Defining a table using dynamic callbacks
+ * @image html screenshots/tut_ex30.png
  *
  */
 
