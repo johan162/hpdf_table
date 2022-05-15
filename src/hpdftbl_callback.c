@@ -212,6 +212,8 @@ hpdftbl_set_label_cb(hpdftbl_t t, hpdftbl_content_callback_t cb) {
  *
  * This is an optional post processing callback for anything in general to do
  * after the table has been constructed.
+ * The callback happens after the table has been fully constructed and just
+ * before it is stroked.
  *
  * @param t Table handle
  * @param cb Callback function
@@ -224,7 +226,6 @@ hpdftbl_set_post_cb(hpdftbl_t t, hpdftbl_callback_t cb) {
     t->post_cb = cb;
     return 0;
 }
-
 
 /**
  * @brief Set cell canvas callback
@@ -486,6 +487,8 @@ hpdftbl_set_cell_canvas_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
  * This is an optional post processing callback for anything in general to do
  * after the table has been constructed. The callback only gets the table
  * as its first and only argument.
+ * The callback happens after the table has been fully constructed and just
+ * before it is stroked.
  *
  * @param t Table handle
  * @param cb_name Callback function name

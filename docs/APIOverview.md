@@ -42,17 +42,20 @@ These calls relate to the creation, destruction and stroking of the table on the
  - hpdftbl_set_errhandler()
    *Set and error handler callback.*
 
-
  - hpdftbl_get_errstr()
    *Translate an error code into a human readable string.*
-
 
  - hpdftbl_get_last_errcode()
    *Get the error code from last error raised*
 
-
  - hpdftbl_default_table_error_handler()
    *A default error handler callback that print error to stdout and quits the process.*
+
+ - hpdftbl_get_last_errcode()
+   *Return the last error code*
+
+ - hpdftbl_get_last_err_file()
+   *Return the last filename and line number for where the last error occurred*
 
 
 ## Theme handling methods
@@ -67,7 +70,6 @@ Themes is a technique to easier specify the look and feel to be re-used for mult
 
  - hpdftbl_destroy_theme()
    *Free all memory structures used by a theme.*
-
 
 ## Table layout adjusting functions
 
@@ -197,6 +199,10 @@ if a cell has a callback that is used, otherwise the table callback is used.
  - hpdftbl_set_cell_canvas_cb()
    *Set the cell canvas callback.*
 
+ - hpdftbl_set_post_cb()
+   *Set the table post callback.*
+
+
 ## Dynamic (late binding) callback handling
 
 These are callbacks which set a function at runtime to be used as callback. This is useful when
@@ -230,6 +236,10 @@ at runtime.
 
  - hpdftbl_set_cell_canvas_dyncb()
    *Set the name for the cell canvas callback.*
+
+ - hpdftbl_set_post_dyncb()
+   *Set the name for the table post callback.*
+
 
 ## Text encoding
 

@@ -31,7 +31,14 @@
  */
 _Bool run_as_unit_test = FALSE;
 
-// For simulated exception handling
+/**
+ * @brief For simulated exception handling.
+ *
+ * This specifies the setjmp() buffer to be used in the error handling routine
+ * to jump (via a longjmp()) to a specfied recovery point.
+ *
+ * @see table_error_handler()
+ */
 jmp_buf _hpdftbl_jmp_env;
 
 #ifndef _MSC_VER
