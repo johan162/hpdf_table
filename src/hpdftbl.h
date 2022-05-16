@@ -574,10 +574,7 @@ typedef struct hpdftbl_spec {
     hpdftbl_content_callback_t label_cb;
     /** Content style callback for table */
     hpdftbl_content_style_callback_t style_cb;
-    /** Post table creation callback. This is an opportunity for a client to do any special
-     * table manipulation before the table is stroked to the page. A reference to the table
-     * will be passed on in the callback.
-     */
+    /** Post table creation callback. */
     hpdftbl_callback_t post_cb;
     /** Array of cell specification */
     hpdftbl_cell_spec_t *cell_spec;
