@@ -1,6 +1,12 @@
 /**
  * @file
- * @brief    Routines for callback function for flexible table drawing with HPDF library
+ * @brief    Routines for plain and dynamic callback function.
+ *
+ * All functions ending with `_cb` are used to specify standard callback functions which stores
+ * a function pointer bounded at compile time. All functions ending i `_dyncb` are used to
+ * set dynamic callback functions which are bound at run time. The function name are stored
+ * as string and resolved at runtime.
+ *
  * @author   Johan Persson (johan162@gmail.com)
  *
  * Copyright (C) 2022 Johan Persson
@@ -274,16 +280,50 @@ hpdftbl_set_canvas_cb(hpdftbl_t t, hpdftbl_canvas_callback_t cb) {
  * @see hpdftbl_set_content_cb(), hpdftbl_content_callback_t
  */
 int
-hpdftbl_set_content_dyncb(hpdftbl_t t, char *cb_name) {
+hpdftbl_set_content_dyncb(hpdftbl_t t, const char *cb_name) {
     hpdftbl_content_callback_t dyn_content_cb = (hpdftbl_content_callback_t)dlsym(dl_handle, cb_name);
     if( NULL == dyn_content_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
         return -1;
     }
+    t->content_dyncb = strdup(cb_name);
     hpdftbl_set_content_cb(t, dyn_content_cb);
     return 0;
 }
+
+/**
+ * @brief Specify dynamic (late) loading callback content function.
+ *
+ * The dynamic loading of callback function is a runtime binding of the named function
+ * as a callback. The library uses the dlsym() loading of external symbols. For the external
+ * symbol to be found it can not be defined as a `static` symbol.
+ *
+ * In case of error the `extrainfo` extra information is set to
+ * the name of the callback which failed to be resolved at run time. This
+ * can be retrieved in an error handler by using the hpdftbl_get_last_err_file() to read
+ * it back.
+ *
+ * @param t Table handle
+ * @param cb_name Name of the function to be used as canvas callback. This function must follow the
+ * signature of a callback function as specified in hpdftbl_canvas_callback_t.
+ * @return -1 on failure, 0 on success
+ *
+ * @see hpdftbl_set_canvas_cb(), hpdftbl_canvas_callback_t
+ */
+int
+hpdftbl_set_canvas_dyncb(hpdftbl_t t, const char *cb_name) {
+    hpdftbl_canvas_callback_t dyn_canvas_cb = (hpdftbl_canvas_callback_t)dlsym(dl_handle, cb_name);
+    if( NULL == dyn_canvas_cb) {
+        _HPDFTBL_SET_ERR_EXTRA(cb_name);
+        _HPDFTBL_SET_ERR(t, -14, -1, -1);
+        return -1;
+    }
+    t->canvas_dyncb = strdup(cb_name);
+    hpdftbl_set_canvas_cb(t, dyn_canvas_cb);
+    return 0;
+}
+
 
 /**
  * @brief Specify dynamic (late) loading callback for table label function.
@@ -306,13 +346,14 @@ hpdftbl_set_content_dyncb(hpdftbl_t t, char *cb_name) {
  * @see hpdftbl_set_label_cb(), hpdftbl_content_callback_t
  */
 int
-hpdftbl_set_label_dyncb(hpdftbl_t t, char *cb_name) {
+hpdftbl_set_label_dyncb(hpdftbl_t t, const char *cb_name) {
     hpdftbl_content_callback_t dyn_labels_cb = (hpdftbl_content_callback_t)dlsym(dl_handle, cb_name);
     if( NULL == dyn_labels_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
         return -1;
     }
+    t->label_dyncb = strdup(cb_name);
     hpdftbl_set_label_cb(t, dyn_labels_cb);
     return 0;
 }
@@ -340,13 +381,14 @@ hpdftbl_set_label_dyncb(hpdftbl_t t, char *cb_name) {
  * @see hpdftbl_set_cell_label_cb(), hpdftbl_content_callback_t
  */
 int
-hpdftbl_set_cell_label_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
+hpdftbl_set_cell_label_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_name) {
     hpdftbl_content_callback_t dyn_labels_cb = (hpdftbl_content_callback_t)dlsym(dl_handle, cb_name);
     if( NULL == dyn_labels_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
         return -1;
     }
+    t->cells[_HPDFTBL_IDX(r,c)].label_dyncb = strdup(cb_name);
     hpdftbl_set_cell_label_cb(t, r, c,dyn_labels_cb);
     return 0;
 }
@@ -373,16 +415,19 @@ hpdftbl_set_cell_label_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
  * @see hpdftbl_set_content_style_cb(), hpdftbl_content_style_callback_t
  */
 int
-hpdftbl_set_content_style_dyncb(hpdftbl_t t, char *cb_name) {
+hpdftbl_set_content_style_dyncb(hpdftbl_t t, const char *cb_name) {
     hpdftbl_content_style_callback_t dyn_style_cb = (hpdftbl_content_style_callback_t)dlsym(dl_handle, cb_name);
     if( NULL == dyn_style_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
         return -1;
     }
+    t->content_style_dyncb = strdup(cb_name);
     hpdftbl_set_content_style_cb(t, dyn_style_cb);
     return 0;
 }
+
+
 
 /**
  * @brief Specify dynamic (late) loading callback for cell style function.
@@ -408,13 +453,14 @@ hpdftbl_set_content_style_dyncb(hpdftbl_t t, char *cb_name) {
  * @see hpdftbl_set_cell_content_style_cb(), hpdftbl_content_style_callback_t
  */
 int
-hpdftbl_set_cell_content_style_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
+hpdftbl_set_cell_content_style_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_name) {
     hpdftbl_content_style_callback_t dyn_style_cb = (hpdftbl_content_style_callback_t)dlsym(dl_handle, cb_name);
     if( NULL == dyn_style_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
         return -1;
     }
+    t->cells[_HPDFTBL_IDX(r,c)].content_style_dyncb = strdup(cb_name);
     hpdftbl_set_cell_content_style_cb(t, r, c,dyn_style_cb);
     return 0;
 }
@@ -441,13 +487,14 @@ hpdftbl_set_cell_content_style_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_n
  * @see hpdftbl_set_content_cb(), hpdftbl_content_callback_t
  */
 int
-hpdftbl_set_cell_content_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
+hpdftbl_set_cell_content_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_name) {
     hpdftbl_content_callback_t dyn_content_cb = (hpdftbl_content_callback_t)dlsym(dl_handle, cb_name);
     if( NULL == dyn_content_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
         return -1;
     }
+    t->cells[_HPDFTBL_IDX(r,c)].content_dyncb = strdup(cb_name);
     hpdftbl_set_cell_content_cb(t, r, c, dyn_content_cb);
     return 0;
 }
@@ -470,13 +517,14 @@ hpdftbl_set_cell_content_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
  * @see hpdftbl_set_cell_canvas_cb(), hpdftbl_canvas_callback_t
  */
 int
-hpdftbl_set_cell_canvas_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
+hpdftbl_set_cell_canvas_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_name) {
     hpdftbl_canvas_callback_t dyn_canvas_cb = (hpdftbl_canvas_callback_t)dlsym(dl_handle, cb_name);
     if( NULL == dyn_canvas_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
         return -1;
     }
+    t->cells[_HPDFTBL_IDX(r,c)].canvas_dyncb = strdup(cb_name);
     hpdftbl_set_cell_canvas_cb(t, r, c, dyn_canvas_cb);
     return 0;
 }
@@ -496,13 +544,14 @@ hpdftbl_set_cell_canvas_dyncb(hpdftbl_t t, size_t r, size_t c, char *cb_name) {
  * @see hpdftbl_callback_t, hpdftbl_set_post_cb()
  */
 int
-hpdftbl_set_post_dyncb(hpdftbl_t t, char *cb_name) {
+hpdftbl_set_post_dyncb(hpdftbl_t t, const char *cb_name) {
     hpdftbl_callback_t dyn_post_cb = (hpdftbl_callback_t)dlsym(dl_handle, cb_name);
     if( NULL == dyn_post_cb ) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
         return -1;
     }
+    t->post_dyncb = strdup(cb_name);
     hpdftbl_set_post_cb(t, dyn_post_cb);
     return 0;
 }

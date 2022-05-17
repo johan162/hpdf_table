@@ -20,9 +20,14 @@ These calls relate to the creation, destruction and stroking of the table on the
  - hpdftbl_stroke()
    *Stroke a table on the specified PDF page.*
 
+ - hpdftbl_setpos()
+   *Set the size and position of the table.*
 
  - hpdftbl_stroke_from_data()
    *Construct and stroke a table defined as a data structure.*
+
+ - hpdftbl_stroke_pos()
+   *Create a handle for a new table using the position in the table structure.*
 
 
  - hpdftbl_get_last_auto_height()
@@ -240,6 +245,32 @@ at runtime.
  - hpdftbl_set_post_dyncb()
    *Set the name for the table post callback.*
 
+
+## Serializing
+
+ - hpdftbl_dump()
+  *Export table in json format to named file.*
+
+ - hpdftbl_dumps()
+   *Export table in json format to sting buffer.*
+
+ - hpdftbl_load()
+   *Import table in json format from named file.*
+
+ - hpdftbl_loads()
+  *Import table in json format from string buffer.*
+
+ - hpdftbl_theme_dump()
+  *Export theme in json format to named file.*
+
+ - hpdftbl_theme_dumps()
+  *Export theme in json format to sting buffer.*
+
+ - hpdftbl_theme_load()
+  *Import theme in json format from named file.*
+
+ - hpdftbl_theme_loads()
+  *Import theme in json format from string buffer.*
 
 ## Text encoding
 

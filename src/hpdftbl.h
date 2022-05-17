@@ -28,7 +28,7 @@
  * SOFTWARE.
  */
 
-
+#include "config.h"
 #ifndef hpdftbl_H
 #define    hpdftbl_H
 
@@ -65,30 +65,54 @@ extern "C" {
 #define min(a,b) (((a)<(b)) ? (a):(b))
 #endif
 
+/** Internal variable to record last error */
 extern int hpdftbl_err_code ;
 
+/** Internal variable to record last error */
 extern int hpdftbl_err_row ;
 
+/** Internal variable to record last error */
 extern int hpdftbl_err_col ;
 
+/** Internal variable to record last error */
 extern int hpdftbl_err_lineno;
 
+/** Internal variable to record last error */
 extern char *hpdftbl_err_file;
 
+/** Internal variable to record last error */
 extern char hpdftbl_err_extrainfo[];
 
+/** Data structure version for serialization of themes */
+#define THEME_JSON_VERSION 1
 
+/** Data structure version for serialization of tables */
+#define TABLE_JSON_VERSION 1
+
+
+/** Font family */
 #define HPDF_FF_TIMES "Times-Roman"
+/** Font family */
 #define HPDF_FF_TIMES_ITALIC "Times-Italic"
+/** Font family */
 #define HPDF_FF_TIMES_BOLD "Times-Bold"
+/** Font family */
 #define HPDF_FF_TIMES_BOLDITALIC "Times-BoldItalic"
+/** Font family */
 #define HPDF_FF_HELVETICA "Helvetica"
+/** Font family */
 #define HPDF_FF_HELVETICA_ITALIC "Helvetica-Oblique"
+/** Font family */
 #define HPDF_FF_HELVETICA_BOLD "Helvetica-Bold"
+/** Font family */
 #define HPDF_FF_HELVETICA_BOLDITALIC "Helvetica-BoldOblique"
+/** Font family */
 #define HPDF_FF_COURIER "Courier"
+/** Font family */
 #define HPDF_FF_COURIER_BOLD "Courier-Bold"
+/** Font family */
 #define HPDF_FF_COURIER_IALIC "Courier-Oblique"
+/** Font family */
 #define HPDF_FF_COURIER_BOLDITALIC "Courier-BoldOblique"
 
 
@@ -145,8 +169,8 @@ extern char hpdftbl_err_extrainfo[];
 
 #endif
 
-#define HPDF_COLOR_ORANGE              HPDF_RGB_CONVERT(0xF5, 0xD0, 0x98);
-#define HPDF_COLOR_ALMOST_BLACK        HPDF_RGB_CONVERT(0x14, 0x14, 0x14);
+#define HPDF_COLOR_ORANGE        HPDF_RGB_CONVERT(0xF5, 0xD0, 0x98);
+#define HPDF_COLOR_ALMOST_BLACK  HPDF_RGB_CONVERT(0x14, 0x14, 0x14);
 
 /**
  * @brief The margin from the bottom of the cell to the baseline of the text is calculated
@@ -158,7 +182,6 @@ extern char hpdftbl_err_extrainfo[];
  */
 #define DEFAULT_AUTO_VBOTTOM_MARGIN_FACTOR 0.5
 
-
 /**
  * @brief Default PDF text encodings
  */
@@ -168,7 +191,6 @@ extern char hpdftbl_err_extrainfo[];
  * @brief Default input source text encodings
  */
 #define HPDFTBL_DEFAULT_SOURCE_ENCODING "UTF-8"
-
 
 /**
  * @brief Standard A4 paper height in cm
@@ -283,7 +305,7 @@ typedef struct text_style {
     HPDF_REAL fsize;                /**< Font size */
     HPDF_RGBColor color;            /**< Font color */
     HPDF_RGBColor background;       /**< Font background color */
-    hpdftbl_text_align_t halign; /**< Text horizontal alignment */
+    hpdftbl_text_align_t halign;    /**< Text horizontal alignment */
 } hpdf_text_style_t;
 
 
@@ -384,6 +406,10 @@ typedef struct grid_style {
  * left corner of the table.
  */
 struct hpdftbl_cell {
+    /** When serializing it makes it easier to have row,col in each cell */
+    size_t row;
+    /** When serializing it makes it easier to have row,col in each cell */
+    size_t col;
     /** String reference for label text*/
     char *label;
     /** String reference for cell content */
@@ -404,12 +430,20 @@ struct hpdftbl_cell {
     HPDF_REAL textwidth;
     /** Content callback. If this is specified then this will override any content callback specified for the table */
     hpdftbl_content_callback_t content_cb;
+    /** Cell content dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *content_dyncb;
     /** Label callback. If this is specified then this will override any content callback specified for the table */
     hpdftbl_content_callback_t label_cb;
+    /** Cell label dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *label_dyncb;
     /** Style for content callback. If this is specified then this will override any style content callback specified for the table */
     hpdftbl_content_style_callback_t style_cb;
+    /** Cell content style dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *content_style_dyncb;
     /** Canvas callback. If this is specified then this will override any canvas callback specified for the table  */
     hpdftbl_canvas_callback_t canvas_cb;
+    /** Cell canvas dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *canvas_dyncb;
     /** The style of the text content. If a style callback is specified the callback will override this setting */
     hpdf_text_style_t content_style;
     /** Parent cell. If this cell is part of another cells row or column spanning this is a reference to this parent cell.
@@ -448,8 +482,10 @@ struct hpdftbl {
     HPDF_REAL posy;
     /** Table height. If specified as 0 then the height will be automatically calculated */
     HPDF_REAL height;
-    /** Minimum table height. If specified as 0 it has no effect */
-    HPDF_REAL minheight;
+    /** Minimum table row height. If specified as 0 it has no effect */
+    HPDF_REAL minrowheight;
+    /** Is the table anchor to be upper top left or bottom left */
+    _Bool anchor_is_top_left;
     /** The content text bottom margin as a factor of the fontsize */
     HPDF_REAL bottom_vmargin_factor;
     /** Table width */
@@ -470,23 +506,31 @@ struct hpdftbl {
     _Bool use_cell_labels;
     /** Flag to determine of the short vertical label border should be used. Default is to use half grid. */
     _Bool use_label_grid_style;
-    /** Table content callback. Will be called for each cell unless the cella has its own content callback */
-    hpdftbl_content_callback_t label_cb;
     /** Content style */
     hpdf_text_style_t content_style;
+    /** Table content callback. Will be called for each cell unless the cella has its own content callback */
+    hpdftbl_content_callback_t label_cb;
+    /** Table label dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *label_dyncb;
     /** Table content callback. Will be called for each cell unless the cell has its own content callback */
     hpdftbl_content_callback_t content_cb;
+    /** Table content dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *content_dyncb;
     /** Style for content callback. Will be called for each cell unless the cell has its own content style callback */
     hpdftbl_content_style_callback_t content_style_cb;
+    /** Table content style dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *content_style_dyncb;
     /** Table canvas callback. Will be called for each cell unless the cell has its own canvas callback  */
     hpdftbl_canvas_callback_t canvas_cb;
+    /** Table canvas dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *canvas_dyncb;
     /** Post table creation callback. This is an opportunity for a client to do any special
      * table manipulation before the table is stroked to the page. A reference to the table
      * will be passed on in the callback.
      */
     hpdftbl_callback_t post_cb;
-    /** Reference to all an array of cells in the table*/
-    hpdftbl_cell_t *cells;
+    /** Table post dynamic callback name. The name is created vi `strdup()` and must be freed on destruction */
+    char *post_dyncb;
     /** Table outer border settings */
     hpdftbl_grid_style_t outer_grid;
     /** Table inner vertical border settings, if width>0 this takes precedence over the generic inner border */
@@ -509,6 +553,8 @@ struct hpdftbl {
     HPDF_RGBColor zebra_color2;
     /** User specified column width array as fraction of the table width. Defaults to equ-width */
     float *col_width_percent;
+    /** Reference to all an array of cells in the table*/
+    hpdftbl_cell_t *cells;
 };
 
 /**
@@ -648,7 +694,16 @@ hpdftbl_stroke(HPDF_Doc pdf,
                HPDF_REAL width, HPDF_REAL height);
 
 int
+hpdftbl_stroke_pos(HPDF_Doc pdf,
+                   const HPDF_Page page, hpdftbl_t t);
+
+int
 hpdftbl_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdftbl_spec_t *tbl_spec, hpdftbl_theme_t *theme);
+
+int
+hpdftbl_setpos(hpdftbl_t t,
+               const HPDF_REAL xpos, const HPDF_REAL ypos,
+               const HPDF_REAL width, HPDF_REAL height);
 
 int
 hpdftbl_destroy(hpdftbl_t t);
@@ -657,10 +712,10 @@ int
 hpdftbl_get_last_auto_height(HPDF_REAL *height);
 
 void
-hpdftbl_set_anchor_top_left(_Bool anchor);
+hpdftbl_set_anchor_top_left(hpdftbl_t tbl, _Bool anchor);
 
 _Bool
-hpdftbl_get_anchor_top_left(void);
+hpdftbl_get_anchor_top_left(hpdftbl_t tbl);
 
 /*
  * Table error handling functions
@@ -691,6 +746,9 @@ hpdftbl_apply_theme(hpdftbl_t t, hpdftbl_theme_t *theme);
 
 hpdftbl_theme_t *
 hpdftbl_get_default_theme(void);
+
+int
+hpdftbl_get_theme(hpdftbl_t tbl, hpdftbl_theme_t *theme);
 
 int
 hpdftbl_destroy_theme(hpdftbl_theme_t *theme);
@@ -781,7 +839,7 @@ hpdftbl_set_title_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor 
  * Table content handling
  */
 int
-hpdftbl_set_cell(hpdftbl_t t, int r, int c, char *label, char *content);
+hpdftbl_set_cell(hpdftbl_t t, size_t r, size_t c, char *label, char *content);
 
 int
 hpdftbl_set_tag(hpdftbl_t t, void *tag);
@@ -835,28 +893,31 @@ void
 hpdftbl_set_dlhandle(void *);
 
 int
-hpdftbl_set_content_dyncb(hpdftbl_t, char *);
+hpdftbl_set_content_dyncb(hpdftbl_t, const char *);
 
 int
-hpdftbl_set_cell_content_dyncb(hpdftbl_t, size_t, size_t, char *);
+hpdftbl_set_canvas_dyncb(hpdftbl_t, const char *);
 
 int
-hpdftbl_set_label_dyncb(hpdftbl_t, char *);
+hpdftbl_set_cell_content_dyncb(hpdftbl_t, size_t, size_t, const char *);
 
 int
-hpdftbl_set_cell_label_dyncb(hpdftbl_t, size_t, size_t, char *);
+hpdftbl_set_label_dyncb(hpdftbl_t, const char *);
 
 int
-hpdftbl_set_content_style_dyncb(hpdftbl_t, char *);
+hpdftbl_set_cell_label_dyncb(hpdftbl_t, size_t, size_t, const char *);
 
 int
-hpdftbl_set_cell_content_style_dyncb(hpdftbl_t, size_t, size_t, char *);
+hpdftbl_set_content_style_dyncb(hpdftbl_t, const char *);
 
 int
-hpdftbl_set_cell_canvas_dyncb(hpdftbl_t, size_t, size_t, char *);
+hpdftbl_set_cell_content_style_dyncb(hpdftbl_t, size_t, size_t, const char *);
 
 int
-hpdftbl_set_post_dyncb(hpdftbl_t t, char *cb_name);
+hpdftbl_set_cell_canvas_dyncb(hpdftbl_t, size_t, size_t, const char *);
+
+int
+hpdftbl_set_post_dyncb(hpdftbl_t t, const char *cb_name);
 
 /*
  * Text encoding
@@ -908,6 +969,43 @@ hpdftbl_widget_strength_meter(HPDF_Doc doc, HPDF_Page page,
 
 int
 hpdftbl_stroke_pdfdoc(HPDF_Doc pdf_doc, char *file);
+
+#ifdef HAVE_LIBJANSSON
+
+int
+hpdftbl_dump(hpdftbl_t tbl, char *filename);
+
+int
+hpdftbl_dumps(hpdftbl_t tbl, char *buff, size_t buffsize);
+
+int
+hpdftbl_load(hpdftbl_t tbl, char *filename);
+
+int
+hpdftbl_loads(hpdftbl_t tbl, char *buff);
+
+int
+hpdftbl_theme_dump(hpdftbl_theme_t *theme, char *filename);
+
+int
+hpdftbl_theme_dumps(hpdftbl_theme_t *theme, char *buff, size_t buffsize);
+
+int
+hpdftbl_theme_loads(hpdftbl_theme_t *tbl, char *buff);
+
+int
+hpdftbl_theme_load(hpdftbl_theme_t *tbl, char *filename);
+
+#endif
+
+size_t
+xstrlcat(char *dst, const char *src, size_t siz);
+
+size_t
+xstrlcpy(char * __restrict dst, const char * __restrict src, size_t dsize);
+
+int
+hpdftbl_read_file(char *buff, size_t buffsize, char *filename);
 
 /*
  * Internal functions

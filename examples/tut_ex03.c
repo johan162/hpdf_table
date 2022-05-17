@@ -14,10 +14,10 @@ create_table_ex03(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     //char *table_title = "tut_ex01: 2x2 table";
     hpdftbl_t tbl = hpdftbl_create(num_rows, num_cols);
 
-    hpdftbl_set_cell(tbl, 0, 0, "Label 1", "Cell 0x0");
-    hpdftbl_set_cell(tbl, 0, 1, "Label 2", "Cell 0x1");
-    hpdftbl_set_cell(tbl, 1, 0, "Label 3", "Cell 1x0");
-    hpdftbl_set_cell(tbl, 1, 1, "Label 4", "Cell 1x1");
+    hpdftbl_set_cell(tbl, 0, 0, "Label 1:", "Cell 0x0");
+    hpdftbl_set_cell(tbl, 0, 1, "Label 2:", "Cell 0x1");
+    hpdftbl_set_cell(tbl, 1, 0, "Label 3:", "Cell 1x0");
+    hpdftbl_set_cell(tbl, 1, 1, "Label 4:", "Cell 1x1");
 
     hpdftbl_use_labels(tbl, TRUE);
     hpdftbl_use_labelgrid(tbl, FALSE);

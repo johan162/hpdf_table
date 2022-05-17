@@ -6,9 +6,11 @@ DOC_FILES = APIOverview.md \
             Building.md \
             ContentLabelCallbacks.md \
             FontAndStyle.md \
+            Themes.md \
             Intro.md \
             TablesFromData.md \
-            TableDesign.pptx
+            TableDesign.pptx \
+            Serializing.md
 
 SRC_FILES = ../src/hpdftbl.c \
             ../src/hpdftbl.h \
@@ -17,6 +19,10 @@ SRC_FILES = ../src/hpdftbl.c \
             ../src/hpdftbl_errstr.c \
             ../src/hpdftbl_callback.c \
             ../src/hpdftbl_theme.c \
+            ../src/hpdftbl_load.c \
+            ../src/hpdftbl_dump.c \
+            ../src/xstr.c \
+            ../src/read_file.c \
             ../scripts/bootstrap.sh \
             ../scripts/stdbld.sh \
             ../scripts/dbgbld.sh \

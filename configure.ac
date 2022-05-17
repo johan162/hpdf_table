@@ -3,7 +3,7 @@
 # Use scripts/bootstrap.sh to bootstrap the build environment
 # ===============================================================================
 AC_PREREQ([2.69])
-AC_INIT([libhpdftbl],[1.3.1-wip],[johan162@gmail.com])
+AC_INIT([libhpdftbl],[1.4.0-beta],[johan162@gmail.com])
 AC_COPYRIGHT([Part of configure script (C) 2022 Johan Persson <johan162@gmail.com>])
 AC_PREFIX_DEFAULT(/usr/local)
 AM_INIT_AUTOMAKE([dist-xz silent-rules])
@@ -26,16 +26,27 @@ docs/Doxyfile
 # The AC_OUTPUT strips files of the x mode so we need to restore it
 AC_CONFIG_COMMANDS([set-xmode], [chmod +x examples/verify.sh scripts/docupload.sh])
 
-SYSTEM_NAME=`uname -s`
-
-# Add the system type (Linux or OS X) in config.h
-if test x$SYSTEM_NAME = xDarwin; then
-    AC_DEFINE(IS_OSX,1,[True if system type is Apple OSX])
-else
-    AC_DEFINE(IS_OSX,0,[True if system type is Apple OSX])
-fi
-AM_CONDITIONAL(is_osx,[test x$SYSTEM_NAME = xDarwin])
-AM_CONDITIONAL(is_linux,[test x$SYSTEM_NAME = xLinux])
+AC_CANONICAL_HOST
+case $host_os in
+  darwin* )
+		AM_CONDITIONAL(IS_LINUX, false)
+		AM_CONDITIONAL(IS_OSX, true)
+		AC_DEFINE(IS_OSX,1,[True if system type is Apple OSX])
+		AC_DEFINE(IS_LINUX,0,[True if system type is Linux])
+		# For OSX this is a separate library and we should check that it really works.
+		# For Linux iconv is included in glibc-6 and is not a separate library we can check for
+    	AC_CHECK_LIB(iconv, iconv_open,,AC_MSG_ERROR([No iconv library found. Please install iconv (or similar)]))
+        ;;
+  linux* )
+		AM_CONDITIONAL(IS_LINUX, true)
+		AM_CONDITIONAL(IS_OSX, false)
+		AC_DEFINE(IS_OSX,0,[True if system type is Apple OSX])
+		AC_DEFINE(IS_LINUX,1,[True if system type is Linux])
+		;;
+  *)
+        AC_MSG_ERROR([Only Linux and OSX platforms are currently supported])
+        ;;
+esac
 
 AC_LANG([C])
 AC_PROG_INSTALL
@@ -43,30 +54,37 @@ AC_PROG_MAKE_SET
 
 # Sanity check
 AC_CHECK_HEADERS(hpdf.h,,AC_MSG_ERROR([libharu not installed hpdf.h missing]))
-AC_CHECK_HEADERS(iconv.h,,AC_MSG_ERROR([libiconv not installed iconv.h missing]))
 
 # Add double check that the library is actually working
-AC_CHECK_LIB(hpdf, HPDF_New,,AC_MSG_ERROR([No Haru PDF library found. Please install libhpdf-dev (or similar)]))
+# If exists this will also add -lhpdf to the LIBS
+AC_CHECK_LIB(hpdf, HPDF_New,,AC_MSG_ERROR([No libhpdf found. Please install libhpdf-dev (or similar)]))
 
-# For OSX this is a separate library and we should check that it really works.
-# For Linux iconv is included in glibc-6 and is not a separate library we can check for
-if test x$SYSTEM_NAME = xDarwin; then
-    AC_CHECK_LIB(iconv, iconv_open,,AC_MSG_ERROR([No iconv library found. Please install iconv (or similar)]))
+# Find out if we can compile with -ljansson or not.
+# If exists this will also add -ljansson to the LIBS
+#AC_CHECK_LIB(jansson, json_object_get,,AC_MSG_ERROR([libjansson not found]))
+AC_CHECK_LIB(jansson, json_object_get,HAVE_LIBJANSSON="true",HAVE_LIBJANSSON="false")
+
+if test "x$HAVE_LIBJANSSON" = "xtrue"; then
+	AC_DEFINE(HAVE_LIBJANSSON,1,[True if system have json library jansson])
+	LIBS+="-ljansson"
+else
+	AC_DEFINE(HAVE_LIBJANSSON,0,[True if system have json library jansson])
 fi
+AM_CONDITIONAL(have_libjansson, test "x$HAVE_LIBJANSSON" = "xtrue")
 
 # We need to determine which ranlib to use in order to build our static library
 # AC_PROG_RANLIB
 
 # Check if Doxygen is installed
 AC_CHECK_PROG(DOXYGEN,doxygen,yes,no)
-AM_CONDITIONAL(have_doxygen, test "$DOXYGEN" = "yes")
+AM_CONDITIONAL(have_doxygen, test "x$DOXYGEN" = "xyes")
 
 # Check if pdflatex is installed (can we rebuild the PDF version of Doxygen docs
 AC_CHECK_PROG(PDFLATEX,pdflatex,yes,no)
-AM_CONDITIONAL(have_pdflatex, test "$PDFLATEX" = "yes")
+AM_CONDITIONAL(have_pdflatex, test "x$PDFLATEX" = "xyes")
 
 # For use in Doxyfile.in
-if test "$PDFLATEX" = "yes"; then
+if test "x$PDFLATEX" = "xyes"; then
 	AC_SUBST([USE_PDFLATEX],[YES])
 else
 	AC_SUBST([USE_PDFLATEX],[NO])
@@ -77,11 +95,15 @@ AC_OUTPUT
 
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])
 AC_MSG_NOTICE([INSTALLATION SUMMARY:])
-
 if test x$SYSTEM_NAME = xDarwin; then
     AC_MSG_NOTICE([  - Build configured for OSX.])
 else
     AC_MSG_NOTICE([  - Build configured for ${SYSTEM_NAME}.])
+fi
+if test "x$HAVE_LIBJANSSON" = "xtrue"; then
+	AC_MSG_NOTICE([  - Build configured with json export/import functions])
+else
+	AC_MSG_NOTICE([  - Build NOT configured with json export/import functions])
 fi
 if test x$DOXYGEN = xyes; then
     AC_MSG_NOTICE([  - Can rebuild HTML docs with Doxygen.])
@@ -91,6 +113,7 @@ if test x$DOXYGEN = xyes; then
 else
     AC_MSG_NOTICE([  - Can NOT rebuild docs. No Doxygen installed.])
 fi
+
 AC_MSG_NOTICE([  - Installing to ${prefix}])
 
 AC_MSG_NOTICE([--------------------------------------------------------------------------------])

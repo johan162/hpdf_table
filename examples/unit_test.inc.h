@@ -259,7 +259,7 @@ void setup_dummy_content_label(content_t *content, content_t *labels, size_t row
         for (size_t c = 0; c < cols; c++) {
             snprintf(buff, sizeof(buff), "Content %zu", cnt);
             (*content)[cnt] = strdup(buff);
-            snprintf(buff, sizeof(buff), "Label %zu", cnt);
+            snprintf(buff, sizeof(buff), "Label %zu:", cnt);
             (*labels)[cnt] = strdup(buff);
             cnt++;
         }

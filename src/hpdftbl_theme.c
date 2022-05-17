@@ -160,6 +160,11 @@
 /**
  * @brief Apply a specified theme to a table
  *
+ * Note however that a limitation (by design) of themes is that settings in individual
+ * cells are not recorded in a theme since a theme can be applied to any table
+ * despite the structure. This mean only settings that are generic to a table
+ * is stored in a theme. Not individal cells.
+ *
  * The default table theme can be retrieved with
  * hpdftbl_get_default_theme()
  * @param t Table handle
@@ -194,6 +199,47 @@ hpdftbl_apply_theme(hpdftbl_t t, hpdftbl_theme_t *theme) {
     return -1;
 }
 
+/**
+ * @brief Extract theme from settings of a specific table.
+ *
+ * This is useful if a table has been specified with some specific look & feel
+ * and another table should be given the same l&f.
+ *
+ * Note however that a limitation (by design) of themes is that settings in individual
+ * cells are not recorded in a theme since a theme can be applied to any table
+ * despite the structure. This mean only settings that are generic to a table
+ * is stored in a theme. Not individal cells.
+ *
+ * @param tbl Table handle for table to have its settings extracted
+ * @param theme Theme to be read out to.
+ * @return 0 on success, -1 on failure
+ */
+int
+hpdftbl_get_theme(hpdftbl_t tbl, hpdftbl_theme_t *theme) {
+    _HPDFTBL_CHK_TABLE(tbl);
+    if (theme) {
+        theme->title_style = tbl->title_style;
+        theme->use_header_row = tbl->use_header_row;
+        theme->use_labels = tbl->use_cell_labels;
+        theme->use_header_row = tbl->use_header_row;
+        theme->use_label_grid_style = tbl->use_label_grid_style;
+        theme->label_style = tbl->label_style;
+        theme->header_style = tbl->header_style;
+        theme->title_style = tbl->title_style;
+        theme->content_style = tbl->content_style;
+        theme->inner_vborder = tbl->inner_vgrid;
+        theme->inner_tborder = tbl->inner_tgrid;
+        theme->inner_hborder = tbl->inner_hgrid;
+        theme->outer_border = tbl->outer_grid;
+        theme->use_zebra = tbl->use_zebra;
+        theme->zebra_phase = tbl->zebra_phase;
+        theme->zebra_color1 = tbl->zebra_color1;
+        theme->zebra_color2 = tbl->zebra_color2;
+        theme->bottom_vmargin_factor = tbl->bottom_vmargin_factor;
+        return 0;
+    } else
+        return -1;
+}
 
 /**
  * @brief Return the default theme
@@ -202,9 +248,12 @@ hpdftbl_apply_theme(hpdftbl_t t, hpdftbl_theme_t *theme) {
  * functions responsibility to call hpdftbl_destroy_theme() to free the allocated
  * memory. The default theme is a good starting point to just make minor modifications
  * without having to define all elements.
- * @return A new theme initialized to the default settings
  *
- * @see hpdftbl_apply_theme()
+ * @return A new theme initialized to the default settings. It is the calling
+ * routines responsibility to free memory used in the returned theme
+ * with hpdftbl_destroy_theme()
+ *
+ * @see hpdftbl_apply_theme(), hpdftbl_destroy_theme()
  */
 hpdftbl_theme_t *
 hpdftbl_get_default_theme(void) {

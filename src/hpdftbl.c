@@ -28,13 +28,9 @@
  * SOFTWARE.
  */
 
-
-#include <stdio.h>
 #include <stdlib.h>
 
 #if !(defined _WIN32 || defined __WIN32__)
-
-#include <unistd.h>
 
 #endif
 
@@ -43,7 +39,6 @@
 #include <hpdf.h>
 #include <libgen.h>
 #include <sys/stat.h>
-#include <setjmp.h>
 #include "hpdftbl.h"
 
 
@@ -51,11 +46,6 @@
  * @brief Last automatically calculated total height
  */
 static HPDF_REAL last_auto_height;
-
-/**
- * @brief Specify ancor position of tables as top left. Alternatively bottom left can be used as anchor by setting this to false,
- */
-static _Bool anchor_is_top_left = TRUE;
 
 /**
  * @brief Internal state variable to keep track of necessary encodings
@@ -132,23 +122,27 @@ hpdftbl_set_line_dash(hpdftbl_t t, hpdftbl_line_dashstyle_t style) {
  * Set anchor point for table positioning. By default the top left is used as anchor.
  * Calling this function with FALSE can sets the anchor to bottom left instead.
  *
+ * @param tbl Table handle
  * @param anchor Set to TRUE to use top left as anchor, FALSE for bottom left
  */
 void
-hpdftbl_set_anchor_top_left(const _Bool anchor) {
-    anchor_is_top_left = anchor;
+hpdftbl_set_anchor_top_left(hpdftbl_t tbl, const _Bool anchor) {
+    tbl->anchor_is_top_left = anchor;
 }
 
 /**
  * @brief Get stroking anchor point
  *
  * Get anchor point for table positioning. By default the top left is used.
+ *
+ * @param tbl Table handle
+ *
  * @see hpdftbl_set_anchor_top_left
  * @return TRUE if anchor is top left, FALSE otherwise
  */
 _Bool
-hpdftbl_get_anchor_top_left(void) {
-    return anchor_is_top_left;
+hpdftbl_get_anchor_top_left(hpdftbl_t tbl) {
+    return tbl->anchor_is_top_left;
 }
 
 /**
@@ -336,6 +330,8 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
         return NULL;
     }
 
+    t->anchor_is_top_left = TRUE;
+
 #ifdef __cplusplus
     t->cells = static_cast<hpdftbl_cell_t*>(calloc(cols*rows, sizeof(hpdftbl_cell_t)));
 #else
@@ -345,6 +341,15 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
         free(t);
         _HPDFTBL_SET_ERR(t, -5, -1, -1);
         return NULL;
+    }
+
+    hpdftbl_cell_t *cell = t->cells;
+    for(size_t r=0; r < rows; r++) {
+        for(size_t c=0; c < cols; c++) {
+            cell->row = r;
+            cell->col = c;
+            cell++;
+        }
     }
 
     t->cols = cols;
@@ -366,7 +371,7 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
     // Initialize column width. Setting it to zero will set the column to the default
     // width.
     for (size_t i = 0; i < cols; i++) {
-        t->col_width_percent[i] = 0.0;
+        t->col_width_percent[i] = 0.0f;
     }
 
     if (title) {
@@ -403,7 +408,7 @@ hpdftbl_create_title(size_t rows, size_t cols, char *title) {
  */
 int
 hpdftbl_set_min_rowheight(hpdftbl_t t, float h) {
-    t->minheight=h;
+    t->minrowheight=h;
     return 0;
 }
 
@@ -715,6 +720,14 @@ cell_destroy(hpdftbl_t t, size_t r, size_t c) {
         free(cell->label);
     if (cell->content)
         free(cell->content);
+    if (cell->content_dyncb)
+        free(cell->content_dyncb);
+    if (cell->content_style_dyncb)
+        free(cell->content_style_dyncb);
+    if (cell->label_dyncb)
+        free(cell->label_dyncb);
+    if (cell->canvas_dyncb)
+        free(cell->canvas_dyncb);
     cell->parent_cell = NULL;
     return 0;
 }
@@ -732,6 +745,17 @@ hpdftbl_destroy(hpdftbl_t t) {
     _HPDFTBL_CHK_TABLE(t);
     if (t->title_txt)
         free(t->title_txt);
+    if (t->label_dyncb)
+        free(t->label_dyncb);
+    if (t->content_dyncb)
+        free(t->content_dyncb);
+    if (t->content_style_dyncb)
+        free(t->content_style_dyncb);
+    if (t->post_dyncb)
+        free(t->post_dyncb);
+    if (t->canvas_dyncb)
+        free(t->canvas_dyncb);
+    free(t->col_width_percent);
     for (size_t r = 0; r < t->rows; r++) {
         for (size_t c = 0; c < t->cols; c++) {
             cell_destroy(t, r, c);
@@ -772,7 +796,7 @@ chktbl(hpdftbl_t t, size_t r, size_t c) {
  * @return -1 on error, 0 if successful
  */
 int
-hpdftbl_set_cell(hpdftbl_t t, int r, int c, char *label, char *content) {
+hpdftbl_set_cell(hpdftbl_t t, size_t r, size_t c, char *label, char *content) {
     _HPDFTBL_CHK_TABLE(t);
     if (!chktbl(t, r, c)) return -1;
     hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
@@ -915,6 +939,15 @@ table_title_stroke(hpdftbl_t t) {
     if (t->title_txt == NULL)
         return 0;
 
+    HPDF_REAL x = t->posx;
+    HPDF_REAL y = t->posy;
+
+    //const HPDF_REAL page_height = HPDF_Page_GetHeight(page);
+    if (t->anchor_is_top_left) {
+        y -= t->height;
+        y -= 1.5f * t->title_style.fsize;
+    }
+
     const HPDF_REAL height = 1.5f * t->title_style.fsize;
 
     // Stoke outer border and fill
@@ -922,19 +955,19 @@ table_title_stroke(hpdftbl_t t) {
     HPDF_Page_SetRGBFill(t->pdf_page, t->title_style.background.r, t->title_style.background.g,
                          t->title_style.background.b);
     HPDF_Page_SetLineWidth(t->pdf_page, t->outer_grid.width);
-    HPDF_Page_Rectangle(t->pdf_page, t->posx, t->posy + t->height, t->width, height);
+    HPDF_Page_Rectangle(t->pdf_page, x, y + t->height, t->width, height);
     HPDF_Page_FillStroke(t->pdf_page);
 
     set_fontc(t, t->title_style.font, t->title_style.fsize, t->title_style.color);
 
     HPDF_REAL left_right_padding = t->outer_grid.width + 3;
-    HPDF_REAL xpos = t->posx + left_right_padding;
-    const HPDF_REAL ypos = t->posy + t->height + t->outer_grid.width * 2 + t->title_style.fsize * 0.28f;
+    HPDF_REAL xpos = x + left_right_padding;
+    const HPDF_REAL ypos = y + t->height + t->outer_grid.width * 2 + t->title_style.fsize * 0.28f;
 
     if (t->title_style.halign == CENTER) {
-        xpos = t->posx + (t->width - HPDF_Page_TextWidth(t->pdf_page, t->title_txt)) / 2.0f;
+        xpos = x + (t->width - HPDF_Page_TextWidth(t->pdf_page, t->title_txt)) / 2.0f;
     } else if (t->title_style.halign == RIGHT) {
-        xpos = t->posx + (t->width - HPDF_Page_TextWidth(t->pdf_page, t->title_txt)) - left_right_padding;
+        xpos = x + (t->width - HPDF_Page_TextWidth(t->pdf_page, t->title_txt)) - left_right_padding;
     }
 
     HPDF_Page_BeginText(t->pdf_page);
@@ -1019,7 +1052,7 @@ hpdftbl_set_content(hpdftbl_t t, char **content) {
 }
 
 /**
- * @brief Set the style for labels in the entire table.
+ * @brief Set the text style for labels in the entire table.
  *
  * Set font, color and background options for cell labels. If a style callback have been
  * specified for either the table or a cell that style take precedence.
@@ -1042,7 +1075,7 @@ hpdftbl_set_label_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColor 
 }
 
 /**
- * @brief Set style for text content.
+ * @brief Set text style for text content.
  *
  * Set style options for cell content (font, color, background). This will be applied for all cells in the table.
  * If a style callback have been
@@ -1068,7 +1101,7 @@ hpdftbl_set_content_style(hpdftbl_t t, char *font, HPDF_REAL fsize, HPDF_RGBColo
 }
 
 /**
- * @brief Set the style for an entire row of cells.
+ * @brief Set the text style for an entire row of cells.
  *
  * Set font options for the specified row of cells. This will override the global cell content.
  * @param t Table handle
@@ -1091,7 +1124,7 @@ hpdftbl_set_row_content_style(hpdftbl_t t, size_t r, char *font, HPDF_REAL fsize
 }
 
 /**
- * @brief Set the font style for an entre column of cells.
+ * @brief Set the text style for an entire column of cells.
  *
  * Set font options for the specified column of cells. This will override the global cell content setting.
  * @param t Table handle
@@ -1114,7 +1147,7 @@ hpdftbl_set_col_content_style(hpdftbl_t t, size_t c, char *font, HPDF_REAL fsize
 }
 
 /**
- * @brief Set the font style for content of specified cell.
+ * @brief Set the text style for content of specified cell.
  *
  * SSet the font style for content of specified cell. This will override the global cell content setting.
  * @param t Table handle
@@ -1129,7 +1162,8 @@ hpdftbl_set_col_content_style(hpdftbl_t t, size_t c, char *font, HPDF_REAL fsize
  * @see hpdftbl_set_cell_content_style_cb()
  */
 int
-hpdftbl_set_cell_content_style(hpdftbl_t t, size_t r, size_t c, char *font, HPDF_REAL fsize, HPDF_RGBColor color,
+hpdftbl_set_cell_content_style(hpdftbl_t t, size_t r, size_t c,
+                               char *font, HPDF_REAL fsize, HPDF_RGBColor color,
                                HPDF_RGBColor background) {
     _HPDFTBL_CHK_TABLE(t);
     chktbl(t, r, c);
@@ -1143,7 +1177,7 @@ hpdftbl_set_cell_content_style(hpdftbl_t t, size_t r, size_t c, char *font, HPDF
 
 
 /**
- * @brief Set the table title style
+ * @brief Set the table title text style
  *
  * Set font options for title
  * @param t Table handle
@@ -1277,17 +1311,25 @@ hpdftbl_stroke_from_data(HPDF_Doc pdf_doc, HPDF_Page pdf_page, hpdftbl_spec_t *t
  * @brief Internal function.
  *
  * Internal function. Calculate the relative position of each cell in the
- * table taking row and column spanning into account
+ * table taking row and column spanning into account. This function loops
+ * through each cell and calculates its delta_X and delta_y positions which
+ * are hen stored in each cell data structure.
+ *
+ * The calculation is done at the time of stroking and is not available
+ * prior.
+ *
  * @param t Table handle
  * @return 0 on success, -1 on failure
+ *
+ * @see hpdftbl_stroke()
  */
 static int
 calc_cell_pos(hpdftbl_t t) {
     // Calculate relative position for all cells in relation
     // to bottom left table corner
-    HPDF_REAL base_cell_height = t->height / t->rows;
+    HPDF_REAL base_cell_height = (float)(t->height) / (float)(t->rows);
     //HPDF_REAL base_cell_width = t->width / t->cols;
-    HPDF_REAL base_cell_width_percent = 100.0f / t->cols;
+    HPDF_REAL base_cell_width_percent = 100.0f / (float)t->cols;
     HPDF_REAL delta_x = 0;
     HPDF_REAL delta_y = 0;
 
@@ -1331,12 +1373,12 @@ calc_cell_pos(hpdftbl_t t) {
     //
     // Pass 1. Give the basic position for all cells without
     // taking spanning in consideration
-    for (int r = t->rows - 1; r >= 0; r--) {
+    for (int r = (int)t->rows - 1; r >= 0; r--) {
         for (size_t c = 0; c < t->cols; c++) {
             hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
             cell->delta_x = delta_x;
             cell->delta_y = delta_y;
-            cell->width = (t->col_width_percent[c] / 100.0f) * t->width;//base_cell_width;
+            cell->width = (t->col_width_percent[c] / 100.0f) * t->width; //base_cell_width;
             cell->height = base_cell_height;
             delta_x += cell->width; //base_cell_width;
         }
@@ -1350,10 +1392,10 @@ calc_cell_pos(hpdftbl_t t) {
             hpdftbl_cell_t *cell = &t->cells[_HPDFTBL_IDX(r, c)];
             if (cell->rowspan > 1) {
                 cell->delta_y = t->cells[(r + cell->rowspan - 1) * t->cols + c].delta_y;
-                cell->height = cell->rowspan * base_cell_height;
+                cell->height = (float)cell->rowspan * base_cell_height;
             }
             if (cell->colspan > 1) {
-                HPDF_REAL col_span_with = 0.0;
+                HPDF_REAL col_span_with = 0.0f;
                 for (size_t cc = 0; cc < cell->colspan; cc++) {
                     col_span_with += t->cells[_HPDFTBL_IDX(r, cc + c)].width;
                 }
@@ -1376,7 +1418,7 @@ calc_cell_pos(hpdftbl_t t) {
 /**
  * @brief Get the height calculated for the last constructed table
  *
- * Get the last automatically calculated heigh when stroking a table.
+ * Get the last automatically calculated height when stroking a table.
  * (The height will be automatically calculated if it was specified as 0)
  * @param height Returned height
  * @return -1 on error, 0 if successful
@@ -1406,10 +1448,11 @@ hpdftbl_get_last_auto_height(HPDF_REAL *height) {
 /**
  * @brief Internal function.
  *
- * Internal function. Stroke each cell content.
+ * Stroke each cell content.
  * @param t Table handle
  * @param r Row
  * @param c Column
+ * @see hpdftbl_stroke()
  *
  */
 static void
@@ -1420,6 +1463,16 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
         return;
     }
 
+    HPDF_REAL x = t->posx;
+    HPDF_REAL y = t->posy;
+
+    if (t->anchor_is_top_left) {
+        y -= t->height;
+        if (t->title_txt) {
+            y -= 1.5f * t->title_style.fsize;
+        }
+    }
+
     HPDF_REAL left_right_padding = c == 0 ? t->outer_grid.width + 2 : t->inner_vgrid.width + 2;
 
     // Check if this is the first row, and we should format it as a header row.
@@ -1428,7 +1481,7 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
         HPDF_Page_SetRGBFill(t->pdf_page, t->header_style.background.r, t->header_style.background.g,
                              t->header_style.background.b);
         HPDF_Page_Rectangle(t->pdf_page,
-                            t->posx + cell->delta_x, t->posy + cell->delta_y,
+                            x + cell->delta_x, y + cell->delta_y,
                             cell->width, cell->height);
         HPDF_Page_Fill(t->pdf_page);
     }
@@ -1451,9 +1504,8 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
             }
 
             HPDF_Page_BeginText(t->pdf_page);
-            hpdftbl_encoding_text_out(t->pdf_page,
-                                      t->posx + cell->delta_x + left_right_padding,
-                                      t->posy + cell->delta_y + cell->height - t->label_style.fsize * 1.05f, label);
+            hpdftbl_encoding_text_out(t->pdf_page,x + cell->delta_x + left_right_padding,
+                                      y + cell->delta_y + cell->height - t->label_style.fsize * 1.05f, label);
 
             HPDF_Page_EndText(t->pdf_page);
         }
@@ -1502,24 +1554,24 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
         }
     }
 
-    HPDF_REAL xpos = t->posx + cell->delta_x + left_right_padding;
+    HPDF_REAL xpos = x + cell->delta_x + left_right_padding;
     if (halign == RIGHT) {
-        xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) - left_right_padding;
+        xpos = x + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) - left_right_padding;
     } else if (halign == CENTER) { // Center text
-        xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) / 2.0f;
+        xpos = x + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) / 2.0f;
     }
 
-    HPDF_REAL ypos = t->posy + cell->delta_y + t->content_style.fsize * t->bottom_vmargin_factor; //AUTO_VBOTTOM_MARGIN_FACTOR;
+    HPDF_REAL ypos = y + cell->delta_y + t->content_style.fsize * t->bottom_vmargin_factor; //AUTO_VBOTTOM_MARGIN_FACTOR;
 
     if (t->use_header_row && r == 0) {
         // Roughly center the text vertical
-        ypos = t->posy + cell->delta_y + (cell->height / 2 - t->header_style.fsize / 2) + t->header_style.fsize / 5;
+        ypos = y + cell->delta_y + (cell->height / 2 - t->header_style.fsize / 2) + t->header_style.fsize / 5;
 
         // Center the header
         if (t->header_style.halign == CENTER)
-            xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) / 2.0f;
+            xpos = x + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) / 2.0f;
         else if (t->header_style.halign == RIGHT)
-            xpos = t->posx + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) -
+            xpos = x + cell->delta_x + (cell->width - HPDF_Page_TextWidth(t->pdf_page, content)) -
                    left_right_padding;
     }
 
@@ -1532,6 +1584,75 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
 }
 
 /**
+ * @brief Set size and position for table.
+ *
+ * The position is by default specified
+ * as the upper left corner of the table. Use the hpdftbl_set_origin_top_left() to use
+ * the bottom left of the table as reference point.
+ *
+ * Ths standard stroke function hpdftbl_stroke() also take the size and position as
+ * argument for ease of use but the hpdftbl_stroke_pos() do assume that the table
+ * has it's size set.
+ *
+ * @param t Table handle
+ * @param xpos x position for table
+ * @param ypos y position for table
+ * @param width width of table
+ * @param height  height of table. If the height is specified as 0 it will be automatically
+ * calculated. The calculated height can be retrieved after the table has been stroked by a
+ * call to hpdftbl_get_last_auto_height()
+ * @return -1 on error, 0 if successful
+ * @see hpdftbl_get_last_auto_height(), hpdftbl_set_origin_top_left()
+ */
+int
+hpdftbl_setpos(hpdftbl_t t,
+               const HPDF_REAL xpos, const HPDF_REAL ypos,
+               const HPDF_REAL width, HPDF_REAL height) {
+    if (NULL == t) {
+        _HPDFTBL_SET_ERR(t, -6, -1, -1);
+        return -1;
+    }
+    t->posx = xpos;
+    t->posy = ypos;
+    t->width = width;
+    t->height = height;
+    return 0;
+}
+
+/**
+ * @brief Stroke the table using the already specified size and position within the table.
+ *
+ * Stroke the table at the specified position and size. The position is by default specified
+ * as the upper left corner of the table. Use the hpdftbl_set_origin_top_left(FALSE) to use
+ * the bottom left of the table as reference point.
+ *
+ * This is a convenient method to use when stroking a serialized table
+ * as the table already holds the size and position. Stroking a table
+ * read back ccan be done with just two lines of code
+ *
+ * ```c
+ *  hpdftbl_t tbl = calloc(1, sizeof(struct hpdftbl));
+ *  if( 0 == hpdftbl_load(tbl, filename)  ) {
+ *       hpdftbl_stroke_pos(pdf_doc, pdf_page, tbl);
+ *  }
+ * ```
+ *
+ * @param pdf The HPDF document handle
+ * @param page The HPDF page handle
+ * @param t Table handle
+ * @return -1 on error, 0 if successful
+ * @see hpdftbl_get_last_auto_height()
+ * @see hpdftbl_setpos(), hpdftbl_stroke()
+ */
+int
+hpdftbl_stroke_pos(HPDF_Doc pdf,
+                   const HPDF_Page page, hpdftbl_t t) {
+    return hpdftbl_stroke(pdf,page,t,
+                   t->posx,t->posy,
+                   t->width, t->height);
+}
+
+/**
  * @brief Stroke the table
  *
  * Stroke the table at the specified position and size. The position is by default specified
@@ -1541,8 +1662,8 @@ table_cell_stroke(hpdftbl_t t, const size_t r, const size_t c) {
  * @param pdf The HPDF document handle
  * @param page The HPDF page handle
  * @param t Table handle
- * @param xpos x position for table, bottom left corner
- * @param ypos y position for table, bottom left corner
+ * @param xpos x position for table
+ * @param ypos y position for table
  * @param width width of table
  * @param height height of table. If the height is specified as 0 it will be automatically
  * calculated. The calculated height can be retrieved after the table has been stroked by a
@@ -1572,18 +1693,20 @@ hpdftbl_stroke(HPDF_Doc pdf,
         height = t->content_style.fsize;
         if (t->use_cell_labels) {
             height += t->label_style.fsize;
-            height = max(t->minheight, height);
-            height *= 1.5f * t->rows;
+            height = max(t->minrowheight, height);
+            height *= 1.5f * (float)t->rows;
         } else {
-            height = max(t->minheight, height);
-            height *= 1.6f * t->rows;
+            height = max(t->minrowheight, height);
+            height *= 1.6f * (float)t->rows;
         }
         last_auto_height = height;
     }
 
+    t->posx = x;
+    t->posy = y;
+
     //const HPDF_REAL page_height = HPDF_Page_GetHeight(page);
-    if (anchor_is_top_left) {
-        //printf("ypos=%f, height=%f\n",ypos,height);
+    if (t->anchor_is_top_left) {
         y = ypos - height;
         if (t->title_txt) {
             y -= 1.5f * t->title_style.fsize;
@@ -1594,8 +1717,6 @@ hpdftbl_stroke(HPDF_Doc pdf,
     t->pdf_page = page;
     t->height = height;
     t->width = width;
-    t->posx = x;
-    t->posy = y;
 
     if (-1 == calc_cell_pos(t)) {
         return -1;
@@ -1632,7 +1753,7 @@ hpdftbl_stroke(HPDF_Doc pdf,
                     HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
                     HPDF_Page_Fill(page);
                 } else if (cell->content_style.font) {
-                    // If cell has its own style set this will override and we have to stroke the background here
+                    // If cell has its own style set this will override, and we have to stroke the background here
                     HPDF_Page_SetRGBFill(page, cell->content_style.background.r, cell->content_style.background.g,
                                          cell->content_style.background.b);
                     HPDF_Page_Rectangle(page, x + cell->delta_x, y + cell->delta_y, cell->width, cell->height);
@@ -1779,6 +1900,10 @@ hpdftbl_stroke_pdfdoc(HPDF_Doc pdf_doc, char *file) {
  * to start with the organized tutorial examples like @ref tut_ex01.c "tut_ex01.c"
  * and @ref tut_ex02.c "tut_ex02.c"
  *
+ * @example tut_ex00.c
+ * The very most basic table with a header
+ * @image html screenshots/tut_ex00.png
+ *
  * @example tut_ex01.c
  * The very most basic table with API call to set content in each cell.
  * @image html screenshots/tut_ex01.png
@@ -1859,6 +1984,29 @@ hpdftbl_stroke_pdfdoc(HPDF_Doc pdf_doc, char *file) {
  * Defining a table using dynamic callbacks
  * @image html screenshots/tut_ex30.png
  *
+ * @example tut_ex40.c
+ * Example of importing a table from a serialized json file.
+ * @see hpdftbl_dump()
+ * @image html screenshots/tut_ex40.png
+ *
+ * @example tut_ex41.c
+ * Example of importing a table and theme from a serialized representation.
+ * @see hpdftbl_load(), hpdftbl_theme_load()
+ * @image html screenshots/tut_ex41.png
+ *
+ * @example tests/tut_ex40.json
+ * An output example from hpdftbl_dump() that shows a
+ * serialized table. This can later be import to a table structure
+ * with the use of hpdftbl_load()
+ * @image html screenshots/tut_ex40.png
+ *
+ * @example tests/tut_ex41.json
+ * An output example from hpdftbl_dump() as well as
+ * hpdftbl_theme_dump() that shows a
+ * serialized table and theme.
+ * This can later be import to a table structure
+ * with the use of hpdftbl_load() and hpdftbl_theme_import()
+ * @image html screenshots/tut_ex41.png
  */
 
 /* EOF */

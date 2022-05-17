@@ -44,6 +44,9 @@ The library is available as `libharu` as of this writing the latest version is `
 have `xcode` command line tools installed which is basically a pre-requisite required for all development on OSX.  
 *(On ancient versions of OSX this was not the case.)*
 
+3. **libjansson** - Library to parse JSON files. Needed to enable table serialization to- and from JSON format.
+*Note:* This can be omitted but then no serialization functions will be available in the library.
+
 ### Different versions of iconv on OSX
 
 Unfortunately there are two different (and incompatible) versions of `libiconv` readily available for OSX. One library 

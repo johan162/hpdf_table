@@ -1,9 +1,13 @@
 AM_CFLAGS =  -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes \
 -Wextra -Wshadow -Wno-error=unknown-pragmas -Werror=format -Wformat=2
 
-FILES = example01 tut_ex01 tut_ex02 tut_ex02_1 tut_ex03 tut_ex04 tut_ex05 tut_ex06 tut_ex07 tut_ex08 \
+FILES = example01 tut_ex00 tut_ex01 tut_ex02 tut_ex02_1 tut_ex03 tut_ex04 tut_ex05 tut_ex06 tut_ex07 tut_ex08 \
         tut_ex09 tut_ex10 tut_ex11 tut_ex12 tut_ex13_1 tut_ex13_2 tut_ex14 tut_ex15 tut_ex15_1 tut_ex16_dash \
         tut_ex20 tut_ex30
+
+if have_libjansson
+FILES+=tut_ex40 tut_ex41
+endif
 
 EXTRA_DIST = tests verify.sh unit_test.inc.h
 
@@ -13,6 +17,9 @@ CLEANFILES =*~ $(FILES)
 
 example01_LDADD = ../src/libhpdftbl.la
 example01_DEPENDENCIES = ../src/libhpdftbl.la unit_test.inc.h
+
+tut_ex00_LDADD = ../src/libhpdftbl.la
+tut_ex00_DEPENDENCIES = ../src/libhpdftbl.la unit_test.inc.h
 
 tut_ex01_LDADD = ../src/libhpdftbl.la
 tut_ex01_DEPENDENCIES = ../src/libhpdftbl.la unit_test.inc.h
@@ -76,6 +83,16 @@ tut_ex20_DEPENDENCIES = ../src/libhpdftbl.la unit_test.inc.h
 
 tut_ex30_LDADD = ../src/libhpdftbl.la
 tut_ex30_DEPENDENCIES = ../src/libhpdftbl.la unit_test.inc.h
+
+if have_libjansson
+tut_ex40_LDADD = ../src/libhpdftbl.la
+tut_ex40_DEPENDENCIES = ../src/libhpdftbl.la unit_test.inc.h
+tut_ex40_LDFLAGS = -ljansson
+
+tut_ex41_LDADD = ../src/libhpdftbl.la
+tut_ex41_DEPENDENCIES = ../src/libhpdftbl.la unit_test.inc.h
+tut_ex41_LDFLAGS = -ljansson
+endif
 
 check-local:
 	./verify.sh

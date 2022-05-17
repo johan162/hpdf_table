@@ -20,8 +20,10 @@ INPUT                  = ../src \
                          ContentLabelCallbacks.md \
                          ErrorHandling.md \
                          FontAndStyle.md \
+                         Themes.md \
                          TablesFromData.md \
                          UsingWidgets.md \
+                         Serializing.md \
                          APIOverview.md \
                          ../scripts/bootstrap.sh \
                          ../scripts/dbgbld.sh \
@@ -31,15 +33,15 @@ INPUT                  = ../src \
 
 RECURSIVE              = NO
 EXAMPLE_PATH           = ../examples
-EXAMPLE_PATTERNS       = *.c
+EXAMPLE_PATTERNS       = *.c *.json
 IMAGE_PATH             = screenshots
 USE_MDFILE_AS_MAINPAGE = Intro.md
 
 # -----------------------------
 # Input filter to make trivial parsing of shell scripts
 # -----------------------------
-#FILTER_PATTERNS = *.sh="sed -e 's|##|//!|'"
-FILTER_PATTERNS = *.sh="/Users/ljp/Devel/hpdf_table/docs/doxygen-bash.sed" *.in="/Users/ljp/Devel/hpdf_table/docs/doxygen-bash.sed"
+FILTER_PATTERNS = *.sh="sed -e 's|##|//!|'"
+#FILTER_PATTERNS = *.sh="/Users/ljp/Devel/hpdf_table/docs/doxygen-bash.sed" *.in="/Users/ljp/Devel/hpdf_table/docs/doxygen-bash.sed"
 #FILTER_SOURCE_FILES = NO
 EXTENSION_MAPPING = sh=C++ in=C++
 # sed -n -f /path/to/doxygen-bash.sed --
@@ -70,7 +72,7 @@ WARN_LOGFILE           =
 REFERENCED_BY_RELATION = YES
 REFERENCES_RELATION    = NO
 REFERENCES_LINK_SOURCE = YES
-cd ex	VERBATIM_HEADERS       = YES
+VERBATIM_HEADERS       = YES
 ALPHABETICAL_INDEX     = YES
 IGNORE_PREFIX          = hpdftbl_
 
@@ -91,7 +93,7 @@ HTML_DYNAMIC_MENUS     = YES
 HTML_DYNAMIC_SECTIONS  = NO
 HTML_INDEX_NUM_ENTRIES = 3
 FULL_SIDEBAR           = YES
-TREEVIEW_WIDTH         = 250
+TREEVIEW_WIDTH         = 230
 SEARCHENGINE           = YES
 
 # -----------------------------
