@@ -88,13 +88,13 @@
 
 /**
  * @brief Default style for alternating row backgrounds color 1
- * @todo Implement zebra table coloring
+ *
  */
 #define HPDFTBL_DEFAULT_ZEBRA_COLOR1 {1.0f,1.0f,1.0f}
 
 /**
  * @brief Default style for alternating row backgrounds color 2
- * @todo Implement zebra table coloring
+ *
  */
 #define HPDFTBL_DEFAULT_ZEBRA_COLOR2 {0.95f,0.95f,0.95f}
 
@@ -143,13 +143,11 @@
 
 /**
  * @brief Default style for alternating row backgrounds color 1
- * @todo Implement zebra table coloring
  */
 #define HPDFTBL_DEFAULT_ZEBRA_COLOR1    HPDF_COLOR_WHITE
 
 /**
  * @brief Default style for alternating row backgrounds color 2
- * @todo Implement zebra table coloring
  */
 #define HPDFTBL_DEFAULT_ZEBRA_COLOR2    HPDF_COLOR_XLIGHT_GRAY
 #endif
