@@ -116,7 +116,7 @@ In addition, a stacktrace is also generated to `stderr`
 The real (production grade) error handler therefore looks as shown below
 
 @dontinclude unit_test.inc.h
-@skip table_error_handler
+@skip table_error_handler(hpdftbl_t t
 @until longjmp
 @line }
 
