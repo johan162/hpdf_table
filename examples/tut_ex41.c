@@ -14,20 +14,20 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 
-#define FROM_JSON 1
+#define FROM_JSON 0
 /**
  * Table 41 example - dump/load theme and table
  */
 void
 create_table_ex41(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
 
-#if FROM_JSON == 1
+#if FROM_JSON == 0
     hpdftbl_t tbl = calloc(1, sizeof (struct hpdftbl));
     hpdftbl_theme_t theme;
 
-    if(0 == hpdftbl_load(tbl, "tests/tut_ex41.json")  ) {
+    if(0 == hpdftbl_load(tbl, mkfullpath("tut_ex41.json"))  ) {
 
-        if(0 == hpdftbl_theme_load(&theme, "tests/tut41_theme.json")) {
+        if(0 == hpdftbl_theme_load(&theme, mkfullpath("tut41_theme.json"))) {
             hpdftbl_apply_theme(tbl, &theme);
             hpdftbl_stroke_pos(pdf_doc, pdf_page, tbl);
         } else {

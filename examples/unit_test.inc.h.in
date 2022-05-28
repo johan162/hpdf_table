@@ -48,6 +48,8 @@ jmp_buf _hpdftbl_jmp_env;
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
+#define TESTS_DIR "@srcdir@/tests/"
+
 /**
  * @brief A standard hpdf error handler which also translates the hpdf error code to a human-readable string.
  * @param error_no The HPDF error number
@@ -265,6 +267,40 @@ void setup_dummy_content_label(content_t *content, content_t *labels, size_t row
         }
     }
 }
+
+/**
+ * @brief Add the full path to the tests directory as prefix to the
+ * supplied filename as argument.
+ *
+ * This is needed since it is not possible at compile time to know
+ * the location of the tests directory due to the autotools feature
+ * of VPATH. This makes it possible to build in a arbitrary separate
+ * directory from the source. The autotools support the variable
+ * '@srcdir@' which gets replaced with the actual src directory
+ * which makes it possible to find the tests directory.
+ *
+ * The replacement happens when the autotools creates
+ * `unit_test.inc.h` from ``unit_test.inc.h.in` with the
+ * created "config.status"
+ *
+ * @param filename The base filename (relative to the tests directory)
+ * @return Pointer to a dynamic allocated storage for the full path
+ * filename. It is the clients responsibility to free() the allocated
+ * memory.
+ */
+char *
+mkfullpath(char *filename) {
+    const size_t len=strlen(filename)+strlen(TESTS_DIR)+1;
+    char *fullpath = calloc(len, sizeof(char));
+    if( NULL==fullpath ) {
+        fprintf(stderr,"Error: Failed to allocate dynamic buffer (%s:%d)\n", __FUNCTION__ , __LINE__);
+        exit(1);
+    }
+    strlcat(fullpath,TESTS_DIR,len);
+    strlcat(fullpath,filename,len);
+    return fullpath;
+}
+
 
 /**
  * @brief Macro to create a main() function to call the table creation

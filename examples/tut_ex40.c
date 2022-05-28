@@ -16,14 +16,14 @@
 
 #define FROM_JSON 1
 /**
- * Table 40 example - Load serialized table
+ * Table 40 example - Load serialized tablecd
  */
 void
 create_table_ex40(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_t tbl=calloc(1, sizeof(struct hpdftbl));
 
 #if FROM_JSON == 1
-    if(0 == hpdftbl_load(tbl, "tests/tut_ex40.json")  ) {
+    if(0 == hpdftbl_load(tbl, mkfullpath("tut_ex40.json"))  ) {
         hpdftbl_stroke_pos(pdf_doc, pdf_page, tbl);
     }
 #else

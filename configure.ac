@@ -16,11 +16,13 @@ AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_FILES([
 scripts/docupload.sh
 examples/verify.sh
+examples/unit_test.inc.h
 Makefile
 src/Makefile
 examples/Makefile
 docs/Makefile
 docs/Doxyfile
+
 ])
 
 # The AC_OUTPUT strips files of the x mode so we need to restore it
