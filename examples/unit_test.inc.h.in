@@ -1,6 +1,9 @@
 /**
  * @file
  * @brief Common functions for all unit-test/examples.
+ *
+ * DO NOT EDIT
+ * @configure_input@
  */
 
 #include <stdio.h>
