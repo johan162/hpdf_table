@@ -37,6 +37,7 @@ examples/tut_ex??_?
 examples/verify.sh
 examples/out
 examples/tut_ex16_dash
+examples/unit_test.inc.h
 doxyconf
 *.swp
 Doxyfile
