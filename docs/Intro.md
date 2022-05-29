@@ -11,27 +11,30 @@ a model-view-controller like setup. This allows an easy way to separate the layo
 of the table from the actual data in the table.
 
 ## Features
-- Supports both C/C++
 - Supports both OSX/Linux builds and their different dynamic library variants
 - Fully supports UTF-8 with automatic conversion to PDF character encoding
 - Supports multiple paradigms for creating and populating tables
-    - Directly store value in table cell
-    - Create a data structure (2D-Array) with all data to be set at once
-    - Use callback populating functions with identifying tags for each table cell
-- Options to use labels in table cell to create forms
+  - Directly store value in table cell
+  - Create a data structure (2D-Array) with all data to be set at once
+  - Use callback populating functions with identifying tags for each table cell
+- Allow table to be serialized to JSON and read back
+- Options ot use labels in table cell to create forms
+- Row and column spanning of cells
 - Support for predefined widgets in table cell to illustrate values
 - Complete control of background color, fonts, and frame colors
-- Possible to use table themes that provide pre-defined look-and-feel for table
+- Possible to use table themes that provides pre-defined look-and-feel for table
+- Allows theme to be serialized to JSON and read beck
 - Both dynamic and static library provided
-- Last but not least; extensive documentation and almost guaranteed to be bug free after being tested in production for over 7 years!
+- Last but not least; extensive [documentation](https://johan162.github.io/libhpdftbl/html/index.html) which is also included in the distribution in both
+  PDF and HTML format.
 
 ## Some Examples
 
-@note All code examples can be found in the `examples/` directory or in the 
-[Examples](examples.html) section of this manual.
-ALl examples will be explained in this manual.
+@note All code examples can be found in the `examples/` directory and in the 
+[Examples](examples.html) section in the documentations.
 
-### Example 1 - Plain table with cell labels  
+
+### Example 1 - Plain table with header  
 
 @ref tut_ex02_1.c "tut_ex02_1.c"
 

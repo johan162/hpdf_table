@@ -11,46 +11,45 @@ $ cd libhpdftbl-<version>
 $ ./configure && make
 ```
 If any libraries are missing the `configure` process will discover this and tell what needs to be installed.
+Use `./configure -h` to see a list of possible options for configuring the build.
 
-@note By calling `./configure -h` a list of possible options on how the library should be compiled and installed
-will be shown.
-
-To verify the build run
+To then verify the build run
 
 ```shell
 $ make check
 ```
-If everything works you should see a *Success!* message.
-After checking that tha library passes the unit-tests it can be installed with
+which will execute all the unit-tests in the library. If all tests pass a *Success!* message can 
+bee seen at the end of all listed tests.
+The library can then be installed with
 
 ```shell
 $ make install
 ```
 
-If successfully this will install the library in the `/usr/local` subtree. 
-It will build and install both a static and dynamic version of the library.
+If the install succeeds this will, by default, install the library in the `/usr/local` subtree, both a static and dynamic version of the library will by default be installed.
+
+@note What directory to install to can be adjusted by using the `--prefix` argument when configuring the build.
 
 
 ## Pre-requisites {#pre-req}
 
-@note OSX Package manager: We recommend using `brew` as the package manager for OSX.
-
-There are two external libraries required to build the library:
+There are two mandatory and one semi-otional external library required to fully build the libhpdftbl:
 
 1. **libhpdf** - The Haru PDF library. On OSX this is most easily installed by using the `brew` OSX package manager. 
 The library is available as `libharu` as of this writing the latest version is `libharu-2.3.0`  
 
 2. **iconv** - The character encoding conversion library. On OSX > 11.x this is included by default once you 
-have `xcode` command line tools installed which is basically a pre-requisite required for all development on OSX.  
-*(On ancient versions of OSX this was not the case.)*
+have `xcode` command line tools installed which is basically a pre-requisite required for all development on OSX. *On ancient versions of OSX this was not the case.*
 
 3. **libjansson** - Library to parse JSON files. Needed to enable table serialization to- and from JSON format.
 *Note:* This can be omitted but then no serialization functions will be available in the library.
 
 ### Different versions of iconv on OSX
 
+@note OSX Package manager: We recommend using `brew` as the package manager for OSX.
+
 Unfortunately there are two different (and incompatible) versions of `libiconv` readily available for OSX. One library 
-that uses the prefix "`iconv_*`" and the other "`libiconv_*`" on its exported functions. Compiling `libhpdftbl` 
+that uses the prefix `iconv_*` and the other `libiconv_*` on its exported functions. Compiling `libhpdftbl` 
 requires the first of these which is the prevalent version and the default on both OSX and Linux.
 
 This is almost exclusively an issue for those that actively develop on OSX and may have over time installed 
@@ -221,7 +220,7 @@ To install the library use
 $> make install
 ```
 
-This will install headers and library under "`/usr/local`" (unless the prefix was changed when running the `configure`)
+This will install headers and library under `/usr/local` (unless the prefix was changed when running the `configure`)
 
 ## Miscellaneous 
 
@@ -282,6 +281,8 @@ not work for anyone else since it requires write access to the doc repo (through
 
 The source files are suitable augmented to also compile on MS Windows with selective defines. However, 
 this is on a best effort basis since I have no longer access to a Windows system to verify the workings. 
+So, basically there is expected to some minor configuration issues when building on windows.
+ Patches are welcome! 
 
 
 ### Some notes on using C or C++ to build
