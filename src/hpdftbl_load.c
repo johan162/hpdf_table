@@ -484,8 +484,9 @@ hpdftbl_loads(hpdftbl_t tbl, char *buff) {
     return -1;
 }
 
-#endif
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
+
 #endif

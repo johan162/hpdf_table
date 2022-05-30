@@ -319,8 +319,9 @@ hpdftbl_dumps(hpdftbl_t tbl, char *buff, size_t buffsize) {
     return 0;
 }
 
-#endif
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
+
 #endif
