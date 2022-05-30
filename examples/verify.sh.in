@@ -39,7 +39,7 @@ check_rundir() {
   [ ! "$parent_dir" == examples ] && echo "Script must be run from examples directory" && exit 1
 }
 
-# Remove old aand reset tests with latest generated PDFs
+# Remove old PDFs and reset tests with latest generated PDFs
 reset_tests() {
   rm -rf tests out
   mkdir tests
@@ -55,7 +55,7 @@ reset_tests() {
   done
 }
 
-# Run all programs and stor the output in "out/" and then compare
+# Run all programs and store the output in "out/" and then compare
 # the newly generated PDFs with the previous "correct" PDFs in
 # tests.
 cmp_outputs() {
@@ -68,6 +68,9 @@ cmp_outputs() {
   for f in @srcdir@/*.c; do
     ff=${f##*/}
     prog=${ff%%.c}
+    if [ ! -e ${prog} ]; then
+        continue
+    fi
     outfile="out/${prog}.pdf"
     "./$prog" "$outfile" > /dev/null
     if [ $? -ne 0 ]; then

@@ -69,9 +69,11 @@ AC_CHECK_LIB(jansson, json_object_get,HAVE_LIBJANSSON="true",HAVE_LIBJANSSON="fa
 if test "x$HAVE_LIBJANSSON" = "xtrue"; then
 	AC_DEFINE(HAVE_LIBJANSSON,1,[True if system have json library jansson])
 	LIBS+="-ljansson"
-else
-	AC_DEFINE(HAVE_LIBJANSSON,0,[True if system have json library jansson])
 fi
+
+# else
+# 	AC_DEFINE(HAVE_LIBJANSSON,0,[True if system have json library jansson])
+# fi
 AM_CONDITIONAL(have_libjansson, test "x$HAVE_LIBJANSSON" = "xtrue")
 
 # We need to determine which ranlib to use in order to build our static library
