@@ -53,7 +53,7 @@ setupbasedir() {
 # Configure build system for debugging
 stdsetup() {
   cd ${PACKAGE_BASEDIR}
-  ./configure CFLAGS="-O3"
+  ./configure CFLAGS="-O3" --enable-silent-rules
   make clean
   make
 }
