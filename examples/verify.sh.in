@@ -19,7 +19,7 @@ infolog() {
 # User information
 # Arg 1: Info text to display
 errlog() {
-    [ $quiet_flag -eq 0 ] && printf "***ERROR***: %s\n" "$1" >&2
+    [ $quiet_flag -eq 0 ] && printf "Err:  ** %s **\n" "$1" >&2
 }
 
 # Print usage
@@ -93,14 +93,15 @@ cmp_outputs() {
       fi
     fi
   done
-
   infolog "================================="
   if [ $success -eq 1 ]; then
     infolog "SUCCESS! $passcnt/$cnt tests passed."
+    infolog "================================="
   else
     errlog "FAIL! $passcnt/$cnt tests passed."
+    infolog "================================="
+    exit 1
   fi
-  infolog "================================="
 }
 
 # Validate current working dir
