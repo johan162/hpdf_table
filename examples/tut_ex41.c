@@ -2,7 +2,6 @@
  * @file
  */
 
-#include <yaml.h>
 #include "unit_test.inc.h"
 
 #ifndef _MSC_VER
