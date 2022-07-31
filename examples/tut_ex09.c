@@ -36,7 +36,7 @@ cb_style(void *tag, size_t r, size_t c, char *content, hpdf_text_style_t *style)
 
 static char *
 cb_content(void *tag, size_t r, size_t c) {
-    static char buf[32];
+    static char buf[64];
     if( 0==r && 0==c ) return NULL;
 
     if( 0==c ) {
