@@ -44,6 +44,7 @@ case $host_os in
 		AM_CONDITIONAL(IS_OSX, false)
 		AC_DEFINE(IS_OSX,0,[True if system type is Apple OSX])
 		AC_DEFINE(IS_LINUX,1,[True if system type is Linux])
+		LIBS+="-ldl "
 		;;
   *)
         AC_MSG_ERROR([Only Linux and OSX platforms are currently supported])
@@ -68,13 +69,10 @@ AC_CHECK_LIB(jansson, json_object_get,HAVE_LIBJANSSON="true",HAVE_LIBJANSSON="fa
 
 if test "x$HAVE_LIBJANSSON" = "xtrue"; then
 	AC_DEFINE(HAVE_LIBJANSSON,1,[True if system have json library jansson])
-	LIBS+="-ljansson"
+	LIBS+="-ljansson "
 fi
 
-# else
-# 	AC_DEFINE(HAVE_LIBJANSSON,0,[True if system have json library jansson])
-# fi
-AM_CONDITIONAL(have_libjansson, test "x$HAVE_LIBJANSSON" = "xtrue")
+AM_CONDITIONAL(have_libjansson, [test "x$HAVE_LIBJANSSON" = "xtrue"])
 
 # We need to determine which ranlib to use in order to build our static library
 # AC_PROG_RANLIB
