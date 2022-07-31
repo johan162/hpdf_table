@@ -296,11 +296,20 @@ mkfullpath(char *filename) {
     const size_t len=strlen(filename)+strlen(TESTS_DIR)+1;
     char *fullpath = calloc(len, sizeof(char));
     if( NULL==fullpath ) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
         fprintf(stderr,"Error: Failed to allocate dynamic buffer (%s:%d)\n", __FUNCTION__ , __LINE__);
+#pragma GCC diagnostic pop
         exit(1);
     }
-    strlcat(fullpath,TESTS_DIR,len);
-    strlcat(fullpath,filename,len);
+    xstrlcat(fullpath,TESTS_DIR,len);
+    xstrlcat(fullpath,filename,len);
     return fullpath;
 }
 
