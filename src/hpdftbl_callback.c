@@ -14,6 +14,7 @@
  * @see LICENSE
  *
  */
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +30,7 @@
 #include <hpdf.h>
 #include <libgen.h>
 #include <sys/stat.h>
+
 #include <dlfcn.h>
 
 #include "hpdftbl.h"
@@ -281,7 +283,17 @@ hpdftbl_set_canvas_cb(hpdftbl_t t, hpdftbl_canvas_callback_t cb) {
  */
 int
 hpdftbl_set_content_dyncb(hpdftbl_t t, const char *cb_name) {
+
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_content_callback_t dyn_content_cb = (hpdftbl_content_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
     if( NULL == dyn_content_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
@@ -313,7 +325,16 @@ hpdftbl_set_content_dyncb(hpdftbl_t t, const char *cb_name) {
  */
 int
 hpdftbl_set_canvas_dyncb(hpdftbl_t t, const char *cb_name) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_canvas_callback_t dyn_canvas_cb = (hpdftbl_canvas_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
     if( NULL == dyn_canvas_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
@@ -347,7 +368,17 @@ hpdftbl_set_canvas_dyncb(hpdftbl_t t, const char *cb_name) {
  */
 int
 hpdftbl_set_label_dyncb(hpdftbl_t t, const char *cb_name) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_content_callback_t dyn_labels_cb = (hpdftbl_content_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
+
     if( NULL == dyn_labels_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
@@ -382,7 +413,17 @@ hpdftbl_set_label_dyncb(hpdftbl_t t, const char *cb_name) {
  */
 int
 hpdftbl_set_cell_label_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_name) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_content_callback_t dyn_labels_cb = (hpdftbl_content_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
+
     if( NULL == dyn_labels_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
@@ -416,7 +457,17 @@ hpdftbl_set_cell_label_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_nam
  */
 int
 hpdftbl_set_content_style_dyncb(hpdftbl_t t, const char *cb_name) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_content_style_callback_t dyn_style_cb = (hpdftbl_content_style_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
+
     if( NULL == dyn_style_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
@@ -454,7 +505,17 @@ hpdftbl_set_content_style_dyncb(hpdftbl_t t, const char *cb_name) {
  */
 int
 hpdftbl_set_cell_content_style_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_name) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_content_style_callback_t dyn_style_cb = (hpdftbl_content_style_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
+
     if( NULL == dyn_style_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
@@ -488,7 +549,17 @@ hpdftbl_set_cell_content_style_dyncb(hpdftbl_t t, size_t r, size_t c, const char
  */
 int
 hpdftbl_set_cell_content_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_name) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_content_callback_t dyn_content_cb = (hpdftbl_content_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
+
     if( NULL == dyn_content_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
@@ -518,7 +589,17 @@ hpdftbl_set_cell_content_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_n
  */
 int
 hpdftbl_set_cell_canvas_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_name) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_canvas_callback_t dyn_canvas_cb = (hpdftbl_canvas_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
+
     if( NULL == dyn_canvas_cb) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
@@ -545,7 +626,17 @@ hpdftbl_set_cell_canvas_dyncb(hpdftbl_t t, size_t r, size_t c, const char *cb_na
  */
 int
 hpdftbl_set_post_dyncb(hpdftbl_t t, const char *cb_name) {
+/*
+ * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
+ * However the ISO C standard actually forbids the conversion between a data pointer
+ * (which is what void * is) and a function pointer. So we need to exclude pedantic
+ * error checking here since otherwise it would be impossible to use dlsym(),
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     hpdftbl_callback_t dyn_post_cb = (hpdftbl_callback_t)dlsym(dl_handle, cb_name);
+#pragma GCC diagnostic pop
+
     if( NULL == dyn_post_cb ) {
         _HPDFTBL_SET_ERR_EXTRA(cb_name);
         _HPDFTBL_SET_ERR(t, -14, -1, -1);
