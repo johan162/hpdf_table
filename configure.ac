@@ -3,12 +3,13 @@
 # Use scripts/bootstrap.sh to bootstrap the build environment
 # ===============================================================================
 AC_PREREQ([2.69])
-AC_INIT([libhpdftbl],[1.4.2],[johan162@gmail.com])
+AC_INIT([libhpdftbl],[1.4.3],[johan162@gmail.com])
 AC_COPYRIGHT([Part of configure script (C) 2022 Johan Persson <johan162@gmail.com>])
 AC_PREFIX_DEFAULT(/usr/local)
-AM_INIT_AUTOMAKE([dist-xz silent-rules])
+AM_INIT_AUTOMAKE([silent-rules])
 AM_SILENT_RULES
 AM_PROG_AR
+AC_PROG_CC
 AC_CONFIG_HEADERS([src/config.h])
 LT_INIT
 AC_CONFIG_MACRO_DIRS([m4])
@@ -44,7 +45,7 @@ case $host_os in
 		AM_CONDITIONAL(IS_OSX, false)
 		AC_DEFINE(IS_OSX,0,[True if system type is Apple OSX])
 		AC_DEFINE(IS_LINUX,1,[True if system type is Linux])
-		LIBS+=-ldl
+		LIBS="-ldl $LIBS"
 		;;
   *)
         AC_MSG_ERROR([Only Linux and OSX platforms are currently supported])
@@ -69,7 +70,7 @@ AC_CHECK_LIB(jansson, json_object_get,HAVE_LIBJANSSON="true",HAVE_LIBJANSSON="fa
 
 if test "x$HAVE_LIBJANSSON" = "xtrue"; then
 	AC_DEFINE(HAVE_LIBJANSSON,1,[True if system have json library jansson])
-	LIBS+=-ljansson
+	LIBS="-ljansson $LIBS"
 fi
 
 AM_CONDITIONAL(have_libjansson, [test "x$HAVE_LIBJANSSON" = "xtrue"])
