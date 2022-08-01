@@ -1,4 +1,4 @@
-AM_CFLAGS = -pedantic -Wall -Werror -Wextra -Wpointer-arith -Wstrict-prototypes -Wno-error=unknown-pragmas
+AM_CFLAGS = -pedantic -Wall -Werror -Wextra -Wpointer-arith -Wstrict-prototypes -Wno-error=unknown-pragmas -std=gnu99
 
 lib_LTLIBRARIES = libhpdftbl.la
 libhpdftbl_la_SOURCES = hpdftbl_errstr.c hpdftbl_grid.c hpdftbl.c hpdftbl_widget.c \

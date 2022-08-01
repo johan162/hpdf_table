@@ -1,5 +1,5 @@
 AM_CFLAGS =  -pedantic -Wall -Werror -Wpointer-arith -Wstrict-prototypes \
--Wextra -Wshadow -Wno-error=unknown-pragmas -Werror=format -Wformat=2
+-Wextra -Wshadow -Wno-error=unknown-pragmas -Werror=format -Wformat=2 -std=gnu99
 
 FILES = example01 tut_ex00 tut_ex01 tut_ex02 tut_ex02_1 tut_ex03 tut_ex04 tut_ex05 tut_ex06 tut_ex07 tut_ex08 \
         tut_ex09 tut_ex10 tut_ex11 tut_ex12 tut_ex13_1 tut_ex13_2 tut_ex14 tut_ex15 tut_ex15_1 tut_ex16_dash \
