@@ -297,10 +297,8 @@ mkfullpath(char *filename) {
     char *fullpath = calloc(len, sizeof(char));
     if( NULL==fullpath ) {
 /*
- * The GNU library is inconsistent here and the dlsym() returns a (void *) pointer.
- * However the ISO C standard actually forbids the conversion between a data pointer
- * (which is what void * is) and a function pointer. So we need to exclude pedantic
- * error checking here since otherwise it would be impossible to use dlsym(),
+ * ISO C does not support ‘__FUNCTION__’ predefined identifier, so we need to relax the
+ * pedantic error checking for the fprintf() statement.
  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
