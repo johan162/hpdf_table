@@ -45,7 +45,8 @@ case $host_os in
 		AM_CONDITIONAL(IS_OSX, false)
 		AC_DEFINE(IS_OSX,0,[True if system type is Apple OSX])
 		AC_DEFINE(IS_LINUX,1,[True if system type is Linux])
-		LIBS="-ldl $LIBS"
+		LIBS="-ldl -lm $LIBS"
+		LDFLAGS="-rdynamic $LDFLAGS"
 		;;
   *)
         AC_MSG_ERROR([Only Linux and OSX platforms are currently supported])
