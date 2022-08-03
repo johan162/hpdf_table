@@ -218,3 +218,21 @@ The complete table function is shown below and the full example be found in @ref
 @skip void
 @until }
 
+### Late binding, serialization and compiler flag
+
+One of the areas that will force the use of late binding is serialization. If a table is serialized (to JSON) then
+the only option is to store callback functions as names that will be written in the JSON data object.
+
+When reading back a serialized table it is of course necessary for there to a callback function with the
+exact same name in the program. 
+
+Unfortunately, depending on the architecture being developed on this might not be sufficient for the library to
+find and resolve the function.  
+
+On **OSX** this works out of the box as all symbols are exported.
+On **Linux** however, the linker  flag `-rdynamic` have to be added in the linker step. This flag forces all 
+symbols  to the dynamic symbol table.  The dynamic symbol table is the set of symbols which are visible from dynamic 
+objects at run time. Another way to describe the effect of `-rdynamic` is that symbols are only exported by 
+default from shared libraries. `-rdynamic` tells linker to do the same for executables.
+
+Note: On OSX all symbols are exported by `clang` so this flag is not necessary (but does no harm).
