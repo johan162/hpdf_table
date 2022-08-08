@@ -30,13 +30,17 @@ SRC_FILES = ../src/hpdftbl.c \
 
 if have_doxygen
 
-html-local: out/html/index.html
+html-local: out/html/index.html | out
 
 maintainer-clean-local:
 	rm -rf out
 
-out/html/index.html: Doxyfile.in $(SRC_FILES) $(DOC_FILES)
+out/html/index.html: Doxyfile.in $(SRC_FILES) $(DOC_FILES) | out
 	doxygen
+
+out:
+	mkdir -p out/html
+	mkdir -p out/latex
 
 if have_pdflatex
 
