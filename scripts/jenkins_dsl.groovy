@@ -3,6 +3,7 @@ job('hpdf_table_ub18') {
   scm {
     git {
       remote {
+        name('origin')
         url('https://github.com/johan162/hpdf_table.git')
         branch('*/master')
       }
@@ -29,6 +30,7 @@ job('hpdf_table_ub20') {
   scm {
     git {
       remote {
+        name('origin')
         url('https://github.com/johan162/hpdf_table.git')
         branch('*/master')
       }
@@ -55,6 +57,7 @@ job('hpdf_table_ub22') {
   scm {
     git {
       remote {
+        name('origin')
         url('https://github.com/johan162/hpdf_table.git')
         branch('*/master')
       }
