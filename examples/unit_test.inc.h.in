@@ -51,7 +51,7 @@ jmp_buf _hpdftbl_jmp_env;
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#define TESTS_DIR "@srcdir@/tests/"
+#define TESTS_DIR "@srcdir@/tests_@HARU_NAME@/"
 
 /**
  * @brief A standard hpdf error handler which also translates the hpdf error code to a human-readable string.

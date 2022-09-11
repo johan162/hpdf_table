@@ -9,7 +9,7 @@ if have_libjansson
 FILES+=tut_ex40 tut_ex41
 endif
 
-EXTRA_DIST = tests verify.sh unit_test.inc.h.in
+EXTRA_DIST = tests_libharu tests_libhpdf gen_json verify.sh.in unit_test.inc.h.in
 
 noinst_bin_PROGRAMS = $(FILES)
 noinst_bindir = $(pwd)

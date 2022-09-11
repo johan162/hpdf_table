@@ -3,7 +3,7 @@
 # Use scripts/bootstrap.sh to bootstrap the build environment
 # ===============================================================================
 AC_PREREQ([2.69])
-AC_INIT([libhpdftbl],[1.4.4-dev],[johan162@gmail.com])
+AC_INIT([libhpdftbl],[1.5.0],[johan162@gmail.com])
 AC_COPYRIGHT([Part of configure script (C) 2022 Johan Persson <johan162@gmail.com>])
 AC_PREFIX_DEFAULT(/usr/local)
 AM_INIT_AUTOMAKE([silent-rules])
@@ -45,6 +45,8 @@ case $host_os in
 		AM_CONDITIONAL(IS_OSX, false)
 		AC_DEFINE(IS_OSX,0,[True if system type is Apple OSX])
 		AC_DEFINE(IS_LINUX,1,[True if system type is Linux])
+		# If exists this will also add -lhpdf to the LIBS
+		AC_CHECK_LIB(hpdf, HPDF_New,,AC_MSG_ERROR([No libhpdf found. Please install libhpdf-dev (or similar)]))
 		LIBS="-ldl -lm $LIBS"
 		LDFLAGS="-rdynamic $LDFLAGS"
 		;;
@@ -53,16 +55,49 @@ case $host_os in
         ;;
 esac
 
+AC_CHECK_LIB(hpdf, HPDF_New,,
+  AC_CHECK_LIB(haru, HPDF_New,,AC_MSG_ERROR([No libhpdf found.])))
+
+#AC_CHECK_LIB(haru, HPDF_New,,AC_MSG_NOTICE([No libharu found.]))
+#AC_CHECK_LIB(hpdf, HPDF_New,,AC_MSG_NOTICE([No libhpdf found.]))
+
+# Store the libname in HARU_NAME to use as substitution since we need
+# to have different test cases for the "old" and "new" version of
+# the library
+if $(echo "$LIBS"|grep 'hpdf'>/dev/null); then
+    AC_SUBST(HARU_NAME,libhpdf)
+elif $(echo "$LIBS"|grep 'haru'>/dev/null); then
+    AC_SUBST(HARU_NAME,libharu)
+else
+    AC_MSG_ERROR([No libhpdf nor libharu found. Please install core library])
+fi
+
+AC_CHECK_HEADERS(hpdf.h,,AC_MSG_ERROR([libharu (macOS) or libhpdf (Linux) is not installed. Header hpdf.h missing]))
+
+# Add option to disable the building of the examples
+AC_ARG_ENABLE(examples,
+  [--enable-examples   Enable/disable building of examples],
+  [case "${enableval}" in
+     yes | no ) WITH_EXAMPLES="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --enable-examples) ;;
+   esac],
+  [WITH_EXAMPLES="yes"]
+)
+
+# We need an automake variable to test for this in the Makefile
+AM_CONDITIONAL([WITH_EXAMPLES], [test "x$WITH_EXAMPLES" = "xyes"])
+
+# We also record the setting in the config.h file
+if test "x$WITH_EXAMPLES" = "xyes"; then
+    AC_DEFINE([WITH_EXAMPLES], [], ["build examples"])
+    AC_MSG_NOTICE([Examples will be built])
+else
+    AC_MSG_NOTICE([No examples will be built])
+fi
+
 AC_LANG([C])
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-
-# Sanity check
-AC_CHECK_HEADERS(hpdf.h,,AC_MSG_ERROR([libharu not installed hpdf.h missing]))
-
-# Add double check that the library is actually working
-# If exists this will also add -lhpdf to the LIBS
-AC_CHECK_LIB(hpdf, HPDF_New,,AC_MSG_ERROR([No libhpdf found. Please install libhpdf-dev (or similar)]))
 
 # Find out if we can compile with -ljansson or not.
 # If exists this will also add -ljansson to the LIBS
@@ -103,6 +138,11 @@ if test x$SYSTEM_NAME = xDarwin; then
     AC_MSG_NOTICE([  - Build configured for OSX.])
 else
     AC_MSG_NOTICE([  - Build configured for ${SYSTEM_NAME}.])
+fi
+if test x$WITH_EXAMPLES = "xyes"; then
+    AC_MSG_NOTICE([  - Will build examples.])
+else
+    AC_MSG_NOTICE([  - Will NOT build examples.])
 fi
 if test "x$HAVE_LIBJANSSON" = "xtrue"; then
 	AC_MSG_NOTICE([  - Build configured with json export/import functions])

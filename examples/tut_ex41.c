@@ -24,17 +24,20 @@ create_table_ex41(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
     hpdftbl_t tbl = calloc(1, sizeof (struct hpdftbl));
     hpdftbl_theme_t theme;
 
-    if(0 == hpdftbl_load(tbl, mkfullpath("tut_ex41.json"))  ) {
+    if(0 == hpdftbl_load(tbl, mkfullpath("tut_ex41.json"))) {
+        fprintf(stderr,"Loaded %s\n",mkfullpath("tut_ex41.json"));
 
         if(0 == hpdftbl_theme_load(&theme, mkfullpath("tut41_theme.json"))) {
             hpdftbl_apply_theme(tbl, &theme);
             hpdftbl_stroke_pos(pdf_doc, pdf_page, tbl);
+            fprintf(stderr,"Loaded %s\n",mkfullpath("tut41_theme.json"));
         } else {
-            fprintf(stderr,"%s\n","Failed to load 'tests/default_theme.json'\n");
+            fprintf(stderr,"Failed to load: %s\n", mkfullpath("tut41_theme.json"));
             exit(1);
         }
+
     } else {
-        fprintf(stderr,"%s\n","Failed to load 'tests/tut_ex41.json'\n");
+        fprintf(stderr,"Failed to load: %s\n", mkfullpath("tut_ex41.json"));
         exit(1);
     }
 

@@ -38,6 +38,8 @@ There are two mandatory and one semi-otional external library required to fully 
 1. **libhpdf** - The Haru PDF library. On OSX this is most easily installed by using the `brew` OSX package manager. 
 The library is available as `libharu` as of this writing the latest version is `libharu-2.3.0`  
 
+    >**NOTE:** In June 2022 a new version of libharu, v2.4.0 was released. This had some breaking changes so if you have installed that library you need at least hpdftbl v1.5.0.  
+
 2. **iconv** - The character encoding conversion library. On OSX > 11.x this is included by default once you 
 have `xcode` command line tools installed which is basically a pre-requisite required for all development on OSX. *On ancient versions of OSX this was not the case.*
 

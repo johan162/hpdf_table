@@ -8,7 +8,9 @@
 ## -h          : Print help and exit
 ## -q          : Quiet
 ## -r          : Reset tests with new generated PDF
+## HARU_NAME=@HARU_NAME@
 
+declare HARU_NAME=@HARU_NAME@
 declare -i quiet_flag=0
 # User information
 # Arg 1: Info text to display
@@ -41,12 +43,14 @@ check_rundir() {
 
 # Remove old PDFs and reset tests with latest generated PDFs
 reset_tests() {
-  rm -rf tests out
-  mkdir tests
-  infolog "Resetting test data ..."
+  rm -rf out
+  if [[ -d tests_${HARU_NAME} ]]; then rm -rf tests_${HARU_NAME}; fi
+  mkdir tests_${HARU_NAME}
+  cp gen_json/*.json tests_${HARU_NAME}
+  infolog "Resetting test data in tests_${HARU_NAME}"
   for f in *.c; do
     prog=${f%%.c}
-    outfile="@srcdir@/tests/${f%%.c}.pdf"
+    outfile="@srcdir@/tests_${HARU_NAME}/${f%%.c}.pdf"
     infolog "Running. ${prog} ${outfile}"
     ./${prog} "$outfile" > /dev/null
     if [ $? -ne 0 ]; then
@@ -77,7 +81,7 @@ cmp_outputs() {
       errlog "${prog} failed to run"
       success=0
     else
-      tstfile="@srcdir@/tests/${prog}.pdf"
+      tstfile="@srcdir@/tests_${HARU_NAME}/${prog}.pdf"
 
       # Skip this file if there are no test case
       if [ -f ${tstfile} ]; then

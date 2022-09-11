@@ -64,8 +64,14 @@ hpdftbl_error_handler_t hpdftbl_err_handler = NULL;
 /**
  * @brief Definition of a dashed line style
  */
+
 typedef struct line_dash_style {
+// From version 2.4.0 when the library changed name to libharu this was also changed to a REAL
+#ifdef HAVE_LIBHARU
+    HPDF_REAL dash_ptn[8]; /**< HPDF dash line definition */
+#else
     HPDF_UINT16 dash_ptn[8]; /**< HPDF dash line definition */
+#endif
     size_t num;              /**< Number of segments in the dashed line */
 } line_dash_style_t;
 
@@ -73,7 +79,7 @@ typedef struct line_dash_style {
  * @brief Vector with defined line styles.
  *
  * Each row defines a line segment in points and spaces and how many segments are used.
- * For example: A sgement defined as
+ * For example: A segment defined as
  * (1,1) Means 1pt solid, 1pt space, which are repeated
  *
  * @see line_dash_style_t

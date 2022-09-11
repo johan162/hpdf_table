@@ -24,6 +24,9 @@ create_table_ex40(HPDF_Doc pdf_doc, HPDF_Page pdf_page) {
 #if FROM_JSON == 1
     if(0 == hpdftbl_load(tbl, mkfullpath("tut_ex40.json"))  ) {
         hpdftbl_stroke_pos(pdf_doc, pdf_page, tbl);
+    } else {
+        fprintf(stderr, "Failed to load: %s\n", mkfullpath("tut_ex40.json"));
+        exit(1);
     }
 #else
     const size_t num_rows = 2;
