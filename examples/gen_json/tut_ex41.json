@@ -1,0 +1,279 @@
+{
+"version": 1,
+"table": {
+  "tag": "",
+  "rows": 4,
+  "cols": 2,
+  "posx": 28.34645653,
+  "posy": 813.54333496,
+  "height": 114.00000000,
+  "minrowheight": 0.00000000,
+  "width": 226.77165222,
+  "bottom_vmargin_factor": 0.50000000,
+  "title_txt": "",
+  "anchor_is_top_left": true,
+  "use_header_row": false,
+  "use_cell_labels": true,
+  "use_label_grid_style": true,
+  "use_zebra": true,
+  "zebra_phase": 0,
+  "zebra_color1": [1.00000, 1.00000, 1.00000],
+  "zebra_color2": [0.95000, 0.95000, 0.95000],
+  "outer_grid": {
+    "width": 1.00000000,
+    "color": [0.20000, 0.20000, 0.20000],
+    "dashstyle": 0 
+  },
+  "inner_vgrid": {
+    "width": 0.69999999,
+    "color": [0.50000, 0.50000, 0.50000],
+    "dashstyle": 0 
+  },
+  "inner_hgrid": {
+    "width": 0.69999999,
+    "color": [0.50000, 0.50000, 0.50000],
+    "dashstyle": 0 
+  },
+  "inner_tgrid": {
+    "width": 0.69999999,
+    "color": [0.50000, 0.50000, 0.50000],
+    "dashstyle": 0 
+  },
+  "content_style": {
+    "font": "Courier",
+    "fsize": 10.00000000,
+    "color": [0.20000, 0.20000, 0.20000],
+    "background": [1.00000, 1.00000, 1.00000],
+    "halign": 0 
+  },
+  "title_style": {
+    "font": "Helvetica-Bold",
+    "fsize": 11.00000000,
+    "color": [0.00000, 0.00000, 0.00000],
+    "background": [0.90000, 0.90000, 0.90000],
+    "halign": 0 
+  },
+  "header_style": {
+    "font": "Helvetica-Bold",
+    "fsize": 10.00000000,
+    "color": [0.00000, 0.00000, 0.00000],
+    "background": [0.90000, 0.90000, 0.97000],
+    "halign": 1 
+  },
+  "label_style": {
+    "font": "Times-Italic",
+    "fsize": 9.00000000,
+    "color": [0.40000, 0.40000, 0.40000],
+    "background": [1.00000, 1.00000, 1.00000],
+    "halign": 0 
+  },
+  "col_width_percent": [
+    50.000000, 50.000000
+  ],
+  "label_dyncb": "",
+  "content_dyncb": "",
+  "content_style_dyncb": "",
+  "canvas_dyncb": "",
+  "post_dyncb": "",
+  "cells": [
+    {
+      "row": 0,
+      "col": 0,
+      "label": "Label 0:",
+      "content": "Content 0",
+      "colspan": 2,
+      "rowspan": 1,
+      "height": 28.50000000,
+      "width": 226.77165222,
+      "delta_x": 0.00000000,
+      "delta_y": 85.50000000,
+      "textwidth": 0.00000000,
+      "content_dyncb": "",
+      "label_dyncb": "",
+      "content_style_dyncb": "",
+      "canvas_dyncb": "",
+      "content_style": {
+        "font": "",
+        "fsize": 0.00000000,
+        "color": [0.00000, 0.00000, 0.00000],
+        "background": [0.00000, 0.00000, 0.00000],
+        "halign": 0 
+      } 
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "label": "Label 1:",
+      "content": "Content 1",
+      "colspan": 1,
+      "rowspan": 1,
+      "height": 28.50000000,
+      "width": 113.38582611,
+      "delta_x": 113.38582611,
+      "delta_y": 85.50000000,
+      "textwidth": 0.00000000,
+      "content_dyncb": "",
+      "label_dyncb": "",
+      "content_style_dyncb": "",
+      "canvas_dyncb": "",
+      "parent": {
+        "row": 0,
+        "col": 0 
+      },
+      "content_style": {
+        "font": "",
+        "fsize": 0.00000000,
+        "color": [0.00000, 0.00000, 0.00000],
+        "background": [0.00000, 0.00000, 0.00000],
+        "halign": 0 
+      } 
+    },
+    {
+      "row": 1,
+      "col": 0,
+      "label": "Label 2:",
+      "content": "Content 2",
+      "colspan": 0,
+      "rowspan": 0,
+      "height": 28.50000000,
+      "width": 113.38582611,
+      "delta_x": 0.00000000,
+      "delta_y": 57.00000000,
+      "textwidth": 0.00000000,
+      "content_dyncb": "",
+      "label_dyncb": "",
+      "content_style_dyncb": "",
+      "canvas_dyncb": "",
+      "content_style": {
+        "font": "",
+        "fsize": 0.00000000,
+        "color": [0.00000, 0.00000, 0.00000],
+        "background": [0.00000, 0.00000, 0.00000],
+        "halign": 0 
+      } 
+    },
+    {
+      "row": 1,
+      "col": 1,
+      "label": "Label 3:",
+      "content": "Content 3",
+      "colspan": 0,
+      "rowspan": 0,
+      "height": 28.50000000,
+      "width": 113.38582611,
+      "delta_x": 113.38582611,
+      "delta_y": 57.00000000,
+      "textwidth": 0.00000000,
+      "content_dyncb": "",
+      "label_dyncb": "",
+      "content_style_dyncb": "",
+      "canvas_dyncb": "",
+      "content_style": {
+        "font": "",
+        "fsize": 0.00000000,
+        "color": [0.00000, 0.00000, 0.00000],
+        "background": [0.00000, 0.00000, 0.00000],
+        "halign": 0 
+      } 
+    },
+    {
+      "row": 2,
+      "col": 0,
+      "label": "Label 4:",
+      "content": "Content 4",
+      "colspan": 0,
+      "rowspan": 0,
+      "height": 28.50000000,
+      "width": 113.38582611,
+      "delta_x": 0.00000000,
+      "delta_y": 28.50000000,
+      "textwidth": 0.00000000,
+      "content_dyncb": "",
+      "label_dyncb": "",
+      "content_style_dyncb": "",
+      "canvas_dyncb": "",
+      "content_style": {
+        "font": "",
+        "fsize": 0.00000000,
+        "color": [0.00000, 0.00000, 0.00000],
+        "background": [0.00000, 0.00000, 0.00000],
+        "halign": 0 
+      } 
+    },
+    {
+      "row": 2,
+      "col": 1,
+      "label": "Label 5:",
+      "content": "Content 5",
+      "colspan": 0,
+      "rowspan": 0,
+      "height": 28.50000000,
+      "width": 113.38582611,
+      "delta_x": 113.38582611,
+      "delta_y": 28.50000000,
+      "textwidth": 0.00000000,
+      "content_dyncb": "",
+      "label_dyncb": "",
+      "content_style_dyncb": "",
+      "canvas_dyncb": "",
+      "content_style": {
+        "font": "",
+        "fsize": 0.00000000,
+        "color": [0.00000, 0.00000, 0.00000],
+        "background": [0.00000, 0.00000, 0.00000],
+        "halign": 0 
+      } 
+    },
+    {
+      "row": 3,
+      "col": 0,
+      "label": "Label 6:",
+      "content": "Content 6",
+      "colspan": 0,
+      "rowspan": 0,
+      "height": 28.50000000,
+      "width": 113.38582611,
+      "delta_x": 0.00000000,
+      "delta_y": 0.00000000,
+      "textwidth": 0.00000000,
+      "content_dyncb": "",
+      "label_dyncb": "",
+      "content_style_dyncb": "",
+      "canvas_dyncb": "",
+      "content_style": {
+        "font": "",
+        "fsize": 0.00000000,
+        "color": [0.00000, 0.00000, 0.00000],
+        "background": [0.00000, 0.00000, 0.00000],
+        "halign": 0 
+      } 
+    },
+    {
+      "row": 3,
+      "col": 1,
+      "label": "Label 7:",
+      "content": "Content 7",
+      "colspan": 0,
+      "rowspan": 0,
+      "height": 28.50000000,
+      "width": 113.38582611,
+      "delta_x": 113.38582611,
+      "delta_y": 0.00000000,
+      "textwidth": 0.00000000,
+      "content_dyncb": "",
+      "label_dyncb": "",
+      "content_style_dyncb": "",
+      "canvas_dyncb": "",
+      "content_style": {
+        "font": "",
+        "fsize": 0.00000000,
+        "color": [0.00000, 0.00000, 0.00000],
+        "background": [0.00000, 0.00000, 0.00000],
+        "halign": 0 
+      } 
+    } 
+
+    ] 
+  } 
+}
+
